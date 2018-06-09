@@ -1,0 +1,156 @@
+name:                  phoityne-vscode
+version:               0.0.24.0
+synopsis:              Haskell Debug Adapter for Visual Studio Code.
+description:           Please see README.md
+license:               BSD3
+license-file:          LICENSE
+author:                phoityne_hs
+maintainer:            phoityne.hs@gmail.com
+homepage:              https://github.com/phoityne/phoityne-vscode
+bug-reports:           https://github.com/phoityne/phoityne-vscode/issues
+copyright:             2016-2018 phoityne_hs
+category:              Development
+build-type:            Simple
+cabal-version:         >=1.10
+extra-source-files:    README.md
+                     , Changelog.md
+
+executable phoityne-vscode
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  other-modules:       Paths_phoityne_vscode
+                     , Phoityne.VSCode.Argument
+                     , Phoityne.VSCode.Control
+                     , Phoityne.VSCode.Core
+                     , Phoityne.VSCode.Constant
+                     , Phoityne.VSCode.Type
+                     , Phoityne.VSCode.Utility
+                     , Phoityne.VSCode.Utility
+                     , Phoityne.VSCode.TH.BreakpointJSON
+                     , Phoityne.VSCode.TH.ColumnDescriptorJSON
+                     , Phoityne.VSCode.TH.CompletionsItemJSON
+                     , Phoityne.VSCode.TH.CompletionsArgumentsJSON
+                     , Phoityne.VSCode.TH.CompletionsResponseBodyJSON
+                     , Phoityne.VSCode.TH.CompletionsRequestJSON
+                     , Phoityne.VSCode.TH.CompletionsResponseJSON
+                     , Phoityne.VSCode.TH.ConfigurationDoneRequestJSON
+                     , Phoityne.VSCode.TH.ConfigurationDoneResponseJSON
+                     , Phoityne.VSCode.TH.ContinueArgumentsJSON
+                     , Phoityne.VSCode.TH.ContinueRequestJSON
+                     , Phoityne.VSCode.TH.ContinueResponseJSON
+                     , Phoityne.VSCode.TH.DisconnectArgumentsJSON
+                     , Phoityne.VSCode.TH.DisconnectRequestJSON
+                     , Phoityne.VSCode.TH.DisconnectResponseJSON
+                     , Phoityne.VSCode.TH.ErrorResponseBodyJSON
+                     , Phoityne.VSCode.TH.ErrorResponseJSON
+                     , Phoityne.VSCode.TH.EvaluateArgumentsJSON
+                     , Phoityne.VSCode.TH.EvaluateBodyJSON
+                     , Phoityne.VSCode.TH.EvaluateRequestJSON
+                     , Phoityne.VSCode.TH.EvaluateResponseJSON
+                     , Phoityne.VSCode.TH.ExceptionBreakpointsFilterJSON
+                     , Phoityne.VSCode.TH.ExitedEventBodyJSON
+                     , Phoityne.VSCode.TH.ExitedEventJSON
+                     , Phoityne.VSCode.TH.FunctionBreakpointJSON
+                     , Phoityne.VSCode.TH.InitializedEventJSON
+                     , Phoityne.VSCode.TH.InitializeRequestArgumentsJSON
+                     , Phoityne.VSCode.TH.InitializeRequestJSON
+                     , Phoityne.VSCode.TH.InitializeResponseCapabilitiesJSON
+                     , Phoityne.VSCode.TH.InitializeResponseJSON
+                     , Phoityne.VSCode.TH.LaunchRequestArgumentsJSON
+                     , Phoityne.VSCode.TH.LaunchRequestJSON
+                     , Phoityne.VSCode.TH.LaunchResponseJSON
+                     , Phoityne.VSCode.TH.MessageJSON
+                     , Phoityne.VSCode.TH.ModuleJSON
+                     , Phoityne.VSCode.TH.ModulesArgumentsJSON
+                     , Phoityne.VSCode.TH.ModulesRequestJSON
+                     , Phoityne.VSCode.TH.ModulesResponseBodyJSON
+                     , Phoityne.VSCode.TH.ModulesResponseJSON
+                     , Phoityne.VSCode.TH.NextArgumentsJSON
+                     , Phoityne.VSCode.TH.NextRequestJSON
+                     , Phoityne.VSCode.TH.NextResponseJSON
+                     , Phoityne.VSCode.TH.OutputEventJSON
+                     , Phoityne.VSCode.TH.OutputEventBodyJSON
+                     , Phoityne.VSCode.TH.PauseArgumentsJSON
+                     , Phoityne.VSCode.TH.PauseRequestJSON
+                     , Phoityne.VSCode.TH.PauseResponseJSON
+                     , Phoityne.VSCode.TH.RequestJSON
+                     , Phoityne.VSCode.TH.ResponseJSON 
+                     , Phoityne.VSCode.TH.ScopeJSON
+                     , Phoityne.VSCode.TH.ScopesArgumentsJSON
+                     , Phoityne.VSCode.TH.ScopesBodyJSON
+                     , Phoityne.VSCode.TH.ScopesRequestJSON
+                     , Phoityne.VSCode.TH.ScopesResponseJSON
+                     , Phoityne.VSCode.TH.SetBreakpointsArgumentsJSON
+                     , Phoityne.VSCode.TH.SetBreakpointsRequestJSON
+                     , Phoityne.VSCode.TH.SetBreakpointsResponseBodyJSON
+                     , Phoityne.VSCode.TH.SetBreakpointsResponseJSON
+                     , Phoityne.VSCode.TH.SetExceptionBreakpointsRequestArgumentsJSON
+                     , Phoityne.VSCode.TH.SetExceptionBreakpointsRequestJSON
+                     , Phoityne.VSCode.TH.SetExceptionBreakpointsResponseJSON
+                     , Phoityne.VSCode.TH.SetFunctionBreakpointsArgumentsJSON
+                     , Phoityne.VSCode.TH.SetFunctionBreakpointsRequestJSON
+                     , Phoityne.VSCode.TH.SetFunctionBreakpointsResponseBodyJSON
+                     , Phoityne.VSCode.TH.SetFunctionBreakpointsResponseJSON
+                     , Phoityne.VSCode.TH.SourceArgumentsJSON
+                     , Phoityne.VSCode.TH.SourceBreakpointJSON
+                     , Phoityne.VSCode.TH.SourceJSON
+                     , Phoityne.VSCode.TH.SourceRequestJSON
+                     , Phoityne.VSCode.TH.SourceResponseBodyJSON
+                     , Phoityne.VSCode.TH.SourceResponseJSON
+                     , Phoityne.VSCode.TH.StackFrameJSON
+                     , Phoityne.VSCode.TH.StackTraceArgumentsJSON
+                     , Phoityne.VSCode.TH.StackTraceBodyJSON
+                     , Phoityne.VSCode.TH.StackTraceRequestJSON
+                     , Phoityne.VSCode.TH.StackTraceResponseJSON
+                     , Phoityne.VSCode.TH.StepInArgumentsJSON
+                     , Phoityne.VSCode.TH.StepInRequestJSON
+                     , Phoityne.VSCode.TH.StepInResponseJSON
+                     , Phoityne.VSCode.TH.StepOutArgumentsJSON
+                     , Phoityne.VSCode.TH.StepOutRequestJSON
+                     , Phoityne.VSCode.TH.StepOutResponseJSON
+                     , Phoityne.VSCode.TH.StoppedEventBodyJSON
+                     , Phoityne.VSCode.TH.StoppedEventJSON
+                     , Phoityne.VSCode.TH.TerminatedEventBodyJSON
+                     , Phoityne.VSCode.TH.TerminatedEventJSON
+                     , Phoityne.VSCode.TH.ThreadJSON
+                     , Phoityne.VSCode.TH.ThreadsRequestJSON
+                     , Phoityne.VSCode.TH.ThreadsResponseBodyJSON
+                     , Phoityne.VSCode.TH.ThreadsResponseJSON
+                     , Phoityne.VSCode.TH.VariableJSON
+                     , Phoityne.VSCode.TH.VariablePresentationHintJSON
+                     , Phoityne.VSCode.TH.VariablesArgumentsJSON
+                     , Phoityne.VSCode.TH.VariablesBodyJSON
+                     , Phoityne.VSCode.TH.VariablesRequestJSON
+                     , Phoityne.VSCode.TH.VariablesResponseJSON
+                     , Phoityne.GHCi
+                     , Phoityne.GHCi.Command
+                     , Phoityne.GHCi.Process
+  build-depends:       base >= 4.7 && < 5
+                     , directory
+                     , Cabal
+                     , hslogger
+                     , ConfigFile
+                     , cmdargs
+                     , MissingH
+                     , safe
+                     , aeson
+                     , bytestring
+                     , containers
+                     , text
+                     , process
+                     , transformers
+                     , mtl
+                     , filepath
+                     , directory
+                     , parsec
+                     , split
+                     , fsnotify
+                     , conduit
+                     , conduit-extra
+                     , resourcet
+                     , safe-exceptions
+                     , lens
+                     , data-default
+  default-language:    Haskell2010
+
