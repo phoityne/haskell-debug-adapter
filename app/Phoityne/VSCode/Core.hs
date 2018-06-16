@@ -2179,7 +2179,7 @@ evaluateRequestHandler mvarCtx req = flip E.catches handlers $ do
 
     withProcess _ _ Nothing = sendErrorEvent mvarCtx "[evaluateRequestHandler] ghci not started."
 
-    withProcess "watch" exp (Just ghciProc) = G.showType ghciProc outHdl exp >>= \case
+    withProcess (Just "watch") exp (Just ghciProc) = G.showType ghciProc outHdl exp >>= \case
       Left err -> do
         errorM _LOG_NAME $ show err
         evaluateResponse err ""
@@ -2190,7 +2190,7 @@ evaluateRequestHandler mvarCtx req = flip E.catches handlers $ do
           Right valStr -> evaluateResponse (getOnlyValue valStr) (getOnlyType typeStr)
           Left _ -> evaluateResponse "" (getOnlyType typeStr)
 
-    withProcess "hover" exp (Just ghciProc) = G.showType ghciProc outHdl exp >>= \case
+    withProcess (Just "hover") exp (Just ghciProc) = G.showType ghciProc outHdl exp >>= \case
       Left err -> do
         errorM _LOG_NAME $ show err
         evaluateResponse err ""
