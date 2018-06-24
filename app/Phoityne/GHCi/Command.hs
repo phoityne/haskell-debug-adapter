@@ -35,7 +35,6 @@ module Phoityne.GHCi.Command (
   , exec
   , complete
   , dapCommand
-  , dapCommand2
   ) where
 
 import Control.Concurrent
@@ -708,37 +707,14 @@ unlock ::  GHCiProcess -> IO ()
 unlock ghci = putMVar (lockGHCiProcess ghci) Lock
 
 
-
 -- |
 --
 dapCommand :: GHCiProcess
            -> OutputHandler
            -> String
            -> String
-           -> IO (Either ErrorData String)
-dapCommand ghci outHdl cmdStr strDat = do
-  let cmd = cmdStr ++ " " ++ strDat
-
-  lock ghci
-  res <- exec ghci outHdl cmd >>= \case
-    Left err -> return $ Left err
-    Right msg -> do
-      let msgs = filter (L.isPrefixOf _DAP_HEADER) $ lines msg
-      if 1 == length msgs then return $ Right $ drop (length _DAP_HEADER) $ head msgs
-        else return $ Left $ "[dap] error. header " ++ _DAP_HEADER ++ "not found. " ++ msg 
-  unlock ghci
-    
-  return res
-
-
--- |
---
-dapCommand2 :: GHCiProcess
-           -> OutputHandler
-           -> String
-           -> String
            -> IO (Either ErrorData [String])
-dapCommand2 ghci outHdl cmdStr strDat = do
+dapCommand ghci outHdl cmdStr strDat = do
   let cmd = cmdStr ++ " " ++ strDat
 
   outHdl $ cmd ++ "\n"

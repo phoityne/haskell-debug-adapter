@@ -492,6 +492,7 @@ _SUPPORTED_DAP :: M.Map String DAPRequestHandler
 _SUPPORTED_DAP = M.fromList [
     ("setBreakpoints",         setBreakpointsRequestHandlerDAP)
   , ("setFunctionBreakpoints", setFunctionBreakpointsRequestHandlerDAP)
+  , ("configurationDone",      configurationDoneRequestHandlerDAP)
   , ("continue",               continueRequestHandlerDAP)
   , ("next",                   nextRequestHandlerDAP)
   , ("stepIn",                 stepInRequestHandlerDAP)
@@ -505,8 +506,8 @@ _SUPPORTED_DAP = M.fromList [
   --
   -- , ("initialize",            )
   -- , ("launch",                )
-  -- , ("setExceptionBreakpoints")
-  -- , ("configurationDone",     )
+  -- , ("setExceptionBreakpoints")  -> not yet
+  -- , ("configurationDone",     )  -> not yet
   -- , ("disconnect",            )
   -- , ("threads",               )
   -- , ("completions",           )
@@ -605,7 +606,7 @@ runSetBreakpoints mvarCtx req = do
       let cmd = ":dap-set-breakpoints"
           args = showDAP $ J.argumentsSetBreakpointsRequest req
 
-      liftIO (G.dapCommand2 proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
 
     -- |
     --
@@ -673,7 +674,7 @@ runSetFunctionBreakpoints mvarCtx req = do
       let cmd = ":dap-set-function-breakpoints"
           args = showDAP $ J.argumentsSetFunctionBreakpointsRequest req
 
-      liftIO (G.dapCommand2 proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
 
     -- |
     --
@@ -718,6 +719,129 @@ runSetFunctionBreakpoints mvarCtx req = do
 
 -- |
 --
+configurationDoneRequestHandlerDAP :: DAPRequestHandler
+configurationDoneRequestHandlerDAP mvarCtx contLenStr jsonStr reqP = case J.eitherDecode jsonStr of
+  Left  err -> sendParseErrorResponse mvarCtx contLenStr jsonStr reqP err
+  Right req -> runConfigurationDone mvarCtx req
+
+
+-- |
+--
+runConfigurationDone :: MVar DebugContextData -> J.ConfigurationDoneRequest -> IO ()
+runConfigurationDone mvarCtx req = do
+    logRequest $ show req
+
+    runExceptT go >>= \case
+      Right _  -> return ()
+      Left err -> sendErrRes mvarCtx req err
+
+  where
+
+    -- |
+    --
+    go = getProcExcept mvarCtx >>= runDap
+
+    -- |
+    --
+    runDap proc = liftIO (runDapIO proc) >>= exceptIO
+    
+    -- |
+    --
+    runDapIO proc = do
+      sendConsoleEvent mvarCtx $ L.intercalate "\n" _DEBUG_START_MSG
+
+      checkVersion mvarCtx
+
+      sendStdoutEvent mvarCtx $ G.promptGHCiProcess proc
+
+      stopOnEntryDebugContextData <$> (readMVar mvarCtx) >>= stopOnEntry proc
+
+    -- |
+    --
+    _THREAD_ID = 1
+
+    -- |
+    --
+    stopOnEntry _ True = do
+      resSeq <- getIncreasedResponseSequence mvarCtx
+      let res    = J.defaultConfigurationDoneResponse resSeq req
+          resStr = J.encode res
+      sendResponse mvarCtx resStr
+
+      resSeq <- getIncreasedResponseSequence mvarCtx
+      let stopEvt    = J.defaultStoppedEvent resSeq
+          stopEvtStr = J.encode stopEvt
+      sendEvent mvarCtx stopEvtStr
+
+      return $ Right []
+
+    -- |
+    --
+    stopOnEntry proc False = do
+      cmdArgs <- getContinueCmdArgs mvarCtx
+      let cmd = ":dap-continue"
+          args = showDAP $ J.ContinueArguments _THREAD_ID cmdArgs
+
+      G.dapCommand proc (outHdl mvarCtx req) cmd args
+
+    -- |
+    --
+    outHdl :: MVar DebugContextData -> J.ConfigurationDoneRequest -> String -> IO ()
+    outHdl mvarCtx req str = do
+      
+      infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
+
+      if | U.startswith _DAP_HEADER str ->
+           dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
+         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
+           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
+         | otherwise  -> return ()
+
+    -- |
+    --
+    dapHdl :: MVar DebugContextData -> J.ConfigurationDoneRequest -> String -> IO ()
+    dapHdl mvarCtx req str = case R.readEither str of
+      Left err -> do
+        errorM _LOG_NAME $ "read response body failed. " ++ err ++ " : " ++ str
+        sendErrRes  mvarCtx req err
+
+      Right (Left err) -> do
+        errorM _LOG_NAME $ "continueRequest failed. " ++ err ++ " : " ++ str
+        sendErrRes  mvarCtx req err
+
+      Right (Right body) -> handleStoppeEventBody body
+
+    -- |
+    --
+    handleStoppeEventBody body 
+      | "complete" == J.reasonStoppedEventBody body = do
+        debugM _LOG_NAME "[DAP] debugging completeed."
+        sendTerminateEvent mvarCtx
+
+      | otherwise = do
+        resSeq <- getIncreasedResponseSequence mvarCtx
+        let res    = J.defaultConfigurationDoneResponse resSeq req
+            resStr = J.encode res
+        sendResponse mvarCtx resStr
+
+        resSeq <- getIncreasedResponseSequence mvarCtx
+        let stopEvt    = J.defaultStoppedEvent resSeq
+            stopEvtStr = J.encode stopEvt{J.bodyStoppedEvent = body}
+        sendEvent mvarCtx stopEvtStr
+
+
+    -- |
+    --
+    sendErrRes :: MVar DebugContextData -> J.ConfigurationDoneRequest -> String -> IO ()
+    sendErrRes mvarCtx req err = do
+      resSeq <- getIncreasedResponseSequence mvarCtx
+      let res = J.errorConfigurationDoneResponse resSeq req err 
+          resStr = J.encode res
+      sendResponse mvarCtx resStr
+
+
+-- |
+--
 continueRequestHandlerDAP :: DAPRequestHandler
 continueRequestHandlerDAP mvarCtx contLenStr jsonStr reqP = case J.eitherDecode jsonStr of
   Left  err -> sendParseErrorResponse mvarCtx contLenStr jsonStr reqP err
@@ -743,30 +867,12 @@ runContinue mvarCtx req = do
     -- |
     --
     runDap proc = do
-      cmdArgs <- liftIO getCmdArgs
+      cmdArgs <- liftIO $ getContinueCmdArgs mvarCtx
       let cmd = ":dap-continue"
           reqArgs= J.argumentsContinueRequest req
           args = showDAP $ reqArgs { J.exprContinueArguments = cmdArgs }
 
-      liftIO (G.dapCommand2 proc (outHdl mvarCtx req) cmd args) >>= exceptIO
-
-    -- |
-    --
-    getCmdArgs = do
-      isStarted   <- debugStartedDebugContextData <$> readMVar mvarCtx
-      startupFunc <- startupFuncDebugContextData  <$> readMVar mvarCtx
-      startupArgs <- startupArgsDebugContextData  <$> readMVar mvarCtx
-
-      ctx <- takeMVar mvarCtx
-      putMVar mvarCtx ctx {
-          currentFrameIdDebugContextData = 0
-        , debugStartedDebugContextData   = True
-        }
-
-      if isStarted then return Nothing
-        else if null startupFunc
-          then return $ Just "main"
-          else return $ Just $ startupFunc ++ " " ++ startupArgs
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
 
     -- |
     --
@@ -824,6 +930,25 @@ runContinue mvarCtx req = do
 
 -- |
 --
+getContinueCmdArgs ::  MVar DebugContextData -> IO (Maybe String)
+getContinueCmdArgs mvarCtx = do
+  isStarted   <- debugStartedDebugContextData <$> readMVar mvarCtx
+  startupFunc <- startupFuncDebugContextData  <$> readMVar mvarCtx
+  startupArgs <- startupArgsDebugContextData  <$> readMVar mvarCtx
+
+  ctx <- takeMVar mvarCtx
+  putMVar mvarCtx ctx {
+      currentFrameIdDebugContextData = 0
+    , debugStartedDebugContextData   = True
+    }
+
+  if isStarted then return Nothing
+    else if null startupFunc
+      then return $ Just "main"
+      else return $ Just $ startupFunc ++ " " ++ startupArgs
+      
+-- |
+--
 nextRequestHandlerDAP :: DAPRequestHandler
 nextRequestHandlerDAP mvarCtx contLenStr jsonStr reqP = case J.eitherDecode jsonStr of
   Left  err -> sendParseErrorResponse mvarCtx contLenStr jsonStr reqP err
@@ -848,7 +973,7 @@ runNext mvarCtx req = do
       let cmd = ":dap-next"
           args = showDAP $ J.argumentsNextRequest req
 
-      liftIO (G.dapCommand2 proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
 
     -- |
     --
@@ -929,7 +1054,7 @@ runStepIn mvarCtx req = do
       let cmd = ":dap-step-in"
           args = showDAP $ J.argumentsStepInRequest req
 
-      liftIO (G.dapCommand2 proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
       
     -- |
     --
@@ -1009,7 +1134,7 @@ runStackTrace mvarCtx req = do
       let cmd = ":dap-stacktrace"
           args = showDAP $ J.argumentsStackTraceRequest req
 
-      liftIO (G.dapCommand2 proc  (outHdl mvarCtx req)  cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc  (outHdl mvarCtx req)  cmd args) >>= exceptIO
       
     -- |
     --
@@ -1077,7 +1202,7 @@ runScopes mvarCtx req = do
       let cmd = ":dap-scopes"
           args = showDAP $ J.argumentsScopesRequest req
 
-      liftIO (G.dapCommand2 proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
      
 
     -- |
@@ -1146,7 +1271,7 @@ runVariables mvarCtx req = do
       let cmd = ":dap-variables"
           args = showDAP $ J.argumentsVariablesRequest req
 
-      liftIO (G.dapCommand2 proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
       
     -- |
     --
@@ -1216,7 +1341,7 @@ runEvaluate mvarCtx req = do
           args = J.argumentsEvaluateRequest req
           dapArgs = showDAP args
 
-      liftIO (G.dapCommand2 proc (outHdl mvarCtx req) cmd dapArgs) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd dapArgs) >>= exceptIO
 
 
     -- |
@@ -1484,13 +1609,16 @@ launchRequestHandler mvarCtx req@(J.LaunchRequest _ _ _ args) = flip E.catches h
     -- 
     prepareTasksJsonFile = do
       ctx <- readMVar mvarCtx
-      let jsonFile = workspaceDebugContextData ctx </> ".vscode" </> "tasks.json"
+      let jsonDir  = workspaceDebugContextData ctx </> ".vscode"
+          jsonFile = jsonDir </> "tasks.json"
     
-      doesFileExist jsonFile >>= \case
-        True  -> debugM _LOG_NAME $ "tasks.json file exists. " ++ jsonFile 
-        False -> do
-          sendConsoleEvent mvarCtx $ "create tasks.json file. " ++ jsonFile ++ "\n"
-          saveFileLBS jsonFile _TASKS_JSON_FILE_CONTENTS
+      doesDirectoryExist jsonDir >>= \case
+        False -> debugM _LOG_NAME $ "setting folder not found. skip saveing tasks.json. DIR:" ++ jsonDir
+        True  -> doesFileExist jsonFile >>= \case
+          True  -> debugM _LOG_NAME $ "tasks.json file exists. " ++ jsonFile 
+          False -> do
+            sendConsoleEvent mvarCtx $ "create tasks.json file. " ++ jsonFile ++ "\n"
+            saveFileLBS jsonFile _TASKS_JSON_FILE_CONTENTS
 
     -- |
     -- 
@@ -1555,7 +1683,7 @@ configurationDoneRequestHandler mvarCtx req = flip E.catches handlers $ do
     withProcess (Just ghciProc) = do
       sendConsoleEvent mvarCtx $ L.intercalate "\n" _DEBUG_START_MSG
 
-      checkVersion
+      checkVersion mvarCtx
 
       sendStdoutEvent mvarCtx $ G.promptGHCiProcess ghciProc
 
@@ -1571,17 +1699,21 @@ configurationDoneRequestHandler mvarCtx req = flip E.catches handlers $ do
           stopEvtStr = J.encode stopEvt
       sendEvent mvarCtx stopEvtStr
 
-    checkVersion = do
-      verStr <- hackagePackageVersionDebugContextData <$> (readMVar mvarCtx) 
-      verArg <- case getVersion verStr of
-        Right v  -> return v
-        Left err -> do
-          sendErrorEvent mvarCtx $ "[checkVersion] argument version parse error. " ++ err
-          return version
+-- |
+--
+checkVersion :: MVar DebugContextData -> IO ()
+checkVersion mvarCtx = do
+  verStr <- hackagePackageVersionDebugContextData <$> (readMVar mvarCtx) 
+  verArg <- case getVersion verStr of
+    Right v  -> return v
+    Left err -> do
+      sendErrorEvent mvarCtx $ "[checkVersion] argument version parse error. " ++ err
+      return version
 
-      when (version < verArg) $ do
-        sendErrorEvent mvarCtx $  L.intercalate "\n" _NEW_VERSION_MSG
+  when (version < verArg) $ do
+    sendErrorEvent mvarCtx $  L.intercalate "\n" _NEW_VERSION_MSG
         
+  where
     getVersion :: String -> Either String V.Version
     getVersion str = case parse getVersionParser "getVersionParser" str of
       Right v -> Right v

@@ -1,6 +1,7 @@
 
 20180701 phoityne-vscode-0.0.25.0
   * [UPDATE] supported haskell-dap-0.0.6.0
+  * [FIX][1](https://github.com/phoityne/haskell-debug-adapter/issues/1) : stopOnEntry false doesn't work with haskell-dap.
 
 
 20180601 phoityne-vscode-0.0.24.0
