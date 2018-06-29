@@ -506,8 +506,7 @@ _SUPPORTED_DAP = M.fromList [
   --
   -- , ("initialize",            )
   -- , ("launch",                )
-  -- , ("setExceptionBreakpoints")  -> not yet
-  -- , ("configurationDone",     )  -> not yet
+  -- , ("setExceptionBreakpoints")
   -- , ("disconnect",            )
   -- , ("threads",               )
   -- , ("completions",           )
