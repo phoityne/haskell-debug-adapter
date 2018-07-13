@@ -130,7 +130,6 @@ executable phoityne-vscode
                      , directory
                      , Cabal
                      , hslogger
-                     , ConfigFile
                      , cmdargs
                      , MissingH
                      , safe

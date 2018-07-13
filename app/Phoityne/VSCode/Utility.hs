@@ -3,10 +3,8 @@
 
 module Phoityne.VSCode.Utility where
 
-import Data.Either.Utils
 import GHC.IO.Encoding
 import Distribution.System
-import Control.Monad.Trans.Resource
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.List as L
@@ -14,7 +12,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
-import qualified Data.ConfigFile as CFG
 import qualified Data.Tree as TR
 import qualified Data.Conduit.Binary as C
 import qualified Data.Conduit as C
@@ -97,17 +94,6 @@ lbs2str :: LBS.ByteString -> String
 lbs2str = TL.unpack. TLE.decodeUtf8
 
 
--- |
---
-getIniItems :: CFG.ConfigParser
-            -> CFG.SectionSpec
-            -> [(CFG.OptionSpec, String)]
-getIniItems cp sec = foldr go [] opts
-  where
-    opts = forceEither $ CFG.options cp sec
-    go opt acc = let value = forceEither $ CFG.get cp sec opt in
-                 (opt, value) : acc
-
 
 -- |
 -- 
@@ -143,9 +129,9 @@ getReadHandleEncoding = if
 -- 
 loadFile :: FilePath -> IO BS.ByteString
 loadFile path = do
-  bs <- runResourceT
+  bs <- C.runConduitRes
       $ C.sourceFile path
-      C.$$ C.consume
+      C..| C.consume
   return $ BS.concat bs
 
 
@@ -160,9 +146,9 @@ saveFile path cont = saveFileLBS path $ LBS.fromStrict cont
 --  
 -- 
 saveFileLBS :: FilePath -> LBS.ByteString -> IO ()
-saveFileLBS path cont = runResourceT
+saveFileLBS path cont = C.runConduitRes
   $ C.sourceLbs cont
-  C.$$ C.sinkFile path
+  C..| C.sinkFile path
 
 
 
