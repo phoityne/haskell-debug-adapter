@@ -1,0 +1,51 @@
+name: phoityne-vscode
+version: '0.0.26.0'
+synopsis: Haskell Debug Adapter for Visual Studio Code.
+description: Please see README.md
+category: Development
+author: phoityne_hs
+maintainer: phoityne.hs@gmail.com
+copyright: 2016-2018 phoityne_hs
+license: BSD3
+homepage: https://github.com/phoityne/phoityne-vscode
+bug-reports: https://github.com/phoityne/phoityne-vscode/issues
+extra-source-files:
+- README.md
+- Changelog.md
+ghc-options:
+- -threaded
+- -rtsopts
+- -with-rtsopts=-N
+- -Wall
+- -fno-warn-unused-do-bind
+- -fno-warn-name-shadowing
+dependencies:
+- base >=4.7 && <5
+- directory
+- Cabal
+- hslogger
+- cmdargs
+- MissingH
+- safe
+- aeson
+- bytestring
+- containers
+- text
+- process
+- transformers
+- mtl
+- filepath
+- directory
+- parsec
+- split
+- fsnotify
+- conduit
+- conduit-extra
+- resourcet
+- safe-exceptions
+- lens
+- data-default
+executables:
+  phoityne-vscode:
+    main: Main.hs
+    source-dirs: app
