@@ -1,5 +1,5 @@
 name: phoityne-vscode
-version: '0.0.26.0'
+version: '0.0.27.0'
 synopsis: Haskell Debug Adapter for Visual Studio Code.
 description: Please see README.md
 category: Development

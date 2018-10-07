@@ -10,6 +10,7 @@ module Phoityne.GHCi.Command (
     SourcePosition(..)
   , StackFrame(..)
   , BindingData(..)
+  , _DAP_CMD_END
   , start
   , quit
   , set
@@ -127,7 +128,8 @@ start :: OutputHandler
       -> M.Map String String
       -> IO (Either ErrorData GHCiProcess)
 start outHdl cmd opts cwd initPmt pmt envs = do
-  outHdl $ L.intercalate " " $ (cmd : opts) ++ ["in " ++ cwd, "\n"]
+  outHdl $ L.intercalate " " ["CWD:", cwd, "\n"]
+  outHdl $ L.intercalate " " $ ("CMD:" : cmd : opts) ++ ["\n\n"]
   runProcess cmd opts cwd pmt envs >>= withProcess
   where
     withProcess (Left err) = return $ Left err
@@ -728,7 +730,7 @@ dapCommand ghci outHdl cmdStr strDat = do
   return res
   where
     proc curStr _ = do
-      outHdl curStr
+      outHdl (curStr ++ "\n")
       return $ curStr /= _DAP_CMD_END
    
     witResult (Left err ) = return $ Left err

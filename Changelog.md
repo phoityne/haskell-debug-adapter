@@ -1,4 +1,9 @@
 
+20181014 phoityne-vscode-0.0.27.0
+  * [UPDATE] supported haskell-dap-0.0.9.0
+  * [MODIFY] send dap output to vscode with DEBUG level. 
+
+
 20180801 phoityne-vscode-0.0.26.0
   * [UPDATE] supported haskell-dap-0.0.7.0
 

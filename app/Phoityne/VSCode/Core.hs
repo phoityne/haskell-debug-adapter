@@ -478,6 +478,7 @@ _DAP_HEADER = "<<DAP>>"
 _DAP_HEADER_OUTPUT_EVENT :: String
 _DAP_HEADER_OUTPUT_EVENT = "<<DAP_OUTPUT_EVENT>>"
 
+
 -- |
 --
 type DAPRequestHandler = MVar DebugContextData
@@ -578,6 +579,33 @@ outputEventHandler mvarCtx str = case R.readEither str of
         outEvtStr = J.encode outEvt{J.bodyOutputEvent = body}
     sendEvent mvarCtx outEvtStr
 
+
+-- |
+--
+commonDapOutHdl :: MVar DebugContextData -> String -> String ->  String -> IO ()
+commonDapOutHdl mvarCtx cmd args str = getLevel <$> getLogger _LOG_NAME >>= \case
+  Just DEBUG -> do
+    if | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
+         outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
+
+       | U.startswith cmd str -> sendStdoutEvent mvarCtx $ cmd ++ " " ++ args ++ "\n"
+
+       | otherwise -> sendStdoutEvent mvarCtx str
+
+  Just INFO -> do
+    if | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
+          outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
+
+       | U.startswith cmd str -> sendStdoutEvent mvarCtx $ cmd ++ " ...\n"
+
+       | U.startswith G._DAP_CMD_END str -> return ()
+ 
+       | otherwise -> sendStdoutEvent mvarCtx str
+
+  _ -> do
+    if | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
+         outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
+       | otherwise -> return ()
     
 -- |
 --
@@ -599,26 +627,28 @@ runSetBreakpoints mvarCtx req = do
 
   where
 
+    cmdStr = ":dap-set-breakpoints"
+
     go = getProcExcept mvarCtx >>= runDap
 
     runDap proc = do
-      let cmd = ":dap-set-breakpoints"
-          args = showDAP $ J.argumentsSetBreakpointsRequest req
+      let args = showDAP $ J.argumentsSetBreakpointsRequest req
 
-      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmdStr args) >>= exceptIO
 
     -- |
     --
     outHdl :: MVar DebugContextData -> J.SetBreakpointsRequest -> String -> IO ()
     outHdl mvarCtx req str = do
-      
+
       infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
 
-      if | U.startswith _DAP_HEADER str ->
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
            dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
-         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
-           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
-         | otherwise  -> return ()
+
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr (show req) str
 
     -- |
     --
@@ -647,6 +677,7 @@ runSetBreakpoints mvarCtx req = do
           resStr = J.encode res
       sendResponse mvarCtx resStr
 
+
 -- |
 --
 setFunctionBreakpointsRequestHandlerDAP :: DAPRequestHandler
@@ -667,26 +698,28 @@ runSetFunctionBreakpoints mvarCtx req = do
 
   where
 
+    cmdStr = ":dap-set-function-breakpoints"
+          
     go = getProcExcept mvarCtx >>= runDap
 
     runDap proc = do
-      let cmd = ":dap-set-function-breakpoints"
-          args = showDAP $ J.argumentsSetFunctionBreakpointsRequest req
+      let args = showDAP $ J.argumentsSetFunctionBreakpointsRequest req
 
-      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmdStr args) >>= exceptIO
 
     -- |
     --
     outHdl :: MVar DebugContextData -> J.SetFunctionBreakpointsRequest -> String -> IO ()
     outHdl mvarCtx req str = do
-      
+
       infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
 
-      if | U.startswith _DAP_HEADER str ->
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
            dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
-         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
-           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
-         | otherwise  -> return ()
+
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr (show req) str
 
     -- |
     --
@@ -761,6 +794,10 @@ runConfigurationDone mvarCtx req = do
 
     -- |
     --
+    cmdStr = ":dap-continue"
+          
+    -- |
+    --
     stopOnEntry _ True = do
       resSeq <- getIncreasedResponseSequence mvarCtx
       let res    = J.defaultConfigurationDoneResponse resSeq req
@@ -778,23 +815,24 @@ runConfigurationDone mvarCtx req = do
     --
     stopOnEntry proc False = do
       cmdArgs <- getContinueCmdArgs mvarCtx
-      let cmd = ":dap-continue"
-          args = showDAP $ J.ContinueArguments _THREAD_ID cmdArgs
+      let args = showDAP $ J.ContinueArguments _THREAD_ID cmdArgs
 
-      G.dapCommand proc (outHdl mvarCtx req) cmd args
+      G.dapCommand proc (outHdl mvarCtx req) cmdStr args
 
     -- |
     --
     outHdl :: MVar DebugContextData -> J.ConfigurationDoneRequest -> String -> IO ()
     outHdl mvarCtx req str = do
-      
+
       infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
 
-      if | U.startswith _DAP_HEADER str ->
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
            dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
-         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
-           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
-         | otherwise  -> return ()
+
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr (show req) str
+
 
     -- |
     --
@@ -859,6 +897,8 @@ runContinue mvarCtx req = do
 
   where
 
+    cmdStr = ":dap-continue"
+          
     -- |
     --
     go = getProcExcept mvarCtx >>= runDap
@@ -867,24 +907,26 @@ runContinue mvarCtx req = do
     --
     runDap proc = do
       cmdArgs <- liftIO $ getContinueCmdArgs mvarCtx
-      let cmd = ":dap-continue"
-          reqArgs= J.argumentsContinueRequest req
+      let reqArgs= J.argumentsContinueRequest req
           args = showDAP $ reqArgs { J.exprContinueArguments = cmdArgs }
 
-      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmdStr args) >>= exceptIO
 
     -- |
     --
     outHdl :: MVar DebugContextData -> J.ContinueRequest -> String -> IO ()
     outHdl mvarCtx req str = do
-      
+
       infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
 
-      if | U.startswith _DAP_HEADER str ->
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
            dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
-         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
-           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
-         | otherwise  -> return ()
+
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr (show req) str
+
+
 
     -- |
     --
@@ -966,26 +1008,28 @@ runNext mvarCtx req = do
 
   where
 
+    cmdStr = ":dap-next"
+          
     go = getProcExcept mvarCtx >>= runDap
 
     runDap proc = do
-      let cmd = ":dap-next"
-          args = showDAP $ J.argumentsNextRequest req
+      let args = showDAP $ J.argumentsNextRequest req
 
-      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmdStr args) >>= exceptIO
 
     -- |
     --
     outHdl :: MVar DebugContextData -> J.NextRequest -> String -> IO ()
     outHdl mvarCtx req str = do
-      
+
       infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
 
-      if | U.startswith _DAP_HEADER str ->
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
            dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
-         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
-           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
-         | otherwise  -> return ()
+
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr (show req) str
 
     -- |
     --
@@ -1047,26 +1091,28 @@ runStepIn mvarCtx req = do
 
   where
 
+    cmdStr = ":dap-step-in"
+          
     go = getProcExcept mvarCtx >>= runDap
 
     runDap proc = do
-      let cmd = ":dap-step-in"
-          args = showDAP $ J.argumentsStepInRequest req
+      let args = showDAP $ J.argumentsStepInRequest req
 
-      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmdStr args) >>= exceptIO
       
     -- |
     --
     outHdl :: MVar DebugContextData -> J.StepInRequest -> String -> IO ()
     outHdl mvarCtx req str = do
-      
+
       infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
 
-      if | U.startswith _DAP_HEADER str ->
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
            dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
-         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
-           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
-         | otherwise  -> return ()
+
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr (show req) str
 
     -- |
     --
@@ -1127,26 +1173,28 @@ runStackTrace mvarCtx req = do
 
   where
 
+    cmdStr = ":dap-stacktrace"
+          
     go = getProcExcept mvarCtx >>= runDap
 
     runDap proc = do
-      let cmd = ":dap-stacktrace"
-          args = showDAP $ J.argumentsStackTraceRequest req
+      let args = showDAP $ J.argumentsStackTraceRequest req
 
-      liftIO (G.dapCommand proc  (outHdl mvarCtx req)  cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc  (outHdl mvarCtx req)  cmdStr args) >>= exceptIO
       
     -- |
     --
     outHdl :: MVar DebugContextData -> J.StackTraceRequest -> String -> IO ()
     outHdl mvarCtx req str = do
-      
+
       infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
 
-      if | U.startswith _DAP_HEADER str ->
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
            dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
-         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
-           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
-         | otherwise  -> return ()
+
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr (show req) str
 
     -- |
     --
@@ -1156,9 +1204,17 @@ runStackTrace mvarCtx req = do
         errorM _LOG_NAME $ "read response body failed. " ++ err ++ " : " ++ str
         sendErrRes  mvarCtx req err
 
-      Right (Left err) -> do
-        errorM _LOG_NAME $ "stackTraceRequestHandler failed. " ++ err ++ " : " ++ str
-        sendErrRes  mvarCtx req err
+      Right (Left err) -> debugStartedDebugContextData <$> readMVar mvarCtx >>= \case
+        False -> do
+          errorM _LOG_NAME $ "stackTraceRequestHandler failed. " ++ err ++ " : " ++ str
+          sendErrRes  mvarCtx req err
+
+        True -> do
+          errorM _LOG_NAME $ "stackTraceRequestHandler failed. " ++ err ++ " : " ++ str
+          sendErrRes  mvarCtx req err
+          sendConsoleEvent mvarCtx $ "  No stack trace is found. It seems that GHCi has ended debugging.\n"
+          sendConsoleEvent mvarCtx $ "  Exitting haskell debugger.\n"
+          sendTerminateEvent mvarCtx
 
       Right (Right body) -> do
         resSeq <- getIncreasedResponseSequence mvarCtx
@@ -1195,27 +1251,29 @@ runScopes mvarCtx req = do
 
     where
 
+    cmdStr = ":dap-scopes"
+          
     go = getProcExcept mvarCtx >>= runDap
 
     runDap proc = do
-      let cmd = ":dap-scopes"
-          args = showDAP $ J.argumentsScopesRequest req
+      let args = showDAP $ J.argumentsScopesRequest req
 
-      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmdStr args) >>= exceptIO
      
 
     -- |
     --
     outHdl :: MVar DebugContextData -> J.ScopesRequest -> String -> IO ()
     outHdl mvarCtx req str = do
-      
+
       infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
 
-      if | U.startswith _DAP_HEADER str ->
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
            dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
-         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
-           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
-         | otherwise  -> return ()
+
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr (show req) str
 
     -- |
     --
@@ -1264,26 +1322,28 @@ runVariables mvarCtx req = do
 
   where
 
+    cmdStr = ":dap-variables"
+          
     go = getProcExcept mvarCtx >>= runDap
 
     runDap proc = do
-      let cmd = ":dap-variables"
-          args = showDAP $ J.argumentsVariablesRequest req
+      let args = showDAP $ J.argumentsVariablesRequest req
 
-      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd args) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmdStr args) >>= exceptIO
       
     -- |
     --
     outHdl :: MVar DebugContextData -> J.VariablesRequest -> String -> IO ()
     outHdl mvarCtx req str = do
-      
+
       infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
 
-      if | U.startswith _DAP_HEADER str ->
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
            dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
-         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
-           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
-         | otherwise  -> return ()
+
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr (show req) str
 
     -- |
     --
@@ -1332,29 +1392,30 @@ runEvaluate mvarCtx req = do
       Left err -> sendErrRes mvarCtx req err
 
   where
-
+    cmdStr  = ":dap-evaluate"
+          
     go = getProcExcept mvarCtx >>= runDap
 
     runDap proc = do
-      let cmd  = ":dap-evaluate"
-          args = J.argumentsEvaluateRequest req
+      let args = J.argumentsEvaluateRequest req
           dapArgs = showDAP args
 
-      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmd dapArgs) >>= exceptIO
+      liftIO (G.dapCommand proc (outHdl mvarCtx req) cmdStr dapArgs) >>= exceptIO
 
 
     -- |
     --
     outHdl :: MVar DebugContextData -> J.EvaluateRequest -> String -> IO ()
     outHdl mvarCtx req str = do
-      
+
       infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
 
-      if | U.startswith _DAP_HEADER str ->
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
            dapHdl mvarCtx req $ drop (length _DAP_HEADER) str
-         | U.startswith _DAP_HEADER_OUTPUT_EVENT str ->
-           outputEventHandler mvarCtx $ drop (length _DAP_HEADER_OUTPUT_EVENT) str
-         | otherwise  -> return ()
+
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr (show req) str
 
     -- |
     --
