@@ -1,164 +1,72 @@
 
 
-# Phoityne VSCode
+# Requirements
 
-Phoityne is a Haskell GHCi debug adapter for Visual Studio Code.
+Install [phoityne-vscode](https://hackage.haskell.org/package/phoityne-vscode) from hackage.  
 
+## Especially for GHC8
 
-## Information
-* [2018/10/14] phoityne-vscode released.  
-  * Marketplace [phoityne-vscode-0.0.20](https://marketplace.visualstudio.com/items?itemName=phoityne.phoityne-vscode)
-  * hackage [phoityne-vscode-0.0.27.0](https://hackage.haskell.org/package/phoityne-vscode)  
-  __Need update from hackage !!.__
-* Release Summary
-  * [UPDATE] supported haskell-dap-0.0.9.0
-  * [MODIFY] send dap output to vscode with DEBUG level. 
-
-![10_quick_start.gif](https://raw.githubusercontent.com/phoityne/phoityne-vscode/master/docs/10_quick_start.gif)  
-(This sample project is available from [here](https://github.com/phoityne/stack-project-template).)
+ Install [phoityne-vscode](https://hackage.haskell.org/package/phoityne-vscode) and [haskell-dap](https://hackage.haskell.org/package/haskell-dap).  
+ In the launch.json, add "--with-ghc=haskell-dap" to ghciCmd variable.
 
 
-## Important
+# Limitations
 
-* __LIMITATION__: Source file extension must be ".hs"
-* __LIMITATION__: Can not use STDIN handle while debugging. 
-* When you start debugging for the first time, .vscode/tasks.json will be created automatically. Then you can use F6, F7, F8 shortcut key.
+* The source file extension must be ".hs"
+* Can not use STDIN handle while debugging. 
+
+  
+# Features
+
+## Continue & Steps
+
+![01_F5_F10_F11.gif](https://raw.githubusercontent.com/phoityne/hdx4vsc/master/docs/01_F5_F10_F11.gif)
+
+
+## Stacktrace
+
+The variable added to watch will be forced.
+
+![03_stacktrace.gif](https://raw.githubusercontent.com/phoityne/hdx4vsc/master/docs/03_stacktrace.gif)
+
+
+## Bindings
+
+![04_variables.gif](https://raw.githubusercontent.com/phoityne/hdx4vsc/master/docs/04_variables.gif)
+
+
+## Break condition
+
+![05_break_cond.gif](https://raw.githubusercontent.com/phoityne/hdx4vsc/master/docs/05_break_cond.gif)
+
+## Console output
+
+![02_console_out.gif](https://raw.githubusercontent.com/phoityne/hdx4vsc/master/docs/02_console_out.gif)
+
+
+# Shortcut keys
+
+When you start debugging for the first time, .vscode/tasks.json will be created automatically. Then you can use F6, F7, F8 shortcut keys.
   * F5 : start debug
   * F6 : show command menu (for stack watch)
   * Shift + F6 : stop stack watch
   * F7 : stack clean & build
   * F8 : stack test
-  * F9 : put bp on current line
-  * Shift + F9 : put bp on current column
-* While debugging, you can use F5, F9, F10, F11 shortcut key.
+  * F9 : put a breakpoint on the current line
+  * Shift + F9 : put a breakpoint on the current column
+
+While debugging, you can use F5, F9, F10, F11 shortcut keys.
   * F5 : jump to next bp
   * F9 : put bp on the line
   * Shift + F9 : put bp on the column
   * F10 : step next
   * F11 : step into
 
-  
-## Features
+ 
 
-### Run to Cursor
+# Configuration
 
-![03_run_to_cursor.gif](https://raw.githubusercontent.com/phoityne/phoityne-vscode/master/docs/03_run_to_cursor.gif)
-
-
-### Bindings & Watch
-
-The variable added to watch will be forced.
-
-![02_watch.gif](https://raw.githubusercontent.com/phoityne/phoityne-vscode/master/docs/02_watch.gif)
-
-
-### Stack trace
-
-![05_stacktrace.gif](https://raw.githubusercontent.com/phoityne/phoityne-vscode/master/docs/05_stacktrace.gif)
-
-
-### Break condition
-
-![04_condition.gif](https://raw.githubusercontent.com/phoityne/phoityne-vscode/master/docs/04_condition.gif)
-
-### Hit count break condition
-
-Supports these operators.
-*  ==
-*  /=
-*  <, >
-*  <=, >=
-*  mod, %
-*  just digit is same with '>='
-
-![07_hit_count.gif](https://raw.githubusercontent.com/phoityne/phoityne-vscode/master/docs/07_hit_count.gif)
-
-### Break on Exception
-
-![08_exception.gif](https://raw.githubusercontent.com/phoityne/phoityne-vscode/master/docs/08_exception.gif)
-
-
-### Repl & Completions
-
-![06_repl.gif](https://raw.githubusercontent.com/phoityne/phoityne-vscode/master/docs/06_repl.gif)
-
-### and more
-
-Better inspection. This is an experimental enhancement.  
-There are limitations and additional installation.  
-[Here are the details](https://github.com/phoityne/haskell-dap). 
-
-![01_inspect_variables.gif](https://raw.githubusercontent.com/phoityne/haskell-dap/master/docs/01_inspect_variables.gif)  
-
-## Capabilites
-
-* supportsConfigurationDoneRequest : **yes**
-* supportsFunctionBreakpoints : **yes**
-* supportsConditionalBreakpoints : **yes**
-* supportsHitConditionalBreakpoints : **yes**
-* supportsEvaluateForHovers : **yes**
-* exceptionBreakpointFilters : **yes**
-* supportsStepBack : no
-* supportsSetVariable : no
-* supportsRestartFrame : no
-* supportsGotoTargetsRequest : no
-* supportsStepInTargetsRequest : no
-* supportsCompletionsRequest : **yes**
-* supportsModulesRequest : no
-* additionalModuleColumns : no
-* supportedChecksumAlgorithms : no
-* supportsRestartRequest : no
-* supportsExceptionOptions : no
-* supportsValueFormattingOptions : no
-* supportsExceptionInfoRequest : no
-* supportTerminateDebuggee : no
-* supportsDelayedStackTraceLoading : no
-* supportsLogPoints : **yes** (by haskell-dap)
-
-
-## Install
-
-
-### Run stack install
-
-    % stack install phoityne-vscode
-      . . . . .
-    %
-
-Add 'phoityne-vscode.exe' to PATH environment.
-
-Windows)
-
-    % where $path:phoityne-vscode.exe
-    C:\Users\[user name]\AppData\Roaming\local\bin\phoityne-vscode.exe
-    
-    % phoityne-vscode --version
-    phoityne-vscode-x.x.x.x
-    %
-    % code
-
-linux)
-
-    $ which phoityne-vscode
-    ~/.local/bin/phoityne-vscode
-    $
-    $ phoityne-vscode --version
-    phoityne-vscode-x.x.x.x
-    $
-    $ code
-
-### Install vscode extensions
-
-1. run VSCode and open stack project __Folder__ from file menu. 
-2. open Extensions from side menu of VSCode.
-3. search "haskell" 
-4. select "[__Haskell GHCi debug adapter Phoityne__](https://marketplace.visualstudio.com/items?itemName=phoityne.phoityne-vscode)"
-
-  
-
-## Configuration
-
-### __.vscode/launch.json__
+## __.vscode/launch.json__
 
 |NAME|REQUIRED OR OPTIONAL|DEFAULT SETTING|DESCRIPTION|
 |:--|:--:|:--|:--|
@@ -174,7 +82,7 @@ linux)
 |logLevel|required|WARNING|internal log level.|
 
 
-#### changing ghci initial prompt 
+### changing ghci initial prompt 
 
 If you change ghci prompt in .ghci file, or ghci prompt is changed from "Prelude>" by applying _NoImplicitPrelude_ extension, set the initial prompt variable to same prompt string.
 
@@ -188,7 +96,7 @@ If you change ghci prompt in .ghci file, or ghci prompt is changed from "Prelude
 Make sure needs of the last space, and don't forget adding it.
 
 
-#### setting the startup hs file
+### setting the startup hs file
 
 Set the startup variable to the path of .hs file in which main function is defined.
 
@@ -200,7 +108,7 @@ Set the startup variable to the path of .hs file in which main function is defin
     %
 
 
-#### setting the startup function
+### setting the startup function
 
 If you want to run the specific function instead of main function, set the startupFunc variable.  
 For example, when specifying the following startDebug function,
@@ -222,7 +130,7 @@ set the valiavles in the launch.json file.
     %
 
 
-#### changing log level
+### changing log level
 
 For debuging phoityen itself, change the log level to DEBUG.  
 Adding Issue with the debug log.
@@ -235,7 +143,7 @@ Adding Issue with the debug log.
     %
 
 
-### __.vscode/tasks.json__
+## __.vscode/tasks.json__
 
 |TASK NAME|REQUIRED OR OPTIONAL|DEFAULT SETTING|DESCRIPTION|
 |:--|:--:|:--|:--|

@@ -798,18 +798,21 @@ runConfigurationDone mvarCtx req = do
           
     -- |
     --
-    stopOnEntry _ True = do
-      resSeq <- getIncreasedResponseSequence mvarCtx
-      let res    = J.defaultConfigurationDoneResponse resSeq req
-          resStr = J.encode res
-      sendResponse mvarCtx resStr
+    stopOnEntry proc True = do
+      startupFile <- startupDebugContextData <$> readMVar mvarCtx
+      startupFunc <- startupFuncDebugContextData <$> readMVar mvarCtx
 
-      resSeq <- getIncreasedResponseSequence mvarCtx
-      let stopEvt    = J.defaultStoppedEvent resSeq
-          stopEvtStr = J.encode stopEvt
-      sendEvent mvarCtx stopEvtStr
+      let funcName = if null startupFunc then "main" else startupFunc
+          funcBp   = (startupFile, J.FunctionBreakpoint funcName Nothing Nothing)
 
-      return $ Right []
+      adhocSetFuncBreakpoint proc funcBp >>= \case
+        Left err -> do
+          errorM _LOG_NAME $ "set entry breakpoint failed. " ++ err ++ " : " ++ funcName ++ " : " ++ show funcBp
+          sendErrRes  mvarCtx req err
+          stopOnEntry proc False
+        Right bp -> do
+          stopOnEntry proc False
+          adhocDelBreakpoint proc bp
 
     -- |
     --
@@ -818,6 +821,8 @@ runConfigurationDone mvarCtx req = do
       let args = showDAP $ J.ContinueArguments _THREAD_ID cmdArgs
 
       G.dapCommand proc (outHdl mvarCtx req) cmdStr args
+
+      return $ Right ()
 
     -- |
     --
@@ -876,6 +881,60 @@ runConfigurationDone mvarCtx req = do
           resStr = J.encode res
       sendResponse mvarCtx resStr
 
+
+    -- |
+    --
+    adhocSetFuncBreakpoint :: G.GHCiProcess
+                          -> (FilePath, J.FunctionBreakpoint)
+                          -> IO (Either G.ErrorData J.Breakpoint)
+    adhocSetFuncBreakpoint proc args = do
+      let cmdStr = ":dap-set-function-breakpoint"
+      G.dapCommand proc (adhocOutHdl mvarCtx (show args) cmdStr) cmdStr (showDAP args) >>= \case
+        Left err -> return $ Left err
+        Right strs -> withAdhocAddDapHeader $ filter (U.startswith _DAP_HEADER) strs
+
+
+    -- |
+    --
+    withAdhocAddDapHeader :: [String] -> IO (Either G.ErrorData J.Breakpoint)
+    withAdhocAddDapHeader [] = return $ Left "[ERROR] can not set func breakpoint. no dap header found."
+    withAdhocAddDapHeader (str:[]) = case R.readEither (drop (length _DAP_HEADER) str) of
+      Left err -> return $ Left $ "[ERROR] read response body failed. " ++ err ++ " : " ++ str
+      Right (Left err) -> return $ Left $ "[ERROR] set adhoc breakpoint failed. " ++ err ++ " : " ++ str
+      Right (Right res) -> return $ Right res
+    withAdhocAddDapHeader _ = return $ Left "[ERROR] can not set func breakpoint. ambiguous dap header found."
+
+
+    -- |
+    --
+    adhocDelBreakpoint :: G.GHCiProcess -> J.Breakpoint -> IO (Either G.ErrorData ())
+    adhocDelBreakpoint proc args = do
+      let cmdStr = ":dap-delete-breakpoint"
+      G.dapCommand proc (adhocOutHdl mvarCtx (show args) cmdStr) cmdStr (showDAP args) >>= \case
+        Left err -> return $ Left err
+        Right strs -> withAdhocDelDapHeader $ filter (U.startswith _DAP_HEADER) strs
+
+    -- |
+    --
+    withAdhocDelDapHeader :: [String] -> IO (Either G.ErrorData ())
+    withAdhocDelDapHeader [] = return $ Left "[ERROR] can not del func breakpoint. no dap header found."
+    withAdhocDelDapHeader (str:[]) = case R.readEither (drop (length _DAP_HEADER) str) of
+      Left err -> return $ Left $ "[ERROR] read response body failed. " ++ err ++ " : " ++ str
+      Right (Left err) -> return $ Left $ "[ERROR] del adhoc breakpoint failed. " ++ err ++ " : " ++ str
+      Right (Right res) -> return $ Right res
+    withAdhocDelDapHeader _ = return $ Left "[ERROR] can not del func breakpoint. ambiguous dap header found."
+
+    -- |
+    --
+    adhocOutHdl :: MVar DebugContextData -> String -> String -> String -> IO ()
+    adhocOutHdl mvarCtx reqStr cmdStr str = do
+
+      infoM _LOG_NAME $ "[GHCi][STDOUT] " ++ str
+
+      if | U.startswith _DAP_HEADER str -> do
+           logLevelMay <- getLevel <$> getLogger _LOG_NAME
+           when ((Just DEBUG) == logLevelMay) $ sendStdoutEvent mvarCtx str
+         | otherwise  -> commonDapOutHdl mvarCtx cmdStr reqStr str
 
 -- |
 --

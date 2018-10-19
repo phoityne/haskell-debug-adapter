@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b19b0fcf2dcc588b7530ff1f713fa07c43cf33b004dcb6825997aa462b0658fb
+-- hash: 2e3d81bba7298c6b250fac3885e94bd14ecd597e7e17391774f5411f2375b1fc
 
 name:           phoityne-vscode
-version:        0.0.26.0
+version:        0.0.27.0
 synopsis:       Haskell Debug Adapter for Visual Studio Code.
 description:    Please see README.md
 category:       Development
