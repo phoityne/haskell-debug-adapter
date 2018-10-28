@@ -141,7 +141,7 @@ set the valiavles in the launch.json file.
 
 ### changing log level
 
-For debuging phoityen itself, change the log level to DEBUG.  
+For debugging phoityne itself, change the log level to DEBUG.  
 Adding Issue with the debug log.
 
     % diff .vscode/launch.json.old .vscode/launch.json
