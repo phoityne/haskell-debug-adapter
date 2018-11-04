@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2e3d81bba7298c6b250fac3885e94bd14ecd597e7e17391774f5411f2375b1fc
+-- hash: 7510e4a06774d21b56b98ef968a94513eda255b83d98bd112ff05251bbc34261
 
 name:           phoityne-vscode
 version:        0.0.27.0
@@ -17,10 +19,9 @@ copyright:      2016-2018 phoityne_hs
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
-    Changelog.md
     README.md
+    Changelog.md
 
 executable phoityne-vscode
   main-is: Main.hs
