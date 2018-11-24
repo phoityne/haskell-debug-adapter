@@ -274,7 +274,7 @@ _TASKS_JSON_FILE_CONTENTS = str2lbs $ U.join "\n" $
 --
 --
 _ERR_MSG_URL :: [String]
-_ERR_MSG_URL = [ "`stack update` and install new phoityen-vscode."
+_ERR_MSG_URL = [ "`stack update` and install new phoityne-vscode."
                , "Or check information on https://marketplace.visualstudio.com/items?itemName=phoityne.phoityne-vscode"
                ]
 
@@ -299,7 +299,7 @@ _NEW_VERSION_MSG :: [String]
 _NEW_VERSION_MSG = [
     ""
   , "  New hackage module has been released."
-  , "  `stack update` and `stack install phoityen-vscode`."
+  , "  `stack update` and `stack install phoityne-vscode`."
   , " "
   , " "
   ]
