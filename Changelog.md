@@ -1,4 +1,8 @@
 
+20190203 phoityne-vscode-0.0.28.0
+  * [FIX] [Fixed typo in update message.](https://github.com/phoityne/haskell-debug-adapter/pull/2) ([@hnefatl](https://github.com/hnefatl))
+
+
 20181014 phoityne-vscode-0.0.27.0
   * [UPDATE] supported haskell-dap-0.0.9.0
   * [MODIFY] send dap output to vscode with DEBUG level. 

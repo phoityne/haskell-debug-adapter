@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7510e4a06774d21b56b98ef968a94513eda255b83d98bd112ff05251bbc34261
+-- hash: 01ceff3d414e57dec988aba626e06451dd9f6f4c51e3a8bad1930c99ce5a36f2
 
 name:           phoityne-vscode
-version:        0.0.27.0
+version:        0.0.28.0
 synopsis:       Haskell Debug Adapter for Visual Studio Code.
 description:    Please see README.md
 category:       Development
@@ -15,7 +15,7 @@ homepage:       https://github.com/phoityne/phoityne-vscode
 bug-reports:    https://github.com/phoityne/phoityne-vscode/issues
 author:         phoityne_hs
 maintainer:     phoityne.hs@gmail.com
-copyright:      2016-2018 phoityne_hs
+copyright:      2016-2019 phoityne_hs
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
