@@ -161,3 +161,11 @@ Adding Issue with the debug log.
 |stack test|required|stack test|task definition for F8 shortcut key.|
 |stack watch|required|stack build --test --no-run-tests --file-watch|task definition for F6 shortcut key.|
 
+
+
+# Thanks
+
+Thank you for your contribution for this project.
+* [@hnefatl](https://github.com/hnefatl)
+
+
