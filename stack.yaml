@@ -11,7 +11,6 @@
 # resolver: lts-3.5
 # resolver: nightly-2015-09-21
 # resolver: ghc-7.10.2
-# resolver: ghcjs-0.1.0_ghc-7.10.2
 #
 # The location of a snapshot can be provided as a file or url. Stack assumes
 # a snapshot provided as a file might change, whereas a url resource does not.
@@ -35,6 +34,8 @@ resolver: lts-12.26
 #  - wai
 packages:
 - .
+- ..\haskell-dap
+#- C:\work\haskell\haskell-dap
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
@@ -51,7 +52,7 @@ packages:
 #
 # Require a specific version of stack, using version ranges
 # require-stack-version: -any # Default
-# require-stack-version: ">=1.7"
+# require-stack-version: ">=1.9"
 #
 # Override the architecture used by stack, especially useful on Windows
 # arch: i386

@@ -1,0 +1,143 @@
+{-# LANGUAGE LambdaCase #-}
+
+module Haskell.Debug.Adapter.Response where
+
+import Control.Monad.IO.Class
+import Data.Conduit
+import Control.Lens
+import Data.Aeson
+import Control.Concurrent (threadDelay)
+import qualified Data.ByteString.Lazy as B
+import Control.Concurrent.MVar
+import Control.Monad.State.Lazy
+import qualified System.Log.Logger as L
+import Control.Monad.Except
+import qualified System.IO as S
+
+import Haskell.Debug.Adapter.Type
+import Haskell.Debug.Adapter.Utility
+import Haskell.Debug.Adapter.Constant
+
+
+-- |
+--
+run :: AppStores -> IO ()
+run appData = runApp appData app >>= \case
+    Left err -> do
+      L.errorM _LOG_NAME err
+      return ()
+    Right (res, _) -> do
+      L.infoM _LOG_NAME $ show res
+      return ()
+
+
+-- |
+--
+app :: AppContext ()
+app = do
+  _ <- runConduit pipeline
+  return ()
+
+  where
+    pipeline :: ConduitM () Void AppContext ()
+    pipeline = src .| res2lbs .| sink
+
+---------------------------------------------------------------------------------
+-- |
+--
+src :: ConduitT () Response AppContext ()
+src = do
+  liftIO $ L.debugM _LOG_RESPONSE $ "src start waiting."
+  res <- lift goApp
+  yield res
+  src
+
+
+  where
+    goApp :: AppContext Response
+    goApp = get >>= liftIO . getResponse
+
+-- |
+--
+getResponse :: AppStores -> IO Response
+getResponse appDat = takeResponse appDat >>= \case
+  Just res -> return res
+  Nothing -> do
+    threadDelay (100 * 1000)
+    getResponse appDat
+
+
+-- |
+--
+takeResponse :: AppStores -> IO (Maybe Response)
+takeResponse appData = do
+  let ressMVar = appData^.resStoreAppStores
+  isExists ressMVar >>= \case
+    False -> return Nothing
+    True  -> take1 ressMVar
+
+  where
+    isExists ressMVar = readMVar ressMVar >>= \case
+      [] -> return False
+      _  -> return True
+
+    take1 ressMVar = takeMVar ressMVar >>= \case
+      [] -> do
+        putMVar ressMVar []
+        return Nothing
+      (x:xs) -> do
+        putMVar ressMVar xs
+        return $ Just x
+
+
+---------------------------------------------------------------------------------
+-- |
+--
+res2lbs :: ConduitT Response B.ByteString AppContext ()
+res2lbs = do
+  liftIO $ L.debugM _LOG_RESPONSE $ "res2lbs start waiting."
+  await >>= \case
+    Nothing -> do
+      throwError $ "[CRITICAL][response][res2lbs] unexpected Nothing."
+      return ()
+    Just res -> do
+      liftIO $ L.debugM _LOG_RESPONSE $ "res2lbs get data. " ++ show res
+      bs <- lift $ goApp res
+      yield bs
+      res2lbs
+  
+  where
+    goApp :: Response -> AppContext B.ByteString
+    goApp = return . encode
+
+
+---------------------------------------------------------------------------------
+-- |
+--
+sink :: ConduitT B.ByteString Void AppContext ()
+sink = do
+  liftIO $ L.debugM _LOG_RESPONSE $ "sink start start."
+  await >>= \case
+    Nothing  -> do
+      throwError $ "[CRITICAL][response][sink] unexpected Nothing."
+      return ()
+    Just bs -> do
+      liftIO $ L.debugM _LOG_RESPONSE $ "sink get data. " ++ lbs2str bs
+      lift $ goApp bs
+      sink
+
+  where
+    goApp bs = do
+      wHdl <- view outHandleAppStores <$> get
+      liftIO $ sendResponse wHdl bs
+
+
+-- |
+--
+sendResponse :: S.Handle -> B.ByteString -> IO ()
+sendResponse hdl str = do
+  B.hPut hdl $ str2lbs $ _CONTENT_LENGTH ++ (show (B.length str))
+  B.hPut hdl $ str2lbs _TWO_CRLF
+  B.hPut hdl str
+  S.hFlush hdl
+

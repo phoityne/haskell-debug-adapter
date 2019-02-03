@@ -1,0 +1,140 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 082882573ff7fbd773b614d1b6694ccfe090a3212328c3828a5fd4f94d853ec2
+
+name:           haskell-debug-adapter
+version:        0.0.1.0
+synopsis:       Initial project template from stack
+description:    Please see README.md
+category:       Development
+homepage:       http://github.com/githubuser/haskell-debug-adapter#readme
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2017 Author Here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    Changelog.md
+
+library
+  exposed-modules:
+      Paths_haskell_debug_adapter
+      Haskell.Debug.Adapter.Constant
+      Haskell.Debug.Adapter.Control
+      Haskell.Debug.Adapter.Event
+      Haskell.Debug.Adapter.Logger
+      Haskell.Debug.Adapter.Type
+      Haskell.Debug.Adapter.Utility
+      Haskell.Debug.Adapter.Application
+      Haskell.Debug.Adapter.Request
+      Haskell.Debug.Adapter.Response
+      Haskell.Debug.Adapter.Thread
+      Haskell.Debug.Adapter.TH.Utility
+  other-modules:
+      Haskell.Debug.Adapter.GHCi
+      Haskell.Debug.Adapter.State.DebugRun
+      Haskell.Debug.Adapter.State.DebugRun.Scopes
+      Haskell.Debug.Adapter.State.DebugRun.StackTrace
+      Haskell.Debug.Adapter.State.DebugRun.Threads
+      Haskell.Debug.Adapter.State.DebugRun.Variables
+      Haskell.Debug.Adapter.State.GHCiRun
+      Haskell.Debug.Adapter.State.GHCiRun.ConfigurationDone
+      Haskell.Debug.Adapter.State.GHCiRun.Disconnect
+      Haskell.Debug.Adapter.State.GHCiRun.Initialize
+      Haskell.Debug.Adapter.State.GHCiRun.Launch
+      Haskell.Debug.Adapter.State.GHCiRun.SetBreakpoints
+      Haskell.Debug.Adapter.State.GHCiRun.SetExceptionBreakpoints
+      Haskell.Debug.Adapter.State.GHCiRun.SetFunctionBreakpoints
+      Haskell.Debug.Adapter.State.Init
+      Haskell.Debug.Adapter.State.Init.Disconnect
+      Haskell.Debug.Adapter.State.Init.Initialize
+      Haskell.Debug.Adapter.State.Init.Launch
+      Haskell.Debug.Adapter.State.Shutdown
+  hs-source-dirs:
+      src
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedLabels PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  ghc-options: -Wall -Werror -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-orphans -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  build-depends:
+      Cabal
+    , MissingH
+    , aeson
+    , async
+    , base >=4.7 && <5
+    , bytestring
+    , clock
+    , conduit
+    , conduit-extra
+    , containers
+    , data-default
+    , directory
+    , filepath
+    , haskell-dap
+    , hslogger
+    , lens
+    , mtl
+    , parsec
+    , process
+    , resourcet
+    , safe-exceptions
+    , text
+  default-language: Haskell2010
+
+executable haskell-debug-adapter
+  main-is: Main.hs
+  other-modules:
+      Haskell.Debug.Adapter.Argument
+      Haskell.Debug.Adapter.Config
+      Haskell.Debug.Adapter.Main
+      Paths_haskell_debug_adapter
+  hs-source-dirs:
+      app
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedLabels PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  ghc-options: -Wall -Werror -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-orphans -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  build-depends:
+      MissingH
+    , aeson
+    , base
+    , bytestring
+    , cmdargs
+    , haskell-debug-adapter
+    , hslogger
+    , lens
+    , safe
+    , safe-exceptions
+    , text
+    , yaml
+  default-language: Haskell2010
+
+test-suite haskell-debug-adapter-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Haskell.Debug.Adapter.ApplicationSpec
+      Haskell.Debug.Adapter.ControlSpec
+      Haskell.Debug.Adapter.RequestSpec
+      Haskell.Debug.Adapter.ResponseSpec
+      Spec.Utility
+      Paths_haskell_debug_adapter
+  hs-source-dirs:
+      test
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedLabels PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  ghc-options: -Wall -Werror -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-orphans -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  build-depends:
+      aeson
+    , async
+    , base
+    , bytestring
+    , data-default
+    , haskell-debug-adapter
+    , hslogger
+    , hspec
+    , lens
+    , process
+    , safe-exceptions
+  default-language: Haskell2010
