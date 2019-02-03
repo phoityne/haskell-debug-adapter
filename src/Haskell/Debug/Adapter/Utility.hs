@@ -287,3 +287,31 @@ sendDisconnectResponse req = do
 showDAP :: Show a => a -> String
 showDAP = show . BS.unpack . TE.encodeUtf8 . T.pack . show
 
+
+-- |
+--
+sendTerminateEvent :: AppContext ()
+sendTerminateEvent = do
+  resSeq <- getIncreasedResponseSequence
+  let evt = DAP.defaultTerminatedEvent {
+            DAP.seqTerminatedEvent = resSeq
+          }
+
+  addResponse $ TerminatedEvent evt
+
+
+-- |
+--
+handleStoppeEventBody :: DAP.StoppedEventBody -> AppContext ()
+handleStoppeEventBody body 
+  | "complete" == DAP.reasonStoppedEventBody body = do
+    debugEV _LOG_NAME "[DAP] debugging completeed."
+    sendTerminateEvent
+  | otherwise = do
+    resSeq <- getIncreasedResponseSequence
+    let res = DAP.defaultStoppedEvent {
+              DAP.seqStoppedEvent = resSeq
+            , DAP.bodyStoppedEvent = body
+            }
+
+    addResponse $ StoppedEvent res

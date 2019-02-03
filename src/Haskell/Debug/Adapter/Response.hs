@@ -98,7 +98,7 @@ res2lbs = do
   liftIO $ L.debugM _LOG_RESPONSE $ "res2lbs start waiting."
   await >>= \case
     Nothing -> do
-      throwError $ "[CRITICAL][response][res2lbs] unexpected Nothing."
+      throwError $ "[CRITICAL][response][res2lbs] unexpectHed Nothing."
       return ()
     Just res -> do
       liftIO $ L.debugM _LOG_RESPONSE $ "res2lbs get data. " ++ show res
@@ -119,7 +119,7 @@ sink = do
   liftIO $ L.debugM _LOG_RESPONSE $ "sink start start."
   await >>= \case
     Nothing  -> do
-      throwError $ "[CRITICAL][response][sink] unexpected Nothing."
+      throwError $ "[CRITICAL][response][sink] unexpectHed Nothing."
       return ()
     Just bs -> do
       liftIO $ L.debugM _LOG_RESPONSE $ "sink get data. " ++ lbs2str bs

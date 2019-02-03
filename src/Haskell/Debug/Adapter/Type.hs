@@ -130,6 +130,15 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ScopesArguments"} ''DAP
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesRequest"} ''DAP.VariablesRequest)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesArguments"} ''DAP.VariablesArguments)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinueRequest"} ''DAP.ContinueRequest)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinueArguments"} ''DAP.ContinueArguments)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "NextRequest"} ''DAP.NextRequest)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "NextArguments"} ''DAP.NextArguments)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInRequest"} ''DAP.StepInRequest)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInArguments"} ''DAP.StepInArguments)
+
 
 -- request
 data Request a where 
@@ -144,6 +153,9 @@ data Request a where
   StackTraceRequest :: DAP.StackTraceRequest -> Request DAP.StackTraceRequest
   ScopesRequest :: DAP.ScopesRequest -> Request DAP.ScopesRequest
   VariablesRequest :: DAP.VariablesRequest -> Request DAP.VariablesRequest
+  ContinueRequest :: DAP.ContinueRequest -> Request DAP.ContinueRequest
+  NextRequest :: DAP.NextRequest -> Request DAP.NextRequest
+  StepInRequest :: DAP.StepInRequest -> Request DAP.StepInRequest
 
 data WrapRequest = forall a. WrapRequest (Request a)
 
@@ -193,12 +205,22 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ScopesBody"} ''DAP.Scop
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesResponse"} ''DAP.VariablesResponse)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesBody"} ''DAP.VariablesBody)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinueResponse"} ''DAP.ContinueResponse)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "NextResponse"} ''DAP.NextResponse)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInResponse"} ''DAP.StepInResponse)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminatedEvent"} ''DAP.TerminatedEvent)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminatedEventBody"} ''DAP.TerminatedEventBody)
+
 -- response
 data Response = 
     InitializeResponse DAP.InitializeResponse
   | LaunchResponse     DAP.LaunchResponse
   | OutputEvent        DAP.OutputEvent
   | StoppedEvent       DAP.StoppedEvent
+  | TerminatedEvent    DAP.TerminatedEvent
   | InitializedEvent   DAP.InitializedEvent
   | DisconnectResponse DAP.DisconnectResponse
   | SetBreakpointsResponse DAP.SetBreakpointsResponse
@@ -209,6 +231,9 @@ data Response =
   | StackTraceResponse DAP.StackTraceResponse
   | ScopesResponse DAP.ScopesResponse
   | VariablesResponse DAP.VariablesResponse
+  | ContinueResponse DAP.ContinueResponse
+  | NextResponse DAP.NextResponse
+  | StepInResponse DAP.StepInResponse
   deriving (Show, Read, Eq)
 
 $(deriveJSON defaultOptions{sumEncoding = UntaggedValue} ''Response)
@@ -260,6 +285,9 @@ data StateRequest s r where
   Init_StackTrace :: DAP.StackTraceRequest -> StateRequest InitState DAP.StackTraceRequest
   Init_Scopes :: DAP.ScopesRequest -> StateRequest InitState DAP.ScopesRequest
   Init_Variables :: DAP.VariablesRequest -> StateRequest InitState DAP.VariablesRequest
+  Init_Continue :: DAP.ContinueRequest -> StateRequest InitState DAP.ContinueRequest
+  Init_Next :: DAP.NextRequest -> StateRequest InitState DAP.NextRequest
+  Init_StepIn :: DAP.StepInRequest -> StateRequest InitState DAP.StepInRequest
 
   GHCiRun_Initialize :: DAP.InitializeRequest -> StateRequest GHCiRunState DAP.InitializeRequest
   GHCiRun_Launch     :: DAP.LaunchRequest     -> StateRequest GHCiRunState DAP.LaunchRequest
@@ -272,6 +300,9 @@ data StateRequest s r where
   GHCiRun_StackTrace :: DAP.StackTraceRequest -> StateRequest GHCiRunState DAP.StackTraceRequest
   GHCiRun_Scopes :: DAP.ScopesRequest -> StateRequest GHCiRunState DAP.ScopesRequest
   GHCiRun_Variables :: DAP.VariablesRequest -> StateRequest GHCiRunState DAP.VariablesRequest
+  GHCiRun_Continue :: DAP.ContinueRequest -> StateRequest GHCiRunState DAP.ContinueRequest
+  GHCiRun_Next :: DAP.NextRequest -> StateRequest GHCiRunState DAP.NextRequest
+  GHCiRun_StepIn :: DAP.StepInRequest -> StateRequest GHCiRunState DAP.StepInRequest
 
   DebugRun_Initialize :: DAP.InitializeRequest -> StateRequest DebugRunState DAP.InitializeRequest
   DebugRun_Launch     :: DAP.LaunchRequest     -> StateRequest DebugRunState DAP.LaunchRequest
@@ -284,6 +315,9 @@ data StateRequest s r where
   DebugRun_StackTrace :: DAP.StackTraceRequest -> StateRequest DebugRunState DAP.StackTraceRequest
   DebugRun_Scopes :: DAP.ScopesRequest -> StateRequest DebugRunState DAP.ScopesRequest
   DebugRun_Variables :: DAP.VariablesRequest -> StateRequest DebugRunState DAP.VariablesRequest
+  DebugRun_Continue :: DAP.ContinueRequest -> StateRequest DebugRunState DAP.ContinueRequest
+  DebugRun_Next :: DAP.NextRequest -> StateRequest DebugRunState DAP.NextRequest
+  DebugRun_StepIn :: DAP.StepInRequest -> StateRequest DebugRunState DAP.StepInRequest
 
   Shutdown_Initialize :: DAP.InitializeRequest -> StateRequest ShutdownState DAP.InitializeRequest
   Shutdown_Launch     :: DAP.LaunchRequest     -> StateRequest ShutdownState DAP.LaunchRequest
@@ -296,6 +330,9 @@ data StateRequest s r where
   Shutdown_StackTrace :: DAP.StackTraceRequest -> StateRequest ShutdownState DAP.StackTraceRequest
   Shutdown_Scopes :: DAP.ScopesRequest -> StateRequest ShutdownState DAP.ScopesRequest
   Shutdown_Variables :: DAP.VariablesRequest -> StateRequest ShutdownState DAP.VariablesRequest
+  Shutdown_Continue :: DAP.ContinueRequest -> StateRequest ShutdownState DAP.ContinueRequest
+  Shutdown_Next :: DAP.NextRequest -> StateRequest ShutdownState DAP.NextRequest
+  Shutdown_StepIn :: DAP.StepInRequest -> StateRequest ShutdownState DAP.StepInRequest
 
 class StateRequestIF s r where
   action :: (StateRequest s r) -> AppContext (Maybe StateTransit)

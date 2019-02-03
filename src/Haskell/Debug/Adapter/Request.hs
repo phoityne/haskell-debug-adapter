@@ -95,7 +95,7 @@ lbs2req = do
   liftIO $ L.debugM _LOG_REQUEST $ "lbs2req start waiting."
   await >>= \case
     Nothing  -> do
-      throwError $ "[CRITICAL][request][lbs2req] unexpected Nothing."
+      throwError $ "[CRITICAL][request][lbs2req] unexpectHed Nothing."
     Just reqBS -> do
       liftIO $ L.debugM _LOG_REQUEST $ "lbs2req get data. " ++ lbs2str reqBS
       lift (goApp reqBS) >>= \case
@@ -136,6 +136,9 @@ createWrapRequest bs req
   | "stackTrace" == DAP.commandRequest req = WrapRequest . StackTraceRequest <$> (liftEither (eitherDecode bs))
   | "scopes" == DAP.commandRequest req = WrapRequest . ScopesRequest <$> (liftEither (eitherDecode bs))
   | "variables" == DAP.commandRequest req = WrapRequest . VariablesRequest <$> (liftEither (eitherDecode bs))
+  | "continue" == DAP.commandRequest req = WrapRequest . ContinueRequest <$> (liftEither (eitherDecode bs))
+  | "next" == DAP.commandRequest req = WrapRequest . NextRequest <$> (liftEither (eitherDecode bs))
+  | "stepIn" == DAP.commandRequest req = WrapRequest . StepInRequest <$> (liftEither (eitherDecode bs))
   | otherwise = throwError $ "unsupported request command. " ++ lbs2str bs
 
 
@@ -147,7 +150,7 @@ sink = do
   liftIO $ L.debugM _LOG_REQUEST $ "sink start waiting."
   await >>= \case
     Nothing  -> do
-      throwError $ "[CRITICAL][request][sink] unexpected Nothing."
+      throwError $ "[CRITICAL][request][sink] unexpectHed Nothing."
       return ()
     Just req -> do
       lift $ goApp req

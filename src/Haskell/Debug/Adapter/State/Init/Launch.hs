@@ -167,7 +167,7 @@ startGHCi req = do
   U.sendStdoutEventLF ""
 
   P.startGHCi cmd opts cwd envs
-  P.expectS initPmpt expCallBK
+  P.expect initPmpt expCallBK
 
   where
     expCallBK _ _ ([]) = return ()
@@ -217,10 +217,10 @@ setPrompt = do
       cmd2 = ":set prompt-cont \""++pmpt++"\""
 
   P.cmdAndOut cmd
-  P.expect P.stdoutCallBk
+  P.expectH P.stdoutCallBk
 
   P.cmdAndOut cmd2
-  P.expect P.stdoutCallBk
+  P.expectH P.stdoutCallBk
 
 
 -- |
@@ -232,7 +232,7 @@ setMainArgs = view mainArgsAppStores <$> get >>= \case
     let cmd  = ":set args "++args
 
     P.cmdAndOut cmd
-    P.expect P.stdoutCallBk
+    P.expectH P.stdoutCallBk
 
 -- |
 --
@@ -242,7 +242,7 @@ loadHsFile = do
   let cmd  = ":load "++file
 
   P.cmdAndOut cmd
-  P.expect P.stdoutCallBk
+  P.expectH P.stdoutCallBk
 
 
 -- |

@@ -49,6 +49,6 @@ app req = do
       let cmd = ":set " ++ opt
 
       P.cmdAndOut cmd
-      P.expect $ P.stdoutCallBk
+      P.expectH $ P.stdoutCallBk
 
 

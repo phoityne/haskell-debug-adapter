@@ -109,8 +109,8 @@ type ExpectCallBack = Bool -> [String] -> [String] -> AppContext ()
 
 -- |
 --
-expect :: ExpectCallBack -> AppContext ()
-expect func = do
+expectH :: ExpectCallBack -> AppContext ()
+expectH func = do
   pmpt <- view ghciPmptAppStores <$> get
   mvar <- view ghciGHCiAppStores <$> get
   proc <- liftIO $ readMVar mvar
@@ -142,8 +142,8 @@ expect func = do
 
 -- |
 --
-expectS :: String -> ExpectCallBack -> AppContext ()
-expectS key func = do
+expect :: String -> ExpectCallBack -> AppContext ()
+expect key func = do
   mvar <- view ghciGHCiAppStores <$> get
   proc <- liftIO $ readMVar mvar
   let hdl = proc^.rHdlGHCiGHCi

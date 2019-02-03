@@ -29,7 +29,7 @@ getConfigData args = decodeEither' <$> getContent (args^.yamlFileArgData) >>= \c
 defaultYamlSetting :: BS.ByteString
 defaultYamlSetting = str2bs $ unlines [
     "workDir  : \".\""
-  , "logFile  : \"C:/work/haskell/haskell-debug-adapter/haskell-debug-adapter.log\""
+  , "logFile  : \"C:/work/haskell/hda-master/haskell-debug-adapter.log\""
   , "logLevel : \"DEBUG\""
   ]
 

@@ -145,7 +145,7 @@ sink = do
   liftIO $ L.debugM _LOG_APP $ "sink start waiting."
   await >>= \case
     Nothing  -> do
-      throwError $ "[CRITICAL][response][sink] unexpected Nothing."
+      throwError $ "[CRITICAL][response][sink] unexpectHed Nothing."
       return ()
     Just req -> do
       lift $ appMain req

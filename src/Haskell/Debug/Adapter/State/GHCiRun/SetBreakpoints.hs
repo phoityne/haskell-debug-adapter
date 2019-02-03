@@ -29,7 +29,7 @@ app req = do
       cmd = ":dap-set-breakpoints " ++ U.showDAP args
 
   P.cmdAndOut cmd
-  P.expect $ P.funcCallBk lineCallBk
+  P.expectH $ P.funcCallBk lineCallBk
 
   return Nothing
   

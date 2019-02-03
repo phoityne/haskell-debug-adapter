@@ -41,21 +41,37 @@ instance AppStateIF GHCiRunState where
   getStateRequest GHCiRunState (WrapRequest (SetExceptionBreakpointsRequest req)) = return . WrapStateRequest $ GHCiRun_SetExceptionBreakpoints req
   getStateRequest GHCiRunState (WrapRequest (ConfigurationDoneRequest req)) = return . WrapStateRequest $ GHCiRun_ConfigurationDone req
   getStateRequest GHCiRunState (WrapRequest (ThreadsRequest req)) = do
-    let msg = "InitState does not support this request. " ++ show req
+    let msg = "GHCiRunState does not support this request. " ++ show req
     liftIO $ L.criticalM _LOG_APP msg
     throwError msg
 
   getStateRequest GHCiRunState (WrapRequest (StackTraceRequest req)) = do
-    let msg = "InitState does not support this request. " ++ show req
+    let msg = "GHCiRunState does not support this request. " ++ show req
     liftIO $ L.criticalM _LOG_APP msg
     throwError msg
 
   getStateRequest GHCiRunState (WrapRequest (ScopesRequest req)) = do
-    let msg = "InitState does not support this request. " ++ show req
+    let msg = "GHCiRunState does not support this request. " ++ show req
     liftIO $ L.criticalM _LOG_APP msg
     throwError msg
 
   getStateRequest GHCiRunState (WrapRequest (VariablesRequest req)) = do
-    let msg = "InitState does not support this request. " ++ show req
+    let msg = "GHCiRunState does not support this request. " ++ show req
     liftIO $ L.criticalM _LOG_APP msg
     throwError msg
+
+  getStateRequest GHCiRunState (WrapRequest (ContinueRequest req)) = do
+    let msg = "GHCiRunState does not support this request. " ++ show req
+    liftIO $ L.criticalM _LOG_APP msg
+    throwError msg
+
+  getStateRequest GHCiRunState (WrapRequest (NextRequest req)) = do
+    let msg = "GHCiRunState does not support this request. " ++ show req
+    liftIO $ L.criticalM _LOG_APP msg
+    throwError msg
+
+  getStateRequest GHCiRunState (WrapRequest (StepInRequest req)) = do
+    let msg = "GHCiRunState does not support this request. " ++ show req
+    liftIO $ L.criticalM _LOG_APP msg
+    throwError msg
+        

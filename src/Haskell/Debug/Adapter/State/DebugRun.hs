@@ -21,6 +21,9 @@ import Haskell.Debug.Adapter.State.DebugRun.Threads()
 import Haskell.Debug.Adapter.State.DebugRun.StackTrace()
 import Haskell.Debug.Adapter.State.DebugRun.Scopes()
 import Haskell.Debug.Adapter.State.DebugRun.Variables()
+import Haskell.Debug.Adapter.State.DebugRun.Continue()
+import Haskell.Debug.Adapter.State.DebugRun.Next()
+import Haskell.Debug.Adapter.State.DebugRun.StepIn()
 
 
 instance AppStateIF DebugRunState where
@@ -78,6 +81,9 @@ instance AppStateIF DebugRunState where
   getStateRequest DebugRunState (WrapRequest (StackTraceRequest req)) = return . WrapStateRequest $ DebugRun_StackTrace req
   getStateRequest DebugRunState (WrapRequest (ScopesRequest req)) = return . WrapStateRequest $ DebugRun_Scopes req
   getStateRequest DebugRunState (WrapRequest (VariablesRequest req)) = return . WrapStateRequest $ DebugRun_Variables req
+  getStateRequest DebugRunState (WrapRequest (ContinueRequest req)) = return . WrapStateRequest $ DebugRun_Continue req
+  getStateRequest DebugRunState (WrapRequest (NextRequest req)) = return . WrapStateRequest $ DebugRun_Next req
+  getStateRequest DebugRunState (WrapRequest (StepInRequest req)) = return . WrapStateRequest $ DebugRun_StepIn req
 
 
 -- |
@@ -117,7 +123,7 @@ startDebug = do
       let cmd = ":dap-continue " ++ U.showDAP args
 
       P.cmdAndOut cmd
-      P.expect $ P.funcCallBk lineCallBk
+      P.expectH $ P.funcCallBk lineCallBk
 
     
     lineCallBk :: Bool -> String -> AppContext ()
@@ -132,14 +138,7 @@ startDebug = do
     dapHdl str = case R.readEither str of
       Left err -> errHdl str err
       Right (Left err) -> errHdl str err
-      Right (Right body) -> do
-        resSeq <- U.getIncreasedResponseSequence
-        let res = DAP.defaultStoppedEvent {
-                  DAP.seqStoppedEvent = resSeq
-                , DAP.bodyStoppedEvent = body
-                }
-
-        U.addResponse $ StoppedEvent res
+      Right (Right body) -> U.handleStoppeEventBody body
 
     -- |
     --

@@ -56,6 +56,9 @@ instance AppStateIF InitState where
   getStateRequest InitState (WrapRequest (StackTraceRequest req)) = unsupported $ show req
   getStateRequest InitState (WrapRequest (ScopesRequest req)) = unsupported $ show req
   getStateRequest InitState (WrapRequest (VariablesRequest req)) = unsupported $ show req
+  getStateRequest InitState (WrapRequest (ContinueRequest req)) = unsupported $ show req
+  getStateRequest InitState (WrapRequest (NextRequest req)) = unsupported $ show req
+  getStateRequest InitState (WrapRequest (StepInRequest req)) = unsupported $ show req
 
 
 -- | 

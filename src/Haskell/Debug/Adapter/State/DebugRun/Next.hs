@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Haskell.Debug.Adapter.State.DebugRun.Scopes where
+module Haskell.Debug.Adapter.State.DebugRun.Next where
 
 import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
@@ -14,22 +14,31 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.GHCi as P
 
-instance StateRequestIF DebugRunState DAP.ScopesRequest where
+instance StateRequestIF DebugRunState DAP.NextRequest where
   --action :: (StateRequest s r) -> AppContext ()
-  action (DebugRun_Scopes req) = do
-    liftIO $ L.debugM _LOG_APP $ "DebugRunState ScopesRequest called. " ++ show req
+  action (DebugRun_Next req) = do
+    liftIO $ L.debugM _LOG_APP $ "DebugRunState NextRequest called. " ++ show req
     app req
 
 -- |
 --
-app :: DAP.ScopesRequest -> AppContext (Maybe StateTransit)
+app :: DAP.NextRequest -> AppContext (Maybe StateTransit)
 app req = do
   
-  let args = DAP.argumentsScopesRequest req
-      cmd = ":dap-scopes " ++ U.showDAP args
+  let args = DAP.argumentsNextRequest req
+      cmd = ":dap-next " ++ U.showDAP args
 
   P.cmdAndOut cmd
   P.expectH $ P.funcCallBk lineCallBk
+
+  resSeq <- U.getIncreasedResponseSequence
+  let res = DAP.defaultNextResponse {
+            DAP.seqNextResponse = resSeq
+          , DAP.request_seqNextResponse = DAP.seqNextRequest req
+          , DAP.successNextResponse = True
+          }
+
+  U.addResponse $ NextResponse res
 
   return Nothing
   
@@ -46,30 +55,22 @@ app req = do
     dapHdl str = case R.readEither str of
       Left err -> errHdl str err
       Right (Left err) -> errHdl str err
-      Right (Right body) -> do
-        resSeq <- U.getIncreasedResponseSequence
-        let res = DAP.defaultScopesResponse {
-                  DAP.seqScopesResponse = resSeq
-                , DAP.request_seqScopesResponse = DAP.seqScopesRequest req
-                , DAP.successScopesResponse = True
-                , DAP.bodyScopesResponse = body
-                }
-
-        U.addResponse $ ScopesResponse res
+      Right (Right body) -> U.handleStoppeEventBody body
+        
 
     -- |
     --
     errHdl :: String -> String -> AppContext()
     errHdl str err = do
-      let msg = "setBreakpointRequest failed. " ++ err ++ " : " ++ str
+      let msg = "next request failed. " ++ err ++ " : " ++ str
       liftIO $ L.errorM _LOG_APP msg
       resSeq <- U.getIncreasedResponseSequence
-      let res = DAP.defaultScopesResponse {
-                DAP.seqScopesResponse = resSeq
-              , DAP.request_seqScopesResponse = DAP.seqScopesRequest req
-              , DAP.successScopesResponse = False
-              , DAP.messageScopesResponse = msg
+      let res = DAP.defaultNextResponse {
+                DAP.seqNextResponse = resSeq
+              , DAP.request_seqNextResponse = DAP.seqNextRequest req
+              , DAP.successNextResponse = False
+              , DAP.messageNextResponse = msg
               }
 
-      U.addResponse $ ScopesResponse res
+      U.addResponse $ NextResponse res
 
