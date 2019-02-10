@@ -12,35 +12,36 @@ import Control.Concurrent.MVar
 import Control.Monad.State.Lazy
 import qualified System.Log.Logger as L
 import Control.Monad.Except
-import qualified System.IO as S
 
 import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.Type
+import qualified Haskell.Debug.Adapter.Event as EV
 import Haskell.Debug.Adapter.Utility
 import Haskell.Debug.Adapter.Constant
 
 -- |
 --
 run :: AppStores -> IO ()
-run appData = runApp appData app >>= \case
-    Left err -> do
-      L.errorM _LOG_NAME err
-      return ()
-    Right (res, _) -> do
-      L.infoM _LOG_NAME $ show res
-      return ()
+run appData = do
+  L.debugM _LOG_REQUEST "start request app"
+  _ <- runApp appData app
+  L.debugM _LOG_REQUEST "end request app"
 
 
 -- |
 --
 app :: AppContext ()
-app = do
+app = flip catchError errHdl $ do
   _ <- runConduit pipeline
   return ()
 
   where
     pipeline :: ConduitM () Void AppContext ()
     pipeline = src .| lbs2req .| sink
+
+    errHdl msg = do
+      criticalEV _LOG_REQUEST msg
+      EV.addEvent ShutdownEvent
 
 
 ---------------------------------------------------------------------------------
@@ -56,18 +57,27 @@ src = do
   where
     goApp :: AppContext B.ByteString
     goApp = getContentLength >>= getContent
-    
-    getContent :: Int -> AppContext B.ByteString
-    getContent l = getReadHandle >>= flip readBSL l
 
-    getContentLength :: AppContext Int
-    getContentLength = go B.empty
-        
+
+-- |
+--
+getContent :: Int -> AppContext B.ByteString
+getContent l = view inHandleAppStores <$> get
+           >>= flip readCharsL l
+
+
+-- |
+--
+getContentLength :: AppContext Int
+getContentLength = go B.empty
+  where    
     go :: B.ByteString -> AppContext Int
     go buf = updateBuf buf >>= findLength
 
     updateBuf :: B.ByteString -> AppContext B.ByteString
-    updateBuf buf = B.append buf <$> getContent 1
+    updateBuf buf = do
+      hdl <- view inHandleAppStores <$> get
+      B.append buf <$> readCharL hdl
     
     findLength :: B.ByteString -> AppContext Int
     findLength buf = case parse parser "find ContentLength parser" (lbs2str buf) of
@@ -79,13 +89,6 @@ src = do
       len <- manyTill digit (string _TWO_CRLF)
       return . read $ len
 
--- |
---
-getReadHandle :: AppContext S.Handle
-getReadHandle = view inHandleAppStores <$> get
-   >>= isOpenHdl
-   >>= isReadableHdl
-
 
 ---------------------------------------------------------------------------------
 -- |
@@ -95,7 +98,7 @@ lbs2req = do
   liftIO $ L.debugM _LOG_REQUEST $ "lbs2req start waiting."
   await >>= \case
     Nothing  -> do
-      throwError $ "[CRITICAL][request][lbs2req] unexpectHed Nothing."
+      throwError $ "unexpectHed Nothing."
     Just reqBS -> do
       liftIO $ L.debugM _LOG_REQUEST $ "lbs2req get data. " ++ lbs2str reqBS
       lift (goApp reqBS) >>= \case
@@ -150,7 +153,7 @@ sink = do
   liftIO $ L.debugM _LOG_REQUEST $ "sink start waiting."
   await >>= \case
     Nothing  -> do
-      throwError $ "[CRITICAL][request][sink] unexpectHed Nothing."
+      throwError $ "unexpected Nothing."
       return ()
     Just req -> do
       lift $ goApp req

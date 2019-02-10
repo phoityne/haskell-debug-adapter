@@ -11,8 +11,9 @@ import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
 
+-- |
+--
 instance StateRequestIF DebugRunState DAP.ThreadsRequest where
-  --action :: (StateRequest s r) -> AppContext ()
   action (DebugRun_Threads req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState ThreadsRequest called. " ++ show req
     app req

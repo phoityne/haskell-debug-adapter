@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6b556859498b4f50b2cf34f19acdc5e34937f52d9159cb7e274946cb0aff9140
+-- hash: 8998658d6ef998553373c0ab60f3dc8ee096ef506099c9b0967aff9391cce431
 
 name:           haskell-debug-adapter
 version:        0.0.1.0
@@ -40,6 +40,7 @@ library
       Haskell.Debug.Adapter.GHCi
       Haskell.Debug.Adapter.State.DebugRun
       Haskell.Debug.Adapter.State.DebugRun.Continue
+      Haskell.Debug.Adapter.State.DebugRun.Disconnect
       Haskell.Debug.Adapter.State.DebugRun.Next
       Haskell.Debug.Adapter.State.DebugRun.Scopes
       Haskell.Debug.Adapter.State.DebugRun.StackTrace
@@ -49,16 +50,12 @@ library
       Haskell.Debug.Adapter.State.GHCiRun
       Haskell.Debug.Adapter.State.GHCiRun.ConfigurationDone
       Haskell.Debug.Adapter.State.GHCiRun.Disconnect
-      Haskell.Debug.Adapter.State.GHCiRun.Initialize
-      Haskell.Debug.Adapter.State.GHCiRun.Launch
-      Haskell.Debug.Adapter.State.GHCiRun.SetBreakpoints
-      Haskell.Debug.Adapter.State.GHCiRun.SetExceptionBreakpoints
-      Haskell.Debug.Adapter.State.GHCiRun.SetFunctionBreakpoints
       Haskell.Debug.Adapter.State.Init
       Haskell.Debug.Adapter.State.Init.Disconnect
       Haskell.Debug.Adapter.State.Init.Initialize
       Haskell.Debug.Adapter.State.Init.Launch
       Haskell.Debug.Adapter.State.Shutdown
+      Haskell.Debug.Adapter.State.Utility
   hs-source-dirs:
       src
   default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedLabels PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns

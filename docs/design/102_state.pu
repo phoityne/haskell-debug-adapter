@@ -1,0 +1,35 @@
+@startuml 102_state
+'skinparam minClassWidth 100
+'skinparam minClassHeight 400
+skinparam monochrome true
+'skinparam monochrome reverse
+'skinparam linetype polyline
+skinparam linetype ortho
+'skinparam linetype splines
+skinparam arrowThickness 2
+left to right direction
+
+title <size:18>State Transition Diagram</size>
+
+state Init
+state GHCiRun
+state DebugRun
+state Shutdown
+state Contaminated
+
+[*] -right-> Init
+Init --> GHCiRun : Launch
+Init --right--> Shutdown
+GHCiRun ---right---> DebugRun : request
+DebugRun -> GHCiRun
+Shutdown -right-> [*]
+GHCiRun ----> Contaminated
+DebugRun ----> Contaminated
+GHCiRun -> Shutdown
+Contaminated ---> Shutdown : terminate
+
+DebugRun: entry / xxxx
+DebugRun: do / yyyy
+DebugRun: exit / zzzz
+
+@enduml

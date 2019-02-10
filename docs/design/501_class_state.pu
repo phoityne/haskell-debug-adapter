@@ -1,0 +1,54 @@
+@startuml 501_class_state
+'skinparam minClassWidth 100
+'skinparam minClassHeight 400
+skinparam monochrome true
+'skinparam monochrome reverse
+'skinparam linetype polyline
+skinparam linetype ortho
+'skinparam linetype splines
+skinparam arrowThickness 2
+'left to right direction
+allow_mixing
+hide empty members
+hide circle
+
+title <size:18>HDA State Pattern Class Diagram</size>
+
+class Application
+interface AppState {
+    + entryAction
+    + exitAction
+    + getStateRequest
+}
+interface StateRequest {
+    + action
+}
+
+class InitState
+class GHCiRunState
+class DebugRunState
+class ContaminatedState
+class ShutdownState
+
+Application *-d-StateRequest
+StateRequest <|.d. Init_Initialize
+StateRequest <|.d. Init_some_request
+StateRequest <|..d.. GHCiRun_Initialize
+StateRequest <|..d.. GHCiRun_some_request
+StateRequest <|...d... DebugRun_Initialize
+StateRequest <|...d... DebugRun_some_request
+StateRequest <|....d.... Contaminated_Initialize
+StateRequest <|....d.... Contaminated_some_request
+StateRequest <|.....d..... Shutdown_Initialize
+StateRequest <|.....d..... Shutdown_some_request
+
+Application *-d-AppState
+AppState <|..d.. InitState
+AppState <|..d.. GHCiRunState
+AppState <|..d.. DebugRunState
+AppState <|..d.. ContaminatedState
+AppState <|..d.. ShutdownState
+
+'Application --[hidden]-- InitState
+
+@enduml

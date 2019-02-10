@@ -7,6 +7,7 @@ import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
 import qualified Text.Read as R
 import qualified Data.List as L
+import Control.Monad.Except
 
 import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.Type
@@ -14,8 +15,9 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.GHCi as P
 
+-- |
+--
 instance StateRequestIF DebugRunState DAP.StackTraceRequest where
-  --action :: (StateRequest s r) -> AppContext ()
   action (DebugRun_StackTrace req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState StackTraceRequest called. " ++ show req
     app req
@@ -23,7 +25,7 @@ instance StateRequestIF DebugRunState DAP.StackTraceRequest where
 -- |
 --
 app :: DAP.StackTraceRequest -> AppContext (Maybe StateTransit)
-app req = do
+app req = flip catchError errHdl $ do
   
   let args = DAP.argumentsStackTraceRequest req
       cmd = ":dap-stacktrace " ++ U.showDAP args
@@ -44,8 +46,8 @@ app req = do
     --
     dapHdl :: String -> AppContext ()
     dapHdl str = case R.readEither str of
-      Left err -> errHdl str err
-      Right (Left err) -> errHdl str err
+      Left err -> throwError $ err ++ " : " ++ str
+      Right (Left err) -> throwError $ err ++ " : " ++ str
       Right (Right body) -> do
         resSeq <- U.getIncreasedResponseSequence
         let res = DAP.defaultStackTraceResponse {
@@ -59,9 +61,8 @@ app req = do
 
     -- |
     --
-    errHdl :: String -> String -> AppContext()
-    errHdl str err = do
-      let msg = "setBreakpointRequest failed. " ++ err ++ " : " ++ str
+    errHdl :: String -> AppContext (Maybe StateTransit)
+    errHdl msg = do
       liftIO $ L.errorM _LOG_APP msg
       resSeq <- U.getIncreasedResponseSequence
       let res = DAP.defaultStackTraceResponse {
@@ -72,4 +73,5 @@ app req = do
               }
 
       U.addResponse $ StackTraceResponse res
+      return Nothing
 

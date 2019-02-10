@@ -8,6 +8,7 @@ import Control.Monad.Except
 import qualified System.Log.Logger as L
 
 import Haskell.Debug.Adapter.Type
+import qualified Haskell.Debug.Adapter.Event as EV
 import Haskell.Debug.Adapter.Constant
 
 
@@ -18,20 +19,23 @@ instance AppStateIF ShutdownState where
   --
   entryAction ShutdownState = do
     liftIO $ L.debugM _LOG_APP "ShutdownState entryAction called."
+
+    EV.addEvent ShutdownEvent
+
     return ()
 
+    
   -- |
   --
   exitAction ShutdownState = do
     let msg = "ShutdownState exitAction must not be called."
-    liftIO $ L.criticalM _LOG_APP msg
     throwError msg
+
 
   -- | 
   --
   getStateRequest ShutdownState _ = do
     let msg = "ShutdownState does not support any request."
-    liftIO $ L.criticalM _LOG_APP msg
     throwError msg
 
 

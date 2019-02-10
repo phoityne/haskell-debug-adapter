@@ -46,7 +46,7 @@ startGHCiIO :: String
             -> [String]
             -> FilePath
             -> M.Map String String
-            -> IO (Either ErrMsg GHCiGHCi)
+            -> IO (Either ErrMsg GHCiProc)
 startGHCiIO cmd opts cwd envs = flip E.catches handlers $ do
 
   (fromPhoityneHandle, toGHCiHandle) <- S.createPipe
@@ -81,7 +81,7 @@ startGHCiIO cmd opts cwd envs = flip E.catches handlers $ do
 
   ghciGHCi <- S.runProcess cmd opts (Just cwd) runEnvs (Just fromPhoityneHandle) (Just toPhoityneHandle) (Just toPhoityneHandle)
 
-  return . Right $ GHCiGHCi toGHCiHandle fromGHCiHandle fromGHCiHandle ghciGHCi
+  return . Right $ GHCiProc toGHCiHandle fromGHCiHandle fromGHCiHandle ghciGHCi
 
   where
     handlers = [ E.Handler someExcept ]
@@ -114,14 +114,16 @@ expectH func = do
   pmpt <- view ghciPmptAppStores <$> get
   mvar <- view ghciGHCiAppStores <$> get
   proc <- liftIO $ readMVar mvar
-  let hdl = proc^.rHdlGHCiGHCi
+  let hdl = proc^.rHdlGHCiProc
       plen = length pmpt
 
   go plen hdl []
   
   where
-    go plen hdl acc = do
-      b <- liftIO $ B.hGetLine hdl
+    go plen hdl acc = U.readLine hdl
+      >>= go' plen hdl acc
+    
+    go' plen hdl acc b = do
       let newL = U.bs2str b
       if L.isSuffixOf _DAP_CMD_END2 newL
         then goEnd plen hdl acc
@@ -146,16 +148,18 @@ expect :: String -> ExpectCallBack -> AppContext ()
 expect key func = do
   mvar <- view ghciGHCiAppStores <$> get
   proc <- liftIO $ readMVar mvar
-  let hdl = proc^.rHdlGHCiGHCi
+  let hdl = proc^.rHdlGHCiProc
 
-  bs <- liftIO $ go (U.str2bs key) hdl B.empty
+  bs <- go (U.str2bs key) hdl B.empty
   let strs = map rstrip $ lines $ U.bs2str bs
 
   func True strs strs
 
   where
-    go kb hdl acc = do
-      b <- B.hGet hdl 1
+    go kb hdl acc = U.readChar hdl
+      >>= go' kb hdl acc
+
+    go' kb hdl acc b = do
       let newAcc = B.append acc b
       if B.isSuffixOf kb newAcc
         then return newAcc
@@ -167,6 +171,8 @@ expect key func = do
       | last xs == '\r' = init xs
       | otherwise = xs
 
+      
+
 -- |
 --  write to ghci.
 --
@@ -174,7 +180,7 @@ command :: String -> AppContext ()
 command cmd = do
   mver <- view ghciGHCiAppStores <$> get
   proc <- liftIO $ readMVar mver
-  let hdl = proc^.wHdLGHCiGHCi
+  let hdl = proc^.wHdLGHCiProc
 
   liftIO (goIO hdl cmd) >>= liftEither
 

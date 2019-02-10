@@ -1,0 +1,31 @@
+@startuml 302_thread
+'skinparam minClassWidth 100
+'skinparam minClassHeight 400
+skinparam monochrome true
+'skinparam monochrome reverse
+'skinparam linetype polyline
+skinparam linetype ortho
+'skinparam linetype splines
+skinparam arrowThickness 2
+'left to right direction
+allow_mixing
+hide empty members
+hide circle
+
+title <size:18>HDA Thread Design</size>
+
+storage "main thread" {
+  storage "thread manager thread"
+  storage "request thread"
+  storage "response thread"
+  storage "application thread"
+  storage "file watch thread"
+}
+
+"main thread" --> "thread manager thread"
+"thread manager thread" --> "request thread"
+"thread manager thread" --> "response thread"
+"thread manager thread" --> "application thread"
+"thread manager thread" --> "file watch thread"
+
+@enduml

@@ -17,6 +17,7 @@ import qualified System.IO as S
 import Control.Concurrent.MVar
 import qualified System.Log.Logger as L
 import qualified Data.List as L
+import qualified Control.Exception.Safe as E
 
 
 import qualified GHCi.DAP as DAP
@@ -220,53 +221,6 @@ logEV pr name msg = do
 
 -- |
 --
-readBS :: S.Handle -> AppContext BS.ByteString
---readBS hdl = liftIO (BS.hGet hdl 1) >>= isValidBS
-readBS hdl = liftIO (BS.hGetSome hdl (1024)) >>= isValidBS >>= \s-> do
-  liftIO $ L.debugM _LOG_NAME $ bs2str s
-  return s
-
-
--- |
---
-readBSL :: S.Handle -> Int -> AppContext BSL.ByteString
-readBSL hdl l = liftIO (BSL.hGet hdl l) >>= isValidBSL
-
-
--- |
---
-isValidBS :: BS.ByteString -> AppContext BS.ByteString
-isValidBS c 
-  | c == BS.empty = throwError "[CRITICAL] invalid ByteString. enmpty."
-  | otherwise = return c
-
-
--- |
---
-isValidBSL :: BSL.ByteString -> AppContext BSL.ByteString
-isValidBSL c 
-  | c == BSL.empty = throwError "[CRITICAL] invalid ByteString. enmpty."
-  | otherwise = return c
-
-
--- |
---
-isOpenHdl :: S.Handle -> AppContext S.Handle
-isOpenHdl rHdl = liftIO (S.hIsOpen rHdl) >>= \case
-  True  -> return rHdl
-  False -> throwError "[CRITICAL] invalid HANDLE. not opened."
-
-
--- |
---
-isReadableHdl :: S.Handle -> AppContext S.Handle
-isReadableHdl rHdl = liftIO (S.hIsReadable rHdl) >>= \case
-  True  -> return rHdl
-  False -> throwError "[CRITICAL] invalid HANDLE. not readable."
-
-
--- |
---
 sendDisconnectResponse :: DAP.DisconnectRequest -> AppContext ()
 sendDisconnectResponse req = do
   resSeq <- getIncreasedResponseSequence
@@ -315,3 +269,110 @@ handleStoppeEventBody body
             }
 
     addResponse $ StoppedEvent res
+
+
+-- |
+--
+readLine :: S.Handle -> AppContext BS.ByteString
+readLine hdl =   isOpenHdl hdl
+             >>= isReadableHdl
+             >>= isNotEofHdl
+             >>= go
+
+  where
+    go hdl = liftIO (goIO hdl) >>= liftEither
+    
+    goIO hdl = flip E.catchAny errHdl $ do
+      Right <$> BS.hGetLine hdl
+
+    errHdl = return . Left . show
+
+-- |
+--
+readChar :: S.Handle -> AppContext BS.ByteString
+readChar hdl = readChars hdl 1
+
+
+-- |
+--
+readChars :: S.Handle -> Int -> AppContext BS.ByteString
+readChars hdl c = isOpenHdl hdl
+              >>= isReadableHdl
+              >>= isNotEofHdl
+              >>= go
+              >>= isNotEmpty
+
+  where
+    go hdl = liftIO (goIO hdl) >>= liftEither
+    
+    goIO hdl = flip E.catchAny errHdl $ do
+      Right <$> BS.hGet hdl c
+
+    errHdl = return . Left . show
+
+    
+
+-- |
+--
+readCharL :: S.Handle -> AppContext BSL.ByteString
+readCharL hdl = readCharsL hdl 1
+
+
+-- |
+--
+readCharsL :: S.Handle -> Int -> AppContext BSL.ByteString
+readCharsL hdl c = isOpenHdl hdl
+               >>= isReadableHdl
+               >>= isNotEofHdl
+               >>= go
+               >>= isNotEmptyL
+
+  where
+    go hdl = liftIO (goIO hdl) >>= liftEither
+
+    goIO hdl = flip E.catchAny errHdl $ do
+      Right <$> BSL.hGet hdl c
+
+    errHdl = return . Left . show
+
+
+-- |
+--
+isOpenHdl :: S.Handle -> AppContext S.Handle
+isOpenHdl rHdl = liftIO (S.hIsOpen rHdl) >>= \case
+  True  -> return rHdl
+  False -> throwError "invalid HANDLE. not opened."
+
+
+-- |
+--
+isReadableHdl :: S.Handle -> AppContext S.Handle
+isReadableHdl rHdl = liftIO (S.hIsReadable rHdl) >>= \case
+  True  -> return rHdl
+  False -> throwError "invalid HANDLE. not readable."
+
+
+-- |
+--
+isNotEofHdl :: S.Handle -> AppContext S.Handle
+isNotEofHdl rHdl = liftIO (S.hIsEOF rHdl) >>= \case
+  False -> return rHdl
+  True  -> throwError "invalid HANDLE. eof."
+
+
+-- |
+--
+isNotEmpty :: BS.ByteString -> AppContext BS.ByteString
+isNotEmpty b
+  | b == BS.empty = throwError "empty input."
+  | otherwise = return b
+
+
+-- |
+--
+isNotEmptyL :: BSL.ByteString -> AppContext BSL.ByteString
+isNotEmptyL b
+  | b == BSL.empty = throwError "empty input."
+  | otherwise = return b
+
+

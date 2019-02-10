@@ -12,8 +12,10 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
 import Haskell.Debug.Adapter.Utility
 
+-- |
+--   Any errors should be critical. don't catch anything here.
+--
 instance StateRequestIF InitState DAP.InitializeRequest where
-  --action :: (StateRequest s r) -> AppContext ()
   action (Init_Initialize req) = do
     liftIO $ L.debugM _LOG_APP $ "InitState InitializeRequest called. " ++ show req
     app req

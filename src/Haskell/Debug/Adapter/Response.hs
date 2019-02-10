@@ -17,30 +17,32 @@ import qualified System.IO as S
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Utility
 import Haskell.Debug.Adapter.Constant
+import qualified Haskell.Debug.Adapter.Event as EV
 
 
 -- |
 --
 run :: AppStores -> IO ()
-run appData = runApp appData app >>= \case
-    Left err -> do
-      L.errorM _LOG_NAME err
-      return ()
-    Right (res, _) -> do
-      L.infoM _LOG_NAME $ show res
-      return ()
+run appData = do
+  L.debugM _LOG_RESPONSE "start response app"
+  _ <- runApp appData app
+  L.debugM _LOG_RESPONSE "end response app"
 
 
 -- |
 --
 app :: AppContext ()
-app = do
+app = flip catchError errHdl $ do
   _ <- runConduit pipeline
   return ()
 
   where
     pipeline :: ConduitM () Void AppContext ()
     pipeline = src .| res2lbs .| sink
+
+    errHdl msg = do
+      criticalEV _LOG_REQUEST msg
+      EV.addEvent ShutdownEvent
 
 ---------------------------------------------------------------------------------
 -- |

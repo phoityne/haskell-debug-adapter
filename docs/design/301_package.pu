@@ -1,0 +1,68 @@
+@startuml 301_package
+'skinparam minClassWidth 100
+'skinparam minClassHeight 400
+skinparam monochrome true
+'skinparam monochrome reverse
+'skinparam linetype polyline
+skinparam linetype ortho
+'skinparam linetype splines
+skinparam arrowThickness 2
+'left to right direction
+allow_mixing
+hide empty members
+hide circle
+
+title <size:18>HDA Package Diagram</size>
+
+class Func
+hide Func
+
+rectangle "core" #line.dashed {
+    package Control {
+    class Func
+    }
+    package Thread {
+    class Func
+    }
+    package State {
+    class Func
+    }
+    package Application {
+    class Func
+    }
+    package Request {
+    class Func
+    }
+    package Response {
+    class Func
+    }
+
+    Control --> Thread
+    Thread --> Request
+    Thread --> Response
+    Thread --> Application
+    Application --> State
+
+}
+
+rectangle "commons" #line.dashed {
+    package Constant {
+        class Func
+    }
+    package Type {
+        class Func
+    }
+    package Utility {
+        class Func
+    }
+    package Event {
+        class Func
+    }
+    package Logger {
+        class Func
+    }
+}
+
+core ----> commons : <<use>>
+State -[hidden]-> Utility
+@enduml

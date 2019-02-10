@@ -4,7 +4,6 @@
 module Haskell.Debug.Adapter.State.DebugRun where
 
 import Control.Monad.IO.Class
-import Control.Monad.Except
 import qualified System.Log.Logger as L
 import Control.Monad.State.Lazy
 import Control.Lens
@@ -24,6 +23,8 @@ import Haskell.Debug.Adapter.State.DebugRun.Variables()
 import Haskell.Debug.Adapter.State.DebugRun.Continue()
 import Haskell.Debug.Adapter.State.DebugRun.Next()
 import Haskell.Debug.Adapter.State.DebugRun.StepIn()
+import Haskell.Debug.Adapter.State.DebugRun.Disconnect()
+import qualified Haskell.Debug.Adapter.State.Utility as SU
 
 
 instance AppStateIF DebugRunState where
@@ -42,40 +43,15 @@ instance AppStateIF DebugRunState where
 
   -- | 
   --
-  getStateRequest DebugRunState (WrapRequest (InitializeRequest req)) = do
-    let msg = "DebugRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
+  getStateRequest DebugRunState (WrapRequest (InitializeRequest req)) = SU.unsupported $ show req
+  getStateRequest DebugRunState (WrapRequest (LaunchRequest req)) = SU.unsupported $ show req
   
-  getStateRequest DebugRunState (WrapRequest (LaunchRequest req)) = do
-    let msg = "DebugRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
+  getStateRequest DebugRunState (WrapRequest (DisconnectRequest req)) = return . WrapStateRequest $ DebugRun_Disconnect req
+  getStateRequest DebugRunState (WrapRequest (SetBreakpointsRequest req)) = return . WrapStateRequest $ DebugRun_SetBreakpoints req
+  getStateRequest DebugRunState (WrapRequest (SetFunctionBreakpointsRequest req)) = return . WrapStateRequest $ DebugRun_SetFunctionBreakpoints req
+  getStateRequest DebugRunState (WrapRequest (SetExceptionBreakpointsRequest req)) = return . WrapStateRequest $ DebugRun_SetExceptionBreakpoints req
 
-  getStateRequest DebugRunState (WrapRequest (DisconnectRequest req)) = do
-    let msg = "DebugRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
-
-  getStateRequest DebugRunState (WrapRequest (SetBreakpointsRequest req)) = do
-    let msg = "DebugRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
-
-  getStateRequest DebugRunState (WrapRequest (SetFunctionBreakpointsRequest req)) = do
-    let msg = "DebugRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
-
-  getStateRequest DebugRunState (WrapRequest (SetExceptionBreakpointsRequest req)) = do
-    let msg = "DebugRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
-
-  getStateRequest DebugRunState (WrapRequest (ConfigurationDoneRequest req)) = do
-    let msg = "DebugRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
+  getStateRequest DebugRunState (WrapRequest (ConfigurationDoneRequest req)) = SU.unsupported $ show req
 
   getStateRequest DebugRunState (WrapRequest (ThreadsRequest req)) = return . WrapStateRequest $ DebugRun_Threads req
   getStateRequest DebugRunState (WrapRequest (StackTraceRequest req)) = return . WrapStateRequest $ DebugRun_StackTrace req
@@ -150,7 +126,27 @@ startDebug = do
 
       -- TODO: sendTerminateEvent
 
+-- |
+--  Any errors should be send back as False result Response
+--
+instance StateRequestIF DebugRunState DAP.SetBreakpointsRequest where
+  action (DebugRun_SetBreakpoints req) = do
+    liftIO $ L.debugM _LOG_APP $ "DebugRunState SetBreakpointsRequest called. " ++ show req
+    SU.setBreakpointsRequest req
 
+-- |
+--  Any errors should be send back as False result Response
+--
+instance StateRequestIF DebugRunState DAP.SetExceptionBreakpointsRequest where
+  action (DebugRun_SetExceptionBreakpoints req) = do
+    liftIO $ L.debugM _LOG_APP $ "DebugRunState SetExceptionBreakpointsRequest called. " ++ show req
+    SU.setExceptionBreakpointsRequest req
 
+-- |
+--  Any errors should be send back as False result Response
+--
+instance StateRequestIF DebugRunState DAP.SetFunctionBreakpointsRequest where
+  action (DebugRun_SetFunctionBreakpoints req) = do
+    liftIO $ L.debugM _LOG_APP $ "DebugRunState SetFunctionBreakpointsRequest called. " ++ show req
+    SU.setFunctionBreakpointsRequest req
 
-      

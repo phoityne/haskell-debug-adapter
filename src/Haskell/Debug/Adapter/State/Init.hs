@@ -12,6 +12,7 @@ import Haskell.Debug.Adapter.Constant
 import Haskell.Debug.Adapter.State.Init.Initialize()
 import Haskell.Debug.Adapter.State.Init.Launch()
 import Haskell.Debug.Adapter.State.Init.Disconnect()
+import qualified Haskell.Debug.Adapter.State.Utility as SU
 
 
 -- | 
@@ -21,7 +22,6 @@ instance AppStateIF InitState where
   --
   entryAction InitState = do
     let msg = "InitState entryAction must not be called."
-    liftIO $ L.criticalM _LOG_APP msg
     throwError msg
 
   -- |
@@ -32,39 +32,19 @@ instance AppStateIF InitState where
 
   -- | 
   --
-  getStateRequest InitState (WrapRequest (InitializeRequest req)) = return . WrapStateRequest $ Init_Initialize req
-  getStateRequest InitState (WrapRequest (LaunchRequest req))     = return . WrapStateRequest $ Init_Launch req
-  getStateRequest InitState (WrapRequest (DisconnectRequest req)) = return . WrapStateRequest $ Init_Disconnect req
-  getStateRequest InitState (WrapRequest (SetBreakpointsRequest req)) = do
-    let msg = "InitState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
-  getStateRequest InitState (WrapRequest (SetFunctionBreakpointsRequest req)) = do
-    let msg = "InitState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
-  getStateRequest InitState (WrapRequest (SetExceptionBreakpointsRequest req)) = do
-    let msg = "InitState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
-  getStateRequest InitState (WrapRequest (ConfigurationDoneRequest req)) = do
-    let msg = "InitState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
+  getStateRequest InitState (WrapRequest (InitializeRequest req))              = return . WrapStateRequest $ Init_Initialize req
+  getStateRequest InitState (WrapRequest (LaunchRequest req))                  = return . WrapStateRequest $ Init_Launch req
+  getStateRequest InitState (WrapRequest (DisconnectRequest req))              = return . WrapStateRequest $ Init_Disconnect req
+  
+  getStateRequest InitState (WrapRequest (SetBreakpointsRequest req))          = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (SetFunctionBreakpointsRequest req))  = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (SetExceptionBreakpointsRequest req)) = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (ConfigurationDoneRequest req))       = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (ThreadsRequest req))                 = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (StackTraceRequest req))              = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (ScopesRequest req))                  = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (VariablesRequest req))               = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (ContinueRequest req))                = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (NextRequest req))                    = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (StepInRequest req))                  = SU.unsupported $ show req
 
-  getStateRequest InitState (WrapRequest (ThreadsRequest req)) = unsupported $ show req
-  getStateRequest InitState (WrapRequest (StackTraceRequest req)) = unsupported $ show req
-  getStateRequest InitState (WrapRequest (ScopesRequest req)) = unsupported $ show req
-  getStateRequest InitState (WrapRequest (VariablesRequest req)) = unsupported $ show req
-  getStateRequest InitState (WrapRequest (ContinueRequest req)) = unsupported $ show req
-  getStateRequest InitState (WrapRequest (NextRequest req)) = unsupported $ show req
-  getStateRequest InitState (WrapRequest (StepInRequest req)) = unsupported $ show req
-
-
--- | 
---
-unsupported :: String -> AppContext WrapStateRequest
-unsupported reqStr = do
-  let msg = "InitState does not support this request. " ++ reqStr
-  liftIO $ L.criticalM _LOG_APP msg
-  throwError msg

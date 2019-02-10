@@ -363,18 +363,18 @@ data StateTransit =
 -- | Event
 -- 
 data Event =
-  StopEvent
+  ShutdownEvent
   deriving (Show, Read, Eq)
 
 
 --------------------------------------------------------------------------------
 -- | 
 -- 
-data GHCiGHCi = GHCiGHCi {
-    _wHdLGHCiGHCi :: S.Handle
-  , _rHdlGHCiGHCi :: S.Handle
-  , _errGHCiGHCi  :: S.Handle
-  , _procGHCiGHCi :: S.ProcessHandle
+data GHCiProc = GHCiProc {
+    _wHdLGHCiProc :: S.Handle
+  , _rHdlGHCiProc :: S.Handle
+  , _errGHCiProc  :: S.Handle
+  , _procGHCiProc :: S.ProcessHandle
   }
 
 
@@ -412,12 +412,12 @@ data AppStores = AppStores {
   , _evtStoreAppStores    :: MVar [Event]
   , _workspaceAppStores   :: MVar FilePath
   , _logPriorityAppStores :: MVar L.Priority
-  , _ghciGHCiAppStores    :: MVar GHCiGHCi
+  , _ghciGHCiAppStores    :: MVar GHCiProc
   , _ghciStdoutAppStores  :: MVar B.ByteString
   , _ghciVerAppStores     :: MVar V.Version
   } 
 
 makeLenses ''AppStores
-makeLenses ''GHCiGHCi
+makeLenses ''GHCiProc
 
 

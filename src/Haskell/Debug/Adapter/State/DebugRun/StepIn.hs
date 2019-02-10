@@ -7,6 +7,7 @@ import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
 import qualified Text.Read as R
 import qualified Data.List as L
+import Control.Monad.Except
 
 import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.Type
@@ -14,6 +15,8 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.GHCi as P
 
+-- |
+--
 instance StateRequestIF DebugRunState DAP.StepInRequest where
   --action :: (StateRequest s r) -> AppContext ()
   action (DebugRun_StepIn req) = do
@@ -23,7 +26,7 @@ instance StateRequestIF DebugRunState DAP.StepInRequest where
 -- |
 --
 app :: DAP.StepInRequest -> AppContext (Maybe StateTransit)
-app req = do
+app req = flip catchError errHdl $ do
   
   let args = DAP.argumentsStepInRequest req
       cmd = ":dap-step-in " ++ U.showDAP args
@@ -53,16 +56,15 @@ app req = do
     --
     dapHdl :: String -> AppContext ()
     dapHdl str = case R.readEither str of
-      Left err -> errHdl str err
-      Right (Left err) -> errHdl str err
+      Left err -> throwError $ err ++ " : " ++ str
+      Right (Left err) -> throwError $ err ++ " : " ++ str
       Right (Right body) -> U.handleStoppeEventBody body
 
 
     -- |
     --
-    errHdl :: String -> String -> AppContext()
-    errHdl str err = do
-      let msg = "stepIn request failed. " ++ err ++ " : " ++ str
+    errHdl :: String -> AppContext (Maybe StateTransit)
+    errHdl msg = do
       liftIO $ L.errorM _LOG_APP msg
       resSeq <- U.getIncreasedResponseSequence
       let res = DAP.defaultStepInResponse {
@@ -73,4 +75,5 @@ app req = do
               }
 
       U.addResponse $ StepInResponse res
+      return Nothing
 

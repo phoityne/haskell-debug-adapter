@@ -5,17 +5,13 @@ module Haskell.Debug.Adapter.State.GHCiRun where
 
 import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
-import Control.Monad.Except
 
+import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.Constant
 import Haskell.Debug.Adapter.Type
-import Haskell.Debug.Adapter.State.GHCiRun.Initialize()
-import Haskell.Debug.Adapter.State.GHCiRun.Launch()
 import Haskell.Debug.Adapter.State.GHCiRun.Disconnect()
-import Haskell.Debug.Adapter.State.GHCiRun.SetBreakpoints()
-import Haskell.Debug.Adapter.State.GHCiRun.SetFunctionBreakpoints()
-import Haskell.Debug.Adapter.State.GHCiRun.SetExceptionBreakpoints()
 import Haskell.Debug.Adapter.State.GHCiRun.ConfigurationDone()
+import qualified Haskell.Debug.Adapter.State.Utility as SU
 
 instance AppStateIF GHCiRunState where
   -- |
@@ -33,45 +29,47 @@ instance AppStateIF GHCiRunState where
 
   -- | 
   --
-  getStateRequest GHCiRunState (WrapRequest (InitializeRequest req)) = return . WrapStateRequest $ GHCiRun_Initialize req
-  getStateRequest GHCiRunState (WrapRequest (LaunchRequest req))     = return . WrapStateRequest $ GHCiRun_Launch req
+  getStateRequest GHCiRunState (WrapRequest (InitializeRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (LaunchRequest req))     = SU.unsupported $ show req
+  
   getStateRequest GHCiRunState (WrapRequest (DisconnectRequest req)) = return . WrapStateRequest $ GHCiRun_Disconnect req
   getStateRequest GHCiRunState (WrapRequest (SetBreakpointsRequest req)) = return . WrapStateRequest $ GHCiRun_SetBreakpoints req
   getStateRequest GHCiRunState (WrapRequest (SetFunctionBreakpointsRequest req)) = return . WrapStateRequest $ GHCiRun_SetFunctionBreakpoints req
   getStateRequest GHCiRunState (WrapRequest (SetExceptionBreakpointsRequest req)) = return . WrapStateRequest $ GHCiRun_SetExceptionBreakpoints req
   getStateRequest GHCiRunState (WrapRequest (ConfigurationDoneRequest req)) = return . WrapStateRequest $ GHCiRun_ConfigurationDone req
-  getStateRequest GHCiRunState (WrapRequest (ThreadsRequest req)) = do
-    let msg = "GHCiRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
+  
+  getStateRequest GHCiRunState (WrapRequest (ThreadsRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (StackTraceRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (ScopesRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (VariablesRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (ContinueRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (NextRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (StepInRequest req)) = SU.unsupported $ show req
 
-  getStateRequest GHCiRunState (WrapRequest (StackTraceRequest req)) = do
-    let msg = "GHCiRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
 
-  getStateRequest GHCiRunState (WrapRequest (ScopesRequest req)) = do
-    let msg = "GHCiRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
+-- |
+--  Any errors should be send back as False result Response
+--
+instance StateRequestIF GHCiRunState DAP.SetBreakpointsRequest where
+  action (GHCiRun_SetBreakpoints req) = do
+    liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetBreakpointsRequest called. " ++ show req
+    SU.setBreakpointsRequest req
 
-  getStateRequest GHCiRunState (WrapRequest (VariablesRequest req)) = do
-    let msg = "GHCiRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
+-- |
+--  Any errors should be send back as False result Response
+--
+instance StateRequestIF GHCiRunState DAP.SetExceptionBreakpointsRequest where
+  action (GHCiRun_SetExceptionBreakpoints req) = do
+    liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetExceptionBreakpointsRequest called. " ++ show req
+    SU.setExceptionBreakpointsRequest req
 
-  getStateRequest GHCiRunState (WrapRequest (ContinueRequest req)) = do
-    let msg = "GHCiRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
+-- |
+--  Any errors should be send back as False result Response
+--
+instance StateRequestIF GHCiRunState DAP.SetFunctionBreakpointsRequest where
+  action (GHCiRun_SetFunctionBreakpoints req) = do
+    liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetFunctionBreakpointsRequest called. " ++ show req
+    SU.setFunctionBreakpointsRequest req
 
-  getStateRequest GHCiRunState (WrapRequest (NextRequest req)) = do
-    let msg = "GHCiRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
 
-  getStateRequest GHCiRunState (WrapRequest (StepInRequest req)) = do
-    let msg = "GHCiRunState does not support this request. " ++ show req
-    liftIO $ L.criticalM _LOG_APP msg
-    throwError msg
-        
+  

@@ -21,6 +21,7 @@ import Haskell.Debug.Adapter.State.Init()
 import Haskell.Debug.Adapter.State.GHCiRun()
 import Haskell.Debug.Adapter.State.DebugRun()
 import Haskell.Debug.Adapter.State.Shutdown()
+import qualified Haskell.Debug.Adapter.Event as EV
 
 
 -- |
@@ -68,19 +69,16 @@ defaultAppStores = do
 -- |
 --
 run :: AppStores -> IO ()
-run appData = runApp appData app >>= \case
-    Left err -> do
-      L.errorM _LOG_NAME err
-      return ()
-    Right (res, _) -> do
-      L.infoM _LOG_NAME $ show res
-      return ()
+run appData = do
+  L.debugM _LOG_APP "satrt application app"
+  runApp appData app
+  L.debugM _LOG_APP "end application app"
 
 
 -- |
 --
 app :: AppContext ()
-app = do
+app = flip catchError errHdl $ do
   _ <- runConduit pipeline
   return ()
 
@@ -88,6 +86,9 @@ app = do
     pipeline :: ConduitM () Void AppContext ()
     pipeline = src .| sink
 
+    errHdl msg = do
+      criticalEV _LOG_REQUEST msg
+      EV.addEvent ShutdownEvent
 
 ----------------------------------------------------------------
 -- |

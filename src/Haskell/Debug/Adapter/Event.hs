@@ -14,15 +14,6 @@ import Haskell.Debug.Adapter.Constant
 
 -- |
 --
-addEvent :: AppStores -> Event -> IO ()
-addEvent dat evt = do
-  let mvar = dat^.evtStoreAppStores
-  evts <- takeMVar mvar
-  putMVar mvar (evts++[evt])
-
-
--- |
---
 run :: AppStores -> IO ()
 run appData = runApp appData app >>= \case
     Left err -> do
@@ -47,6 +38,15 @@ app = do
 
       liftIO $ threadDelay _10_MILLI_SEC
       go
+
+
+-- |
+--
+addEvent :: Event -> AppContext ()
+addEvent evt = do
+  mvar <- view evtStoreAppStores <$> get
+  evts <- liftIO $ takeMVar mvar
+  liftIO $ putMVar mvar (evts++[evt])
 
 
 -- |
@@ -79,7 +79,8 @@ takeEvent = do
 -- |
 --
 runEvent :: Event -> AppContext ()
-runEvent StopEvent = do
+runEvent ShutdownEvent = do
+  liftIO $ L.infoM _LOG_NAME "Shutdown started."
   as <- view actsAsyncsAppStores <$> get
   liftIO $ mapM_ cancel as
 
