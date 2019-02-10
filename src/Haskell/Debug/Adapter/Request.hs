@@ -8,7 +8,6 @@ import Control.Lens
 import Text.Parsec
 import Data.Aeson
 import qualified Data.ByteString.Lazy as B
-import Control.Concurrent.MVar
 import Control.Monad.State.Lazy
 import qualified System.Log.Logger as L
 import Control.Monad.Except
@@ -163,14 +162,6 @@ sink = do
     -- |
     --
     goApp :: WrapRequest -> AppContext ()
-    goApp req = do
-      reqs <- view reqStoreAppStores <$> get
-      liftIO $ addRequest reqs req
+    goApp = addRequest
 
 
--- |
---
-addRequest :: MVar [WrapRequest] -> WrapRequest -> IO ()
-addRequest reqsMVar req = do
-  reqs <- takeMVar reqsMVar
-  putMVar reqsMVar (reqs++[req])

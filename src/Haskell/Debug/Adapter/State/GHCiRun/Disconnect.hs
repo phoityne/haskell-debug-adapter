@@ -10,6 +10,7 @@ import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
+import qualified Haskell.Debug.Adapter.GHCi as P
 
 
 -- |
@@ -25,6 +26,11 @@ instance StateRequestIF GHCiRunState DAP.DisconnectRequest where
 --
 app :: DAP.DisconnectRequest -> AppContext (Maybe StateTransit)
 app req = do
+  let cmd = ":quit"
+
+  P.cmdAndOut cmd
+  P.expectH $ P.stdoutCallBk
+
   U.sendDisconnectResponse req
   return $ Just GHCiRun_Shutdown
 

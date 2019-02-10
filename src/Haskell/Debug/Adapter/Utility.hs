@@ -103,6 +103,13 @@ runApp :: AppStores -> AppContext a -> IO (Either ErrMsg (a, AppStores))
 runApp dat app = runExceptT $ runStateT app dat
 
 
+-- |
+--
+addRequest :: WrapRequest -> AppContext ()
+addRequest req = do
+  reqsMVar <- view reqStoreAppStores <$> get
+  reqs <- liftIO $ takeMVar reqsMVar
+  liftIO $ putMVar reqsMVar (reqs++[req])
 
 
 -- |
@@ -259,7 +266,8 @@ sendTerminateEvent = do
 handleStoppeEventBody :: DAP.StoppedEventBody -> AppContext ()
 handleStoppeEventBody body 
   | "complete" == DAP.reasonStoppedEventBody body = do
-    debugEV _LOG_NAME "[DAP] debugging completeed."
+    debugEV _LOG_NAME $ "debugging completed. " ++ show body
+    -- must terminate. can not back to GHCiState.
     sendTerminateEvent
   | otherwise = do
     resSeq <- getIncreasedResponseSequence

@@ -22,10 +22,10 @@ storage "main thread" {
   storage "file watch thread"
 }
 
-"main thread" --> "thread manager thread"
-"thread manager thread" --> "request thread"
-"thread manager thread" --> "response thread"
-"thread manager thread" --> "application thread"
-"thread manager thread" --> "file watch thread"
+"main thread" --> "thread manager thread" : "<<handle>>"
+"thread manager thread" --> "request thread" : "<<handle>>"
+"thread manager thread" --> "response thread" : "<<handle>>"
+"thread manager thread" --> "application thread" : "<<handle>>"
+"thread manager thread" --> "file watch thread" : "<<handle>>"
 
 @enduml

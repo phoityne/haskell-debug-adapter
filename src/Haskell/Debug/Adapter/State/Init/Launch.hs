@@ -56,7 +56,8 @@ app req = do
   U.sendConsoleEvent "Starting GHCi.\n"
   U.sendErrorEvent "Wait for a moment.\n\n"
 
-  -- TODO: should be moved to entry of GHCiRunState
+  -- must start here. can not start in the entry of GHCiRun State.
+  -- because there is a transition from DebugRun to GHCiRun.
   startGHCi req
   initGHCi
 
