@@ -71,7 +71,6 @@ library:
   - Paths_haskell_debug_adapter
   - Haskell.Debug.Adapter.Constant
   - Haskell.Debug.Adapter.Control
-  - Haskell.Debug.Adapter.Event
   - Haskell.Debug.Adapter.Logger
   - Haskell.Debug.Adapter.Type
   - Haskell.Debug.Adapter.Utility

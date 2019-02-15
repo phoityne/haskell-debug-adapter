@@ -46,6 +46,7 @@ app req = do
            , DAP.supportsModulesRequestInitializeResponseCapabilities            = False  -- no GUI on VSCode
            , DAP.additionalModuleColumnsInitializeResponseCapabilities           = []     -- no GUI on VSCode
            , DAP.supportsLogPointsInitializeResponseCapabilities                 = True
+           , DAP.supportsTerminateRequestInitializeResponseCapabilities          = True
            }
       res  = DAP.defaultInitializeResponse {
              DAP.seqInitializeResponse         = resSeq

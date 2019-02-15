@@ -24,6 +24,7 @@ import Haskell.Debug.Adapter.State.DebugRun.Continue()
 import Haskell.Debug.Adapter.State.DebugRun.Next()
 import Haskell.Debug.Adapter.State.DebugRun.StepIn()
 import Haskell.Debug.Adapter.State.DebugRun.Disconnect()
+import Haskell.Debug.Adapter.State.DebugRun.Terminate()
 import qualified Haskell.Debug.Adapter.State.Utility as SU
 
 
@@ -47,6 +48,7 @@ instance AppStateIF DebugRunState where
   getStateRequest DebugRunState (WrapRequest (LaunchRequest req)) = SU.unsupported $ show req
   
   getStateRequest DebugRunState (WrapRequest (DisconnectRequest req)) = return . WrapStateRequest $ DebugRun_Disconnect req
+  getStateRequest DebugRunState (WrapRequest (TerminateRequest req)) = return . WrapStateRequest $ DebugRun_Terminate req
   getStateRequest DebugRunState (WrapRequest (SetBreakpointsRequest req)) = return . WrapStateRequest $ DebugRun_SetBreakpoints req
   getStateRequest DebugRunState (WrapRequest (SetFunctionBreakpointsRequest req)) = return . WrapStateRequest $ DebugRun_SetFunctionBreakpoints req
   getStateRequest DebugRunState (WrapRequest (SetExceptionBreakpointsRequest req)) = return . WrapStateRequest $ DebugRun_SetExceptionBreakpoints req
@@ -61,6 +63,8 @@ instance AppStateIF DebugRunState where
   getStateRequest DebugRunState (WrapRequest (NextRequest req)) = return . WrapStateRequest $ DebugRun_Next req
   getStateRequest DebugRunState (WrapRequest (StepInRequest req)) = return . WrapStateRequest $ DebugRun_StepIn req
 
+  getStateRequest DebugRunState (WrapRequest (TransitRequest req)) = SU.unsupported $ show req
+  getStateRequest DebugRunState (WrapRequest (ShutdownRequest req)) = SU.unsupported $ show req
 
 -- |
 --

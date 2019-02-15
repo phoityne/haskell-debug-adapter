@@ -1,0 +1,41 @@
+@startuml 503_thread_mgr
+skinparam defaultFontName MS Gothic
+'skinparam minClassWidth 100
+'skinparam minClassHeight 400
+skinparam monochrome true
+'skinparam monochrome reverse
+'skinparam linetype polyline
+skinparam linetype ortho
+'skinparam linetype splines
+skinparam arrowThickness 2
+'left to right direction
+allow_mixing
+hide empty members
+hide circle
+
+title <size:18>HDA Thread manager class diagram</size>
+
+class ThreadManager <<Subject>> {
+  {method} + run :: [Threadable] -> IO ()
+}
+
+class ChildThread <<Observer>>
+class EventStore  <<MVar>>
+class NortifyEventStore  <<MVar>>
+
+ThreadManager *-r- ChildThread : <<handle>>
+ThreadManager -u-> EventStore : <<read>>
+ChildThread -u-> EventStore : <<raise>>
+ThreadManager -d-> NortifyEventStore : <<notify>>
+ChildThread -d-> NortifyEventStore : <<read>>
+
+note bottom of EventStore : type EventStore = MVar [Event]
+
+note bottom of ThreadManager
+  type Threadable = EventStore -> IO ()
+
+  handle child threads by
+    data [(Async, EventStore)]
+end note
+
+@enduml

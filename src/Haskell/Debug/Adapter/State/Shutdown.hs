@@ -8,7 +8,7 @@ import Control.Monad.Except
 import qualified System.Log.Logger as L
 
 import Haskell.Debug.Adapter.Type
-import qualified Haskell.Debug.Adapter.Event as EV
+import Haskell.Debug.Adapter.Utility
 import Haskell.Debug.Adapter.Constant
 
 
@@ -20,7 +20,7 @@ instance AppStateIF ShutdownState where
   entryAction ShutdownState = do
     liftIO $ L.debugM _LOG_APP "ShutdownState entryAction called."
 
-    EV.addEvent ShutdownEvent
+    addEvent ShutdownEvent
 
     return ()
 

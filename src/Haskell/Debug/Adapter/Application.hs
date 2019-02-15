@@ -21,7 +21,6 @@ import Haskell.Debug.Adapter.State.Init()
 import Haskell.Debug.Adapter.State.GHCiRun()
 import Haskell.Debug.Adapter.State.DebugRun()
 import Haskell.Debug.Adapter.State.Shutdown()
-import qualified Haskell.Debug.Adapter.Event as EV
 
 
 -- |
@@ -42,7 +41,7 @@ defaultAppStores = do
     , _appVerAppStores      = showVersion version
     , _inHandleAppStores    = S.stdin
     , _outHandleAppStores   = S.stdout
-    , _actsAsyncsAppStores  = []
+    , _asyncsAppStores      = []
 
     -- Read/Write from Application
     , _appStateWAppStores   = WrapAppState InitState
@@ -53,11 +52,11 @@ defaultAppStores = do
     , _stopOnEntryAppStores = False
     , _ghciPmptAppStores    = _GHCI_PROMPT_HDA
     , _mainArgsAppStores    = ""
-
+    , _launchReqSeqAppStores = -1
     -- Read/Write ASync
     , _reqStoreAppStores    = reqStore
     , _resStoreAppStores    = resStore
-    , _evtStoreAppStores    = evtStore
+    , _eventStoreAppStores  = evtStore
     , _workspaceAppStores   = wsStore
     , _logPriorityAppStores = logPRStore
     , _ghciGHCiAppStores    = procStore
@@ -88,7 +87,7 @@ app = flip catchError errHdl $ do
 
     errHdl msg = do
       criticalEV _LOG_REQUEST msg
-      EV.addEvent ShutdownEvent
+      addEvent ShutdownEvent
 
 ----------------------------------------------------------------
 -- |
@@ -102,34 +101,27 @@ src = do
 
   where
     goApp :: AppContext WrapRequest
-    goApp = get >>= liftIO . getRequest
-
-
--- |
---
-getRequest :: AppStores -> IO WrapRequest
-getRequest appDat = takeRequest appDat >>= \case
-  Just res -> return res
-  Nothing -> do
-    threadDelay (100 * 1000)
-    getRequest appDat
-
+    goApp = do
+      mvar <- view reqStoreAppStores <$> get
+      liftIO (takeRequest mvar) >>= \case
+        Just res -> return res
+        Nothing -> do
+          liftIO $ threadDelay _100_MILLI_SEC
+          goApp
 
 -- |
 --
-takeRequest :: AppStores -> IO (Maybe WrapRequest)
-takeRequest appData = do
-  let reqsMVar = appData^.reqStoreAppStores
-  isExists reqsMVar >>= \case
+takeRequest :: MVar [WrapRequest] -> IO (Maybe WrapRequest)
+takeRequest reqsMVar = isExists >>= \case
     False -> return Nothing
-    True  -> take1 reqsMVar
+    True  -> take1
 
   where
-    isExists reqsMVar = readMVar reqsMVar >>= \case
+    isExists = readMVar reqsMVar >>= \case
       [] -> return False
       _  -> return True
 
-    take1 reqsMVar = takeMVar reqsMVar >>= \case
+    take1 = takeMVar reqsMVar >>= \case
       [] -> do
         putMVar reqsMVar []
         return Nothing
@@ -148,6 +140,10 @@ sink = do
     Nothing  -> do
       throwError $ "[CRITICAL][response][sink] unexpectHed Nothing."
       return ()
+    Just req@(WrapRequest ShutdownRequest{}) -> lift $ appMain req
+    Just (WrapRequest (DisconnectRequest req)) -> do
+      liftIO $ L.infoM _LOG_APP $ "disconnect. end of application thread."
+      lift $ sendDisconnectResponse req
     Just req -> do
       lift $ appMain req
       sink
@@ -157,6 +153,7 @@ sink = do
 -- |
 --
 appMain :: WrapRequest -> AppContext ()
+appMain (WrapRequest (TransitRequest (HdaTransitRequest s))) = transit s
 appMain reqW = do
   stateW <- view appStateWAppStores <$> get
   

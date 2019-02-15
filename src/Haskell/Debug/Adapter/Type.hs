@@ -80,6 +80,35 @@ instance Default ConfigData where
 $(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "ConfigData" } ''ConfigData)
 
 
+
+--------------------------------------------------------------------------------------
+
+data StateTransit =
+    Init_GHCiRun
+  | Init_Shutdown
+  | GHCiRun_DebugRun
+  | GHCiRun_Contaminated
+  | GHCiRun_Shutdown
+  | DebugRun_Contaminated
+  | DebugRun_Shutdown
+  deriving (Show, Read, Eq)
+
+$(deriveJSON defaultOptions ''StateTransit)
+
+--------------------------------------------------------------------------------------
+
+data HdaTransitRequest = HdaTransitRequest {
+    stateHdaTransitRequest :: StateTransit
+  } deriving (Show, Read, Eq)
+
+$(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "HdaTransitRequest" } ''HdaTransitRequest)
+  
+data HdaShutdownRequest = HdaShutdownRequest {
+    msgHdaShutdownRequest :: String
+  } deriving (Show, Read, Eq)
+
+$(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "HdaShutdownRequest" } ''HdaShutdownRequest)
+
 --------------------------------------------------------------------------------
 -- | DAP Request Data
 -- 
@@ -107,6 +136,9 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "LaunchRequestArguments"
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "DisconnectRequest"} ''DAP.DisconnectRequest)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "DisconnectRequestArguments"} ''DAP.DisconnectRequestArguments)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminateRequest"} ''DAP.TerminateRequest)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminateRequestArguments"} ''DAP.TerminateRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetBreakpointsRequest"} ''DAP.SetBreakpointsRequest)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetBreakpointsArguments"} ''DAP.SetBreakpointsArguments)
@@ -145,6 +177,7 @@ data Request a where
   InitializeRequest :: DAP.InitializeRequest -> Request DAP.InitializeRequest
   LaunchRequest     :: DAP.LaunchRequest     -> Request DAP.LaunchRequest
   DisconnectRequest :: DAP.DisconnectRequest -> Request DAP.DisconnectRequest
+  TerminateRequest :: DAP.TerminateRequest -> Request DAP.TerminateRequest
   SetBreakpointsRequest :: DAP.SetBreakpointsRequest -> Request DAP.SetBreakpointsRequest
   SetFunctionBreakpointsRequest :: DAP.SetFunctionBreakpointsRequest -> Request DAP.SetFunctionBreakpointsRequest
   SetExceptionBreakpointsRequest :: DAP.SetExceptionBreakpointsRequest -> Request DAP.SetExceptionBreakpointsRequest
@@ -156,6 +189,8 @@ data Request a where
   ContinueRequest :: DAP.ContinueRequest -> Request DAP.ContinueRequest
   NextRequest :: DAP.NextRequest -> Request DAP.NextRequest
   StepInRequest :: DAP.StepInRequest -> Request DAP.StepInRequest
+  TransitRequest :: HdaTransitRequest -> Request HdaTransitRequest
+  ShutdownRequest :: HdaShutdownRequest -> Request HdaShutdownRequest
 
 data WrapRequest = forall a. WrapRequest (Request a)
 
@@ -182,6 +217,8 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StoppedEventBody"} ''DA
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "InitializedEvent"} ''DAP.InitializedEvent)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "DisconnectResponse"} ''DAP.DisconnectResponse)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminateResponse"} ''DAP.TerminateResponse)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetBreakpointsResponse"} ''DAP.SetBreakpointsResponse)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetBreakpointsResponseBody"} ''DAP.SetBreakpointsResponseBody)
@@ -223,6 +260,7 @@ data Response =
   | TerminatedEvent    DAP.TerminatedEvent
   | InitializedEvent   DAP.InitializedEvent
   | DisconnectResponse DAP.DisconnectResponse
+  | TerminateResponse DAP.TerminateResponse
   | SetBreakpointsResponse DAP.SetBreakpointsResponse
   | SetFunctionBreakpointsResponse DAP.SetFunctionBreakpointsResponse
   | SetExceptionBreakpointsResponse DAP.SetExceptionBreakpointsResponse
@@ -277,6 +315,7 @@ data StateRequest s r where
   Init_Initialize :: DAP.InitializeRequest -> StateRequest InitState DAP.InitializeRequest
   Init_Launch     :: DAP.LaunchRequest     -> StateRequest InitState DAP.LaunchRequest
   Init_Disconnect :: DAP.DisconnectRequest -> StateRequest InitState DAP.DisconnectRequest
+  Init_Terminate :: DAP.TerminateRequest -> StateRequest InitState DAP.TerminateRequest
   Init_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest InitState DAP.SetBreakpointsRequest
   Init_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest InitState DAP.SetFunctionBreakpointsRequest
   Init_SetExceptionBreakpoints :: DAP.SetExceptionBreakpointsRequest -> StateRequest InitState DAP.SetExceptionBreakpointsRequest
@@ -292,6 +331,7 @@ data StateRequest s r where
   GHCiRun_Initialize :: DAP.InitializeRequest -> StateRequest GHCiRunState DAP.InitializeRequest
   GHCiRun_Launch     :: DAP.LaunchRequest     -> StateRequest GHCiRunState DAP.LaunchRequest
   GHCiRun_Disconnect :: DAP.DisconnectRequest -> StateRequest GHCiRunState DAP.DisconnectRequest
+  GHCiRun_Terminate :: DAP.TerminateRequest -> StateRequest GHCiRunState DAP.TerminateRequest
   GHCiRun_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest GHCiRunState DAP.SetBreakpointsRequest
   GHCiRun_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest GHCiRunState DAP.SetFunctionBreakpointsRequest
   GHCiRun_SetExceptionBreakpoints :: DAP.SetExceptionBreakpointsRequest -> StateRequest GHCiRunState DAP.SetExceptionBreakpointsRequest
@@ -307,6 +347,7 @@ data StateRequest s r where
   DebugRun_Initialize :: DAP.InitializeRequest -> StateRequest DebugRunState DAP.InitializeRequest
   DebugRun_Launch     :: DAP.LaunchRequest     -> StateRequest DebugRunState DAP.LaunchRequest
   DebugRun_Disconnect :: DAP.DisconnectRequest -> StateRequest DebugRunState DAP.DisconnectRequest
+  DebugRun_Terminate :: DAP.TerminateRequest -> StateRequest DebugRunState DAP.TerminateRequest
   DebugRun_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest DebugRunState DAP.SetBreakpointsRequest
   DebugRun_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest DebugRunState DAP.SetFunctionBreakpointsRequest
   DebugRun_SetExceptionBreakpoints :: DAP.SetExceptionBreakpointsRequest -> StateRequest DebugRunState DAP.SetExceptionBreakpointsRequest
@@ -322,6 +363,7 @@ data StateRequest s r where
   Shutdown_Initialize :: DAP.InitializeRequest -> StateRequest ShutdownState DAP.InitializeRequest
   Shutdown_Launch     :: DAP.LaunchRequest     -> StateRequest ShutdownState DAP.LaunchRequest
   Shutdown_Disconnect :: DAP.DisconnectRequest -> StateRequest ShutdownState DAP.DisconnectRequest
+  Shutdown_Terminate :: DAP.TerminateRequest -> StateRequest ShutdownState DAP.TerminateRequest
   Shutdown_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest ShutdownState DAP.SetBreakpointsRequest
   Shutdown_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest ShutdownState DAP.SetFunctionBreakpointsRequest
   Shutdown_SetExceptionBreakpoints :: DAP.SetExceptionBreakpointsRequest -> StateRequest ShutdownState DAP.SetExceptionBreakpointsRequest
@@ -345,18 +387,6 @@ class WrapStateRequestIF w where
 instance WrapStateRequestIF WrapStateRequest where
   actionW (WrapStateRequest x) = action x
 
-
---------------------------------------------------------------------------------------
-
-data StateTransit =
-    Init_GHCiRun
-  | Init_Shutdown
-  | GHCiRun_DebugRun
-  | GHCiRun_Contaminated
-  | GHCiRun_Shutdown
-  | DebugRun_Contaminated
-  | DebugRun_Shutdown
-  deriving (Show, Read, Eq)
 
 
 --------------------------------------------------------------------------------
@@ -394,7 +424,7 @@ data AppStores = AppStores {
   , _appVerAppStores      :: String
   , _inHandleAppStores    :: S.Handle
   , _outHandleAppStores   :: S.Handle
-  , _actsAsyncsAppStores  :: [Async ()]
+  , _asyncsAppStores      :: [Async ()]
 
   -- Read/Write from Application
   , _appStateWAppStores   :: WrapAppState
@@ -405,11 +435,12 @@ data AppStores = AppStores {
   , _stopOnEntryAppStores :: Bool
   , _ghciPmptAppStores    :: String
   , _mainArgsAppStores    :: String
+  , _launchReqSeqAppStores :: Int
 
-  -- Read/Write ASync
+  -- Global Read/Write ASync
   , _reqStoreAppStores    :: MVar [WrapRequest]
   , _resStoreAppStores    :: MVar [Response]
-  , _evtStoreAppStores    :: MVar [Event]
+  , _eventStoreAppStores  :: MVar [Event]
   , _workspaceAppStores   :: MVar FilePath
   , _logPriorityAppStores :: MVar L.Priority
   , _ghciGHCiAppStores    :: MVar GHCiProc

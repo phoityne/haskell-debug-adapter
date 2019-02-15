@@ -33,6 +33,7 @@ instance AppStateIF GHCiRunState where
   getStateRequest GHCiRunState (WrapRequest (LaunchRequest req))     = SU.unsupported $ show req
   
   getStateRequest GHCiRunState (WrapRequest (DisconnectRequest req)) = return . WrapStateRequest $ GHCiRun_Disconnect req
+  getStateRequest GHCiRunState (WrapRequest (TerminateRequest req)) = SU.unsupported $ show req
   getStateRequest GHCiRunState (WrapRequest (SetBreakpointsRequest req)) = return . WrapStateRequest $ GHCiRun_SetBreakpoints req
   getStateRequest GHCiRunState (WrapRequest (SetFunctionBreakpointsRequest req)) = return . WrapStateRequest $ GHCiRun_SetFunctionBreakpoints req
   getStateRequest GHCiRunState (WrapRequest (SetExceptionBreakpointsRequest req)) = return . WrapStateRequest $ GHCiRun_SetExceptionBreakpoints req
@@ -45,6 +46,8 @@ instance AppStateIF GHCiRunState where
   getStateRequest GHCiRunState (WrapRequest (ContinueRequest req)) = SU.unsupported $ show req
   getStateRequest GHCiRunState (WrapRequest (NextRequest req)) = SU.unsupported $ show req
   getStateRequest GHCiRunState (WrapRequest (StepInRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (TransitRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (ShutdownRequest req)) = SU.unsupported $ show req
 
 
 -- |

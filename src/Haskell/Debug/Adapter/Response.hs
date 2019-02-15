@@ -13,11 +13,11 @@ import Control.Monad.State.Lazy
 import qualified System.Log.Logger as L
 import Control.Monad.Except
 import qualified System.IO as S
+import qualified Data.List as L
 
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Utility
 import Haskell.Debug.Adapter.Constant
-import qualified Haskell.Debug.Adapter.Event as EV
 
 
 -- |
@@ -42,7 +42,7 @@ app = flip catchError errHdl $ do
 
     errHdl msg = do
       criticalEV _LOG_REQUEST msg
-      EV.addEvent ShutdownEvent
+      addEvent ShutdownEvent
 
 ---------------------------------------------------------------------------------
 -- |
@@ -126,13 +126,22 @@ sink = do
     Just bs -> do
       liftIO $ L.debugM _LOG_RESPONSE $ "sink get data. " ++ lbs2str bs
       lift $ goApp bs
-      sink
+      cont $ lbs2str bs
 
   where
     goApp bs = do
       wHdl <- view outHandleAppStores <$> get
       liftIO $ sendResponse wHdl bs
 
+    cont str
+      | L.isInfixOf str _KEY_DISCONNECT_RESPONCE = do
+        liftIO $ L.infoM _LOG_RESPONSE $ "disconnect. end of response thread."
+      | otherwise = sink
+
+-- |
+--
+_KEY_DISCONNECT_RESPONCE :: String
+_KEY_DISCONNECT_RESPONCE = "\"command\":\"disconnect\""
 
 -- |
 --

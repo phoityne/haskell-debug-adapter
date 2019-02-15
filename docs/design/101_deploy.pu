@@ -1,4 +1,5 @@
 @startuml 101_deploy
+skinparam defaultFontName MS Gothic
 'skinparam minClassWidth 100
 'skinparam minClassHeight 400
 skinparam monochrome true

@@ -14,7 +14,6 @@ import Control.Monad.Except
 
 import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.Type
-import qualified Haskell.Debug.Adapter.Event as EV
 import Haskell.Debug.Adapter.Utility
 import Haskell.Debug.Adapter.Constant
 
@@ -40,7 +39,7 @@ app = flip catchError errHdl $ do
 
     errHdl msg = do
       criticalEV _LOG_REQUEST msg
-      EV.addEvent ShutdownEvent
+      addEvent ShutdownEvent
 
 
 ---------------------------------------------------------------------------------
@@ -130,6 +129,7 @@ createWrapRequest bs req
   | "initialize" == DAP.commandRequest req = WrapRequest . InitializeRequest <$> (liftEither (eitherDecode bs))
   | "launch"     == DAP.commandRequest req = WrapRequest . LaunchRequest <$> (liftEither (eitherDecode bs))
   | "disconnect" == DAP.commandRequest req = WrapRequest . DisconnectRequest <$> (liftEither (eitherDecode bs))
+  | "terminate" == DAP.commandRequest req = WrapRequest . TerminateRequest <$> (liftEither (eitherDecode bs))
   | "setBreakpoints" == DAP.commandRequest req = WrapRequest . SetBreakpointsRequest <$> (liftEither (eitherDecode bs))
   | "setFunctionBreakpoints" == DAP.commandRequest req = WrapRequest . SetFunctionBreakpointsRequest <$> (liftEither (eitherDecode bs))
   | "setExceptionBreakpoints" == DAP.commandRequest req = WrapRequest . SetExceptionBreakpointsRequest <$> (liftEither (eitherDecode bs))
@@ -154,6 +154,9 @@ sink = do
     Nothing  -> do
       throwError $ "unexpected Nothing."
       return ()
+    Just req@(WrapRequest DisconnectRequest{}) -> do
+      lift $ goApp req
+      liftIO $ L.infoM _LOG_REQUEST $ "disconnect. end of request thread."
     Just req -> do
       lift $ goApp req
       sink

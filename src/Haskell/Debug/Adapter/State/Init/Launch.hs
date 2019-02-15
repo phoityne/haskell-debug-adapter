@@ -35,22 +35,15 @@ instance StateRequestIF InitState DAP.LaunchRequest where
 
 
 -- |
---
+--   @see https://github.com/Microsoft/vscode/issues/4902
+--   @see https://microsoft.github.io/debug-adapter-protocol/overview
+-- 
 app :: DAP.LaunchRequest -> AppContext (Maybe StateTransit)
 app req = do
   
   setUpConfig req
   setUpLogger req
   createTasksJsonFile
-
-  resSeq <- U.getIncreasedResponseSequence
-  let res = DAP.defaultLaunchResponse {
-            DAP.seqLaunchResponse         = resSeq
-          , DAP.request_seqLaunchResponse = DAP.seqLaunchRequest req
-          , DAP.successLaunchResponse     = True
-          }
-
-  U.addResponse $ LaunchResponse res
 
   U.sendStdoutEvent "Configuration read.\n"
   U.sendConsoleEvent "Starting GHCi.\n"
@@ -61,9 +54,15 @@ app req = do
   startGHCi req
   initGHCi
 
+  -- dont send launch response here.
+  -- it must send after configuration done response.
+  modify $ \s-> s{_launchReqSeqAppStores = DAP.seqLaunchRequest req}
+
+  -- after initialized event, vscode send setBreak... and
+  -- ConfigurationDone request.
   initSeq <- U.getIncreasedResponseSequence
   U.addResponse $ InitializedEvent $ DAP.defaultInitializedEvent {DAP.seqInitializedEvent = initSeq}
-
+  
   return $ Just Init_GHCiRun
 
 

@@ -113,6 +113,16 @@ addRequest req = do
 
 
 -- |
+--  High priority
+--
+addRequestHP :: WrapRequest -> AppContext ()
+addRequestHP req = do
+  reqsMVar <- view reqStoreAppStores <$> get
+  reqs <- liftIO $ takeMVar reqsMVar
+  liftIO $ putMVar reqsMVar (req:reqs)
+
+
+-- |
 --
 addResponse :: Response -> AppContext ()
 addResponse res = do
@@ -383,4 +393,12 @@ isNotEmptyL b
   | b == BSL.empty = throwError "empty input."
   | otherwise = return b
 
+
+-- |
+--
+addEvent :: Event -> AppContext ()
+addEvent evt = do
+  mvar <- view eventStoreAppStores <$> get
+  evts <- liftIO $ takeMVar mvar
+  liftIO $ putMVar mvar (evts++[evt])
 

@@ -5,6 +5,8 @@ module Haskell.Debug.Adapter.State.GHCiRun.ConfigurationDone where
 
 import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
+import Control.Monad.State
+import Control.Lens
 
 
 import qualified GHCi.DAP as DAP
@@ -21,6 +23,8 @@ instance StateRequestIF GHCiRunState DAP.ConfigurationDoneRequest where
     app req
 
 -- |
+--   @see https://github.com/Microsoft/vscode/issues/4902
+--   @see https://microsoft.github.io/debug-adapter-protocol/overview
 --
 app :: DAP.ConfigurationDoneRequest -> AppContext (Maybe StateTransit)
 app req = do
@@ -37,6 +41,17 @@ app req = do
 
   U.addResponse $ ConfigurationDoneResponse res
   
+  -- launch response must be sent after configuration done response.
+  reqSeq <- view launchReqSeqAppStores <$> get
+  resSeq <- U.getIncreasedResponseSequence
+  let res = DAP.defaultLaunchResponse {
+            DAP.seqLaunchResponse         = resSeq
+          , DAP.request_seqLaunchResponse = reqSeq
+          , DAP.successLaunchResponse     = True
+          }
+
+  U.addResponse $ LaunchResponse res
+
   return $ Just GHCiRun_DebugRun
 
 {-
