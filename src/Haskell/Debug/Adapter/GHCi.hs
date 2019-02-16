@@ -35,7 +35,7 @@ startGHCi cmd opts cwd envs =
 
   where
     updateGHCi proc = do
-      mvar <- view ghciGHCiAppStores <$> get
+      mvar <- view ghciProcAppStores <$> get
       --_ <- liftIO $ takeMVar mvar
       liftIO $ putMVar mvar proc
 
@@ -108,21 +108,35 @@ startGHCiIO cmd opts cwd envs = flip E.catches handlers $ do
 type ExpectCallBack = Bool -> [String] -> [String] -> AppContext ()
 
 -- |
+--   expect prompt or eof
+-- 
+expectEOF :: ExpectCallBack -> AppContext ()
+expectEOF func = expectH' True func
+
+-- |
+--   expect prompt. eof throwError.
 --
 expectH :: ExpectCallBack -> AppContext ()
-expectH func = do
+expectH func = expectH' False func
+
+-- |
+--
+expectH' :: Bool -> ExpectCallBack -> AppContext ()
+expectH' tilEOF func = do
   pmpt <- view ghciPmptAppStores <$> get
-  mvar <- view ghciGHCiAppStores <$> get
+  mvar <- view ghciProcAppStores <$> get
   proc <- liftIO $ readMVar mvar
   let hdl = proc^.rHdlGHCiProc
       plen = length pmpt
 
-  go plen hdl []
+  go tilEOF plen hdl []
   
   where
-    go plen hdl acc = U.readLine hdl
-      >>= go' plen hdl acc
-    
+    go False plen hdl acc = U.readLine hdl >>= go' plen hdl acc
+    go True plen hdl acc = liftIO (S.hIsEOF hdl) >>= \case
+      False -> U.readLine hdl >>= go' plen hdl acc
+      True  -> return ()
+
     go' plen hdl acc b = do
       let newL = U.bs2str b
       if L.isSuffixOf _DAP_CMD_END2 newL
@@ -132,7 +146,7 @@ expectH func = do
     cont plen hdl acc newL = do
       let newAcc = acc ++ [newL]
       func False newAcc [newL]
-      go plen hdl newAcc
+      go tilEOF plen hdl newAcc
 
     goEnd plen hdl acc = do
       b <- liftIO $ B.hGet hdl plen
@@ -146,7 +160,7 @@ expectH func = do
 --
 expect :: String -> ExpectCallBack -> AppContext ()
 expect key func = do
-  mvar <- view ghciGHCiAppStores <$> get
+  mvar <- view ghciProcAppStores <$> get
   proc <- liftIO $ readMVar mvar
   let hdl = proc^.rHdlGHCiProc
 
@@ -178,7 +192,7 @@ expect key func = do
 --
 command :: String -> AppContext ()
 command cmd = do
-  mver <- view ghciGHCiAppStores <$> get
+  mver <- view ghciProcAppStores <$> get
   proc <- liftIO $ readMVar mver
   let hdl = proc^.wHdLGHCiProc
 

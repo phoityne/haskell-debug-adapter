@@ -53,13 +53,15 @@ defaultAppStores = do
     , _ghciPmptAppStores    = _GHCI_PROMPT_HDA
     , _mainArgsAppStores    = ""
     , _launchReqSeqAppStores = -1
+    , _debugReRunableAppStores = False
+
     -- Read/Write ASync
     , _reqStoreAppStores    = reqStore
     , _resStoreAppStores    = resStore
     , _eventStoreAppStores  = evtStore
     , _workspaceAppStores   = wsStore
     , _logPriorityAppStores = logPRStore
-    , _ghciGHCiAppStores    = procStore
+    , _ghciProcAppStores    = procStore
     , _ghciStdoutAppStores  = bsStore
     , _ghciVerAppStores     = verStore
     }
@@ -86,8 +88,8 @@ app = flip catchError errHdl $ do
     pipeline = src .| sink
 
     errHdl msg = do
-      criticalEV _LOG_REQUEST msg
-      addEvent ShutdownEvent
+      criticalEV _LOG_APP msg
+      addEvent CriticalExitEvent
 
 ----------------------------------------------------------------
 -- |
@@ -140,8 +142,8 @@ sink = do
     Nothing  -> do
       throwError $ "[CRITICAL][response][sink] unexpectHed Nothing."
       return ()
-    Just req@(WrapRequest ShutdownRequest{}) -> lift $ appMain req
     Just (WrapRequest (DisconnectRequest req)) -> do
+      liftIO $ L.debugM _LOG_APP $ show req
       liftIO $ L.infoM _LOG_APP $ "disconnect. end of application thread."
       lift $ sendDisconnectResponse req
     Just req -> do
@@ -153,7 +155,7 @@ sink = do
 -- |
 --
 appMain :: WrapRequest -> AppContext ()
-appMain (WrapRequest (TransitRequest (HdaTransitRequest s))) = transit s
+appMain (WrapRequest (InternalTransitRequest (HdaInternalTransitRequest s))) = transit s
 appMain reqW = do
   stateW <- view appStateWAppStores <$> get
   
@@ -184,6 +186,8 @@ updateState :: StateTransit -> AppContext ()
 updateState Init_GHCiRun     = changeState $ WrapAppState GHCiRunState
 updateState GHCiRun_DebugRun = changeState $ WrapAppState DebugRunState
 updateState GHCiRun_Shutdown = changeState $ WrapAppState ShutdownState
+updateState DebugRun_GHCiRun = changeState $ WrapAppState GHCiRunState
+updateState DebugRun_Shutdown = changeState $ WrapAppState ShutdownState
 updateState s = throwError $ "not yet implemented state. " ++ show s
 
 

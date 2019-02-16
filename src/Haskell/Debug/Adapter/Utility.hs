@@ -1,6 +1,5 @@
 module Haskell.Debug.Adapter.Utility where
 
-import System.IO
 import Control.Lens
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
@@ -14,6 +13,8 @@ import qualified Data.Conduit.List as C
 import Control.Monad.Except
 import Control.Monad.State.Lazy
 import qualified System.IO as S
+import qualified System.Process as S
+import qualified System.Exit as S
 import Control.Concurrent.MVar
 import qualified System.Log.Logger as L
 import qualified Data.List as L
@@ -86,7 +87,7 @@ add2FileBSL path cont = C.runConduitRes
   $ C.sourceLbs cont
   C..| C.sinkIOHandle hdl
 
-  where hdl = openFile path AppendMode
+  where hdl = S.openFile path S.AppendMode
 
            
 -- |
@@ -250,6 +251,7 @@ sendDisconnectResponse req = do
 
   addResponse $ DisconnectResponse res
 
+
 -- |
 --
 --   phoityne -> haskell-dap
@@ -261,8 +263,8 @@ showDAP = show . BS.unpack . TE.encodeUtf8 . T.pack . show
 
 -- |
 --
-sendTerminateEvent :: AppContext ()
-sendTerminateEvent = do
+sendTerminatedEvent :: AppContext ()
+sendTerminatedEvent = do
   resSeq <- getIncreasedResponseSequence
   let evt = DAP.defaultTerminatedEvent {
             DAP.seqTerminatedEvent = resSeq
@@ -273,12 +275,69 @@ sendTerminateEvent = do
 
 -- |
 --
-handleStoppeEventBody :: DAP.StoppedEventBody -> AppContext ()
-handleStoppeEventBody body 
+sendExitedEvent :: AppContext ()
+sendExitedEvent = do
+  code <- getExitCode
+  resSeq <- getIncreasedResponseSequence
+  let evt = DAP.defaultExitedEvent {
+            DAP.seqExitedEvent = resSeq
+          , DAP.bodyExitedEvent = DAP.defaultExitedEventBody {
+                DAP.exitCodeExitedEventBody = code
+              }
+          }
+
+  addResponse $ ExitedEvent evt
+
+  where
+    getExitCode = getGHCiExitCode >>= \case
+      Just c -> return c
+      Nothing -> do
+        liftIO $ L.infoM _LOG_NAME "force kill ghci."
+        force
+    
+    force = killGHCi >> getGHCiExitCode >>= \case
+      Just c -> return c
+      Nothing -> do
+        liftIO $ L.infoM _LOG_NAME "force kill ghci failed."
+        return 1  -- kill ghci failed. error exit anyway.
+
+-- |
+--
+getGHCiExitCode :: AppContext (Maybe Int)
+getGHCiExitCode = do
+  procMVar <- view ghciProcAppStores <$> get
+  proc <- liftIO $ readMVar procMVar
+  liftIO (S.getProcessExitCode (proc^.procGHCiProc)) >>= \case
+    Just S.ExitSuccess -> return $ Just 0
+    Just (S.ExitFailure c) -> return $ Just c
+    Nothing -> return Nothing
+
+-- |
+--   On Windows, terminateProcess blocks for exiting.
+--
+killGHCi :: AppContext ()
+killGHCi = do
+  return ()
+  {-
+  procMVar <- view ghciProcAppStores <$> get
+  proc <- liftIO $ readMVar procMVar
+  liftIO $ S.terminateProcess (proc^.procGHCiProc)
+  -}
+
+-- |
+--
+handleStoppedEventBody :: DAP.StoppedEventBody -> AppContext ()
+handleStoppedEventBody body
   | "complete" == DAP.reasonStoppedEventBody body = do
-    debugEV _LOG_NAME $ "debugging completed. " ++ show body
-    -- must terminate. can not back to GHCiState.
-    sendTerminateEvent
+    sendConsoleEventLF "debugging completed. "
+    isReRun <- view debugReRunableAppStores <$> get
+    if isReRun
+      then addRequestHP $ WrapRequest 
+         $ InternalTransitRequest
+         $ HdaInternalTransitRequest DebugRun_GHCiRun
+      else addRequestHP $ WrapRequest
+         $ InternalTerminateRequest
+         $ HdaInternalTerminateRequest ""
   | otherwise = do
     resSeq <- getIncreasedResponseSequence
     let res = DAP.defaultStoppedEvent {

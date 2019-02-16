@@ -91,23 +91,24 @@ data StateTransit =
   | GHCiRun_Shutdown
   | DebugRun_Contaminated
   | DebugRun_Shutdown
+  | DebugRun_GHCiRun
   deriving (Show, Read, Eq)
 
 $(deriveJSON defaultOptions ''StateTransit)
 
 --------------------------------------------------------------------------------------
 
-data HdaTransitRequest = HdaTransitRequest {
-    stateHdaTransitRequest :: StateTransit
+data HdaInternalTransitRequest = HdaInternalTransitRequest {
+    stateHdaInternalTransitRequest :: StateTransit
   } deriving (Show, Read, Eq)
 
-$(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "HdaTransitRequest" } ''HdaTransitRequest)
+$(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "HdaInternalTransitRequest" } ''HdaInternalTransitRequest)
   
-data HdaShutdownRequest = HdaShutdownRequest {
-    msgHdaShutdownRequest :: String
+data HdaInternalTerminateRequest = HdaInternalTerminateRequest {
+    msgHdaInternalTerminateRequest :: String
   } deriving (Show, Read, Eq)
 
-$(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "HdaShutdownRequest" } ''HdaShutdownRequest)
+$(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "HdaInternalTerminateRequest" } ''HdaInternalTerminateRequest)
 
 --------------------------------------------------------------------------------
 -- | DAP Request Data
@@ -189,8 +190,8 @@ data Request a where
   ContinueRequest :: DAP.ContinueRequest -> Request DAP.ContinueRequest
   NextRequest :: DAP.NextRequest -> Request DAP.NextRequest
   StepInRequest :: DAP.StepInRequest -> Request DAP.StepInRequest
-  TransitRequest :: HdaTransitRequest -> Request HdaTransitRequest
-  ShutdownRequest :: HdaShutdownRequest -> Request HdaShutdownRequest
+  InternalTransitRequest :: HdaInternalTransitRequest -> Request HdaInternalTransitRequest
+  InternalTerminateRequest :: HdaInternalTerminateRequest -> Request HdaInternalTerminateRequest
 
 data WrapRequest = forall a. WrapRequest (Request a)
 
@@ -251,6 +252,9 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInResponse"} ''DAP.
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminatedEvent"} ''DAP.TerminatedEvent)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminatedEventBody"} ''DAP.TerminatedEventBody)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ExitedEvent"} ''DAP.ExitedEvent)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ExitedEventBody"} ''DAP.ExitedEventBody)
+
 -- response
 data Response = 
     InitializeResponse DAP.InitializeResponse
@@ -258,6 +262,7 @@ data Response =
   | OutputEvent        DAP.OutputEvent
   | StoppedEvent       DAP.StoppedEvent
   | TerminatedEvent    DAP.TerminatedEvent
+  | ExitedEvent        DAP.ExitedEvent
   | InitializedEvent   DAP.InitializedEvent
   | DisconnectResponse DAP.DisconnectResponse
   | TerminateResponse DAP.TerminateResponse
@@ -314,7 +319,6 @@ instance WrapAppStateIF WrapAppState where
 data StateRequest s r where
   Init_Initialize :: DAP.InitializeRequest -> StateRequest InitState DAP.InitializeRequest
   Init_Launch     :: DAP.LaunchRequest     -> StateRequest InitState DAP.LaunchRequest
-  Init_Disconnect :: DAP.DisconnectRequest -> StateRequest InitState DAP.DisconnectRequest
   Init_Terminate :: DAP.TerminateRequest -> StateRequest InitState DAP.TerminateRequest
   Init_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest InitState DAP.SetBreakpointsRequest
   Init_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest InitState DAP.SetFunctionBreakpointsRequest
@@ -327,10 +331,10 @@ data StateRequest s r where
   Init_Continue :: DAP.ContinueRequest -> StateRequest InitState DAP.ContinueRequest
   Init_Next :: DAP.NextRequest -> StateRequest InitState DAP.NextRequest
   Init_StepIn :: DAP.StepInRequest -> StateRequest InitState DAP.StepInRequest
+  Init_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest InitState HdaInternalTerminateRequest
 
   GHCiRun_Initialize :: DAP.InitializeRequest -> StateRequest GHCiRunState DAP.InitializeRequest
   GHCiRun_Launch     :: DAP.LaunchRequest     -> StateRequest GHCiRunState DAP.LaunchRequest
-  GHCiRun_Disconnect :: DAP.DisconnectRequest -> StateRequest GHCiRunState DAP.DisconnectRequest
   GHCiRun_Terminate :: DAP.TerminateRequest -> StateRequest GHCiRunState DAP.TerminateRequest
   GHCiRun_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest GHCiRunState DAP.SetBreakpointsRequest
   GHCiRun_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest GHCiRunState DAP.SetFunctionBreakpointsRequest
@@ -343,10 +347,10 @@ data StateRequest s r where
   GHCiRun_Continue :: DAP.ContinueRequest -> StateRequest GHCiRunState DAP.ContinueRequest
   GHCiRun_Next :: DAP.NextRequest -> StateRequest GHCiRunState DAP.NextRequest
   GHCiRun_StepIn :: DAP.StepInRequest -> StateRequest GHCiRunState DAP.StepInRequest
+  GHCiRun_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest GHCiRunState HdaInternalTerminateRequest
 
   DebugRun_Initialize :: DAP.InitializeRequest -> StateRequest DebugRunState DAP.InitializeRequest
   DebugRun_Launch     :: DAP.LaunchRequest     -> StateRequest DebugRunState DAP.LaunchRequest
-  DebugRun_Disconnect :: DAP.DisconnectRequest -> StateRequest DebugRunState DAP.DisconnectRequest
   DebugRun_Terminate :: DAP.TerminateRequest -> StateRequest DebugRunState DAP.TerminateRequest
   DebugRun_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest DebugRunState DAP.SetBreakpointsRequest
   DebugRun_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest DebugRunState DAP.SetFunctionBreakpointsRequest
@@ -359,10 +363,10 @@ data StateRequest s r where
   DebugRun_Continue :: DAP.ContinueRequest -> StateRequest DebugRunState DAP.ContinueRequest
   DebugRun_Next :: DAP.NextRequest -> StateRequest DebugRunState DAP.NextRequest
   DebugRun_StepIn :: DAP.StepInRequest -> StateRequest DebugRunState DAP.StepInRequest
+  DebugRun_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest DebugRunState HdaInternalTerminateRequest
 
   Shutdown_Initialize :: DAP.InitializeRequest -> StateRequest ShutdownState DAP.InitializeRequest
   Shutdown_Launch     :: DAP.LaunchRequest     -> StateRequest ShutdownState DAP.LaunchRequest
-  Shutdown_Disconnect :: DAP.DisconnectRequest -> StateRequest ShutdownState DAP.DisconnectRequest
   Shutdown_Terminate :: DAP.TerminateRequest -> StateRequest ShutdownState DAP.TerminateRequest
   Shutdown_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest ShutdownState DAP.SetBreakpointsRequest
   Shutdown_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest ShutdownState DAP.SetFunctionBreakpointsRequest
@@ -375,6 +379,7 @@ data StateRequest s r where
   Shutdown_Continue :: DAP.ContinueRequest -> StateRequest ShutdownState DAP.ContinueRequest
   Shutdown_Next :: DAP.NextRequest -> StateRequest ShutdownState DAP.NextRequest
   Shutdown_StepIn :: DAP.StepInRequest -> StateRequest ShutdownState DAP.StepInRequest
+  Shutdown_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest ShutdownState HdaInternalTerminateRequest
 
 class StateRequestIF s r where
   action :: (StateRequest s r) -> AppContext (Maybe StateTransit)
@@ -393,7 +398,7 @@ instance WrapStateRequestIF WrapStateRequest where
 -- | Event
 -- 
 data Event =
-  ShutdownEvent
+  CriticalExitEvent
   deriving (Show, Read, Eq)
 
 
@@ -436,6 +441,7 @@ data AppStores = AppStores {
   , _ghciPmptAppStores    :: String
   , _mainArgsAppStores    :: String
   , _launchReqSeqAppStores :: Int
+  , _debugReRunableAppStores :: Bool
 
   -- Global Read/Write ASync
   , _reqStoreAppStores    :: MVar [WrapRequest]
@@ -443,7 +449,7 @@ data AppStores = AppStores {
   , _eventStoreAppStores  :: MVar [Event]
   , _workspaceAppStores   :: MVar FilePath
   , _logPriorityAppStores :: MVar L.Priority
-  , _ghciGHCiAppStores    :: MVar GHCiProc
+  , _ghciProcAppStores    :: MVar GHCiProc
   , _ghciStdoutAppStores  :: MVar B.ByteString
   , _ghciVerAppStores     :: MVar V.Version
   } 

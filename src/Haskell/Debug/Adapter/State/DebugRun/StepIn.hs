@@ -58,7 +58,7 @@ app req = flip catchError errHdl $ do
     dapHdl str = case R.readEither str of
       Left err -> throwError $ err ++ " : " ++ str
       Right (Left err) -> throwError $ err ++ " : " ++ str
-      Right (Right body) -> U.handleStoppeEventBody body
+      Right (Right body) -> U.handleStoppedEventBody body
 
 
     -- |

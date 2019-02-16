@@ -94,18 +94,8 @@ takeEvent = do
 -- |
 --
 runEvent :: Event -> AppContext ()
-runEvent ShutdownEvent = do
-  liftIO $ L.infoM _LOG_NAME "Shutdown started."
+runEvent CriticalExitEvent = do
+  liftIO $ L.criticalM _LOG_NAME "Critical exit started."
   as <- view asyncsAppStores <$> get
-
-  addRequestHP $ WrapRequest 
-               $ ShutdownRequest
-               $ HdaShutdownRequest "shutdown event."
-
-  liftIO $ threadDelay _1_SEC
-  liftIO $ threadDelay _1_SEC
-
-  b <- isStop
-  when (False == b) $ do
-    liftIO $ L.infoM _LOG_NAME "Shutdown force."
-    liftIO $ mapM_ cancel as
+  liftIO $ mapM_ cancel as
+  

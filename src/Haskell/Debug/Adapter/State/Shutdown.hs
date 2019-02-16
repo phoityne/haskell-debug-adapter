@@ -20,7 +20,7 @@ instance AppStateIF ShutdownState where
   entryAction ShutdownState = do
     liftIO $ L.debugM _LOG_APP "ShutdownState entryAction called."
 
-    addEvent ShutdownEvent
+    addEvent CriticalExitEvent
 
     return ()
 

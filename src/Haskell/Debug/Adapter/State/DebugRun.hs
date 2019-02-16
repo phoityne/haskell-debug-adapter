@@ -23,8 +23,8 @@ import Haskell.Debug.Adapter.State.DebugRun.Variables()
 import Haskell.Debug.Adapter.State.DebugRun.Continue()
 import Haskell.Debug.Adapter.State.DebugRun.Next()
 import Haskell.Debug.Adapter.State.DebugRun.StepIn()
-import Haskell.Debug.Adapter.State.DebugRun.Disconnect()
 import Haskell.Debug.Adapter.State.DebugRun.Terminate()
+import Haskell.Debug.Adapter.State.DebugRun.InternalTerminate()
 import qualified Haskell.Debug.Adapter.State.Utility as SU
 
 
@@ -46,8 +46,8 @@ instance AppStateIF DebugRunState where
   --
   getStateRequest DebugRunState (WrapRequest (InitializeRequest req)) = SU.unsupported $ show req
   getStateRequest DebugRunState (WrapRequest (LaunchRequest req)) = SU.unsupported $ show req
+  getStateRequest DebugRunState (WrapRequest (DisconnectRequest req)) = SU.unsupported $ show req
   
-  getStateRequest DebugRunState (WrapRequest (DisconnectRequest req)) = return . WrapStateRequest $ DebugRun_Disconnect req
   getStateRequest DebugRunState (WrapRequest (TerminateRequest req)) = return . WrapStateRequest $ DebugRun_Terminate req
   getStateRequest DebugRunState (WrapRequest (SetBreakpointsRequest req)) = return . WrapStateRequest $ DebugRun_SetBreakpoints req
   getStateRequest DebugRunState (WrapRequest (SetFunctionBreakpointsRequest req)) = return . WrapStateRequest $ DebugRun_SetFunctionBreakpoints req
@@ -63,8 +63,8 @@ instance AppStateIF DebugRunState where
   getStateRequest DebugRunState (WrapRequest (NextRequest req)) = return . WrapStateRequest $ DebugRun_Next req
   getStateRequest DebugRunState (WrapRequest (StepInRequest req)) = return . WrapStateRequest $ DebugRun_StepIn req
 
-  getStateRequest DebugRunState (WrapRequest (TransitRequest req)) = SU.unsupported $ show req
-  getStateRequest DebugRunState (WrapRequest (ShutdownRequest req)) = SU.unsupported $ show req
+  getStateRequest DebugRunState (WrapRequest (InternalTransitRequest req)) = SU.unsupported $ show req
+  getStateRequest DebugRunState (WrapRequest (InternalTerminateRequest req)) = return . WrapStateRequest $ DebugRun_InternalTerminate req
 
 -- |
 --
@@ -118,7 +118,7 @@ startDebug = do
     dapHdl str = case R.readEither str of
       Left err -> errHdl str err
       Right (Left err) -> errHdl str err
-      Right (Right body) -> U.handleStoppeEventBody body
+      Right (Right body) -> U.handleStoppedEventBody body
 
     -- |
     --
@@ -128,7 +128,7 @@ startDebug = do
       liftIO $ L.errorM _LOG_APP msg
       U.sendErrorEventLF msg
 
-      -- TODO: sendTerminateEvent
+      -- TODO: sendTerminatedEvent
 
 -- |
 --  Any errors should be send back as False result Response

@@ -5,11 +5,13 @@ module Haskell.Debug.Adapter.State.DebugRun.Terminate where
 
 import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
+import Control.Concurrent (threadDelay)
 
 import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
+import qualified Haskell.Debug.Adapter.State.Utility as SU
 
 -- |
 --   Any errors should be critical. don't catch anything here.
@@ -24,6 +26,10 @@ instance StateRequestIF DebugRunState DAP.TerminateRequest where
 --
 app :: DAP.TerminateRequest -> AppContext (Maybe StateTransit)
 app req = do
+  SU.terminateGHCi
+
+  liftIO $ threadDelay _1_SEC
+
   resSeq <- U.getIncreasedResponseSequence
 
   let res = DAP.defaultTerminateResponse {
@@ -33,6 +39,8 @@ app req = do
           }
 
   U.addResponse $ TerminateResponse res
-  U.sendTerminateEvent
-  return Nothing
+  U.sendTerminatedEvent
+  U.sendExitedEvent
+
+  return $ Just DebugRun_Shutdown
 

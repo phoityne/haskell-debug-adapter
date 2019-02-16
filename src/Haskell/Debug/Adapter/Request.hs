@@ -39,7 +39,7 @@ app = flip catchError errHdl $ do
 
     errHdl msg = do
       criticalEV _LOG_REQUEST msg
-      addEvent ShutdownEvent
+      addEvent CriticalExitEvent
 
 
 ---------------------------------------------------------------------------------

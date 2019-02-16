@@ -9,7 +9,6 @@ import qualified System.Log.Logger as L
 import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.Constant
 import Haskell.Debug.Adapter.Type
-import Haskell.Debug.Adapter.State.GHCiRun.Disconnect()
 import Haskell.Debug.Adapter.State.GHCiRun.ConfigurationDone()
 import qualified Haskell.Debug.Adapter.State.Utility as SU
 
@@ -31,8 +30,8 @@ instance AppStateIF GHCiRunState where
   --
   getStateRequest GHCiRunState (WrapRequest (InitializeRequest req)) = SU.unsupported $ show req
   getStateRequest GHCiRunState (WrapRequest (LaunchRequest req))     = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (DisconnectRequest req)) = SU.unsupported $ show req
   
-  getStateRequest GHCiRunState (WrapRequest (DisconnectRequest req)) = return . WrapStateRequest $ GHCiRun_Disconnect req
   getStateRequest GHCiRunState (WrapRequest (TerminateRequest req)) = SU.unsupported $ show req
   getStateRequest GHCiRunState (WrapRequest (SetBreakpointsRequest req)) = return . WrapStateRequest $ GHCiRun_SetBreakpoints req
   getStateRequest GHCiRunState (WrapRequest (SetFunctionBreakpointsRequest req)) = return . WrapStateRequest $ GHCiRun_SetFunctionBreakpoints req
@@ -46,8 +45,8 @@ instance AppStateIF GHCiRunState where
   getStateRequest GHCiRunState (WrapRequest (ContinueRequest req)) = SU.unsupported $ show req
   getStateRequest GHCiRunState (WrapRequest (NextRequest req)) = SU.unsupported $ show req
   getStateRequest GHCiRunState (WrapRequest (StepInRequest req)) = SU.unsupported $ show req
-  getStateRequest GHCiRunState (WrapRequest (TransitRequest req)) = SU.unsupported $ show req
-  getStateRequest GHCiRunState (WrapRequest (ShutdownRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (InternalTransitRequest req)) = SU.unsupported $ show req
+  getStateRequest GHCiRunState (WrapRequest (InternalTerminateRequest req)) = SU.unsupported $ show req
 
 
 -- |

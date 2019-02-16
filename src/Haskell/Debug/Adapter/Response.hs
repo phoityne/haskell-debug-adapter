@@ -42,7 +42,7 @@ app = flip catchError errHdl $ do
 
     errHdl msg = do
       criticalEV _LOG_REQUEST msg
-      addEvent ShutdownEvent
+      addEvent CriticalExitEvent
 
 ---------------------------------------------------------------------------------
 -- |
@@ -134,7 +134,7 @@ sink = do
       liftIO $ sendResponse wHdl bs
 
     cont str
-      | L.isInfixOf str _KEY_DISCONNECT_RESPONCE = do
+      | L.isInfixOf _KEY_DISCONNECT_RESPONCE str = do
         liftIO $ L.infoM _LOG_RESPONSE $ "disconnect. end of response thread."
       | otherwise = sink
 

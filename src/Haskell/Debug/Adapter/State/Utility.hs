@@ -163,3 +163,17 @@ setFunctionBreakpointsRequest req = flip catchError errHdl $ do
 
       U.addResponse $ SetFunctionBreakpointsResponse res
       return Nothing
+
+
+
+-- |
+--
+terminateGHCi :: AppContext ()
+terminateGHCi = do
+  let cmd = ":quit"
+
+  P.cmdAndOut cmd
+  P.expectEOF $ P.stdoutCallBk
+  
+
+
