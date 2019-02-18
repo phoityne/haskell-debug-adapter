@@ -47,6 +47,9 @@ instance AppStateIF InitState where
   getStateRequest InitState (WrapRequest (ContinueRequest req))                = SU.unsupported $ show req
   getStateRequest InitState (WrapRequest (NextRequest req))                    = SU.unsupported $ show req
   getStateRequest InitState (WrapRequest (StepInRequest req))                  = SU.unsupported $ show req
-  getStateRequest InitState (WrapRequest (InternalTransitRequest req))                  = SU.unsupported $ show req
-  getStateRequest InitState (WrapRequest (InternalTerminateRequest req))                  = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (EvaluateRequest req))                = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (CompletionsRequest req))             = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (InternalTransitRequest req))         = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (InternalTerminateRequest req))       = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (InternalLoadRequest req))            = SU.unsupported $ show req
 

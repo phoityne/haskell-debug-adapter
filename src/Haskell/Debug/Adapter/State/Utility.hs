@@ -4,10 +4,11 @@
 module Haskell.Debug.Adapter.State.Utility where
 
 -- import Control.Monad.IO.Class
--- import qualified System.Log.Logger as L
+import qualified System.Log.Logger as L
 import qualified Text.Read as R
 import qualified Data.List as L
 import Control.Monad.Except
+import Control.Concurrent (threadDelay)
 
 import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.Type
@@ -174,6 +175,179 @@ terminateGHCi = do
 
   P.cmdAndOut cmd
   P.expectEOF $ P.stdoutCallBk
+  return ()
+
+
+-- |
+--
+evaluateRequest :: DAP.EvaluateRequest -> AppContext (Maybe StateTransit)
+evaluateRequest req = flip catchError errHdl $ do
+
+  let args = DAP.argumentsEvaluateRequest req
+      cmd = ":dap-evaluate " ++ U.showDAP args
+
+  P.cmdAndOut cmd
+  P.expectH $ P.funcCallBk lineCallBk
+
+  return Nothing
   
+  where
+    lineCallBk :: Bool -> String -> AppContext ()
+    lineCallBk True  s = U.sendStdoutEvent s
+    lineCallBk False s
+      | L.isPrefixOf _DAP_HEADER s = dapHdl $ drop (length _DAP_HEADER) s
+      | otherwise = U.sendStdoutEventLF s
+
+    -- |
+    --
+    dapHdl :: String -> AppContext ()
+    dapHdl str = case R.readEither str of
+      Left err -> throwError $ err ++ " : " ++ str
+      Right (Left err) -> throwError $ err ++ " : " ++ str
+      Right (Right body) -> do
+        resSeq <- U.getIncreasedResponseSequence
+        let res = DAP.defaultEvaluateResponse {
+                  DAP.seqEvaluateResponse = resSeq
+                , DAP.request_seqEvaluateResponse = DAP.seqEvaluateRequest req
+                , DAP.successEvaluateResponse = True
+                , DAP.bodyEvaluateResponse = body
+                }
+
+        U.addResponse $ EvaluateResponse res
+
+
+    -- |
+    --
+    errHdl :: String -> AppContext (Maybe StateTransit)
+    errHdl msg = do
+      liftIO $ L.errorM _LOG_APP msg
+      resSeq <- U.getIncreasedResponseSequence
+      let res = DAP.defaultEvaluateResponse {
+                DAP.seqEvaluateResponse = resSeq
+              , DAP.request_seqEvaluateResponse = DAP.seqEvaluateRequest req
+              , DAP.successEvaluateResponse = False
+              , DAP.messageEvaluateResponse = msg
+              }
+
+      U.addResponse $ EvaluateResponse res
+      return Nothing
+
+-- |
+--
+completionsRequest :: DAP.CompletionsRequest -> AppContext (Maybe StateTransit)
+completionsRequest req = flip catchError errHdl $ do
+
+  let args = DAP.argumentsCompletionsRequest req
+      key  = DAP.textCompletionsArguments args
+      size = "0-50"
+      cmd = ":complete repl " ++ size ++ " \"" ++ key ++ "\""
+
+  P.cmdAndOut cmd
+  outs <- P.expectH P.stdoutCallBk
+
+  resSeq <- U.getIncreasedResponseSequence
+  let items = createItems outs
+      body  = DAP.defaultCompletionsResponseBody {
+              DAP.targetsCompletionsResponseBody = items
+            }
+      res = DAP.defaultCompletionsResponse {
+            DAP.seqCompletionsResponse = resSeq
+          , DAP.request_seqCompletionsResponse = DAP.seqCompletionsRequest req
+          , DAP.successCompletionsResponse = True
+          , DAP.bodyCompletionsResponse = body
+          }
+
+  U.addResponse $ CompletionsResponse res
+
+  return Nothing
+  
+  where
+    -- |
+    --
+    errHdl :: String -> AppContext (Maybe StateTransit)
+    errHdl msg = do
+      liftIO $ L.errorM _LOG_APP msg
+      resSeq <- U.getIncreasedResponseSequence
+      let res = DAP.defaultCompletionsResponse {
+                DAP.seqCompletionsResponse = resSeq
+              , DAP.request_seqCompletionsResponse = DAP.seqCompletionsRequest req
+              , DAP.successCompletionsResponse = False
+              , DAP.messageCompletionsResponse = msg
+              }
+
+      U.addResponse $ CompletionsResponse res
+      return Nothing
+
+    -- |
+    --
+    createItems :: [String] -> [DAP.CompletionsItem]
+    createItems = map (createItem . normalize) . extracCompleteList
+
+    -- |
+    --
+    createItem :: String -> DAP.CompletionsItem
+    createItem (':':xs) = DAP.CompletionsItem xs
+    createItem xs = DAP.CompletionsItem xs
+
+    -- |
+    --
+    normalize :: String -> String
+    normalize xs
+      | 2 < length xs = tail . init $ xs
+      | otherwise = xs
+
+    -- |
+    --
+    extracCompleteList :: [String] -> [String]
+    extracCompleteList [] = []
+    extracCompleteList (_:[]) = []
+    extracCompleteList (_:_:[]) = []
+    extracCompleteList xs = tail . init $ xs
+
+
+
+-- |
+--
+loadHsFile :: FilePath -> AppContext ()
+loadHsFile file = do
+  let cmd  = ":load "++ file
+
+  P.cmdAndOut cmd
+  P.expectH P.stdoutCallBk
+
+  return ()
+
+
+-- |
+--
+terminateRequest :: DAP.TerminateRequest -> AppContext ()
+terminateRequest req = do
+  terminateGHCi
+
+  liftIO $ threadDelay _1_SEC
+
+  resSeq <- U.getIncreasedResponseSequence
+
+  let res = DAP.defaultTerminateResponse {
+            DAP.seqTerminateResponse         = resSeq
+          , DAP.request_seqTerminateResponse = DAP.seqTerminateRequest req
+          , DAP.successTerminateResponse     = True
+          }
+
+  U.addResponse $ TerminateResponse res
+  U.sendTerminatedEvent
+  U.sendExitedEvent
+
+-- |
+--
+internalTerminateRequest :: AppContext ()
+internalTerminateRequest = do
+
+    terminateGHCi
+
+    liftIO $ threadDelay _1_SEC
+
+    U.sendTerminatedEvent
+    U.sendExitedEvent
 
 

@@ -275,6 +275,22 @@ sendTerminatedEvent = do
 
 -- |
 --
+sendRestartEvent :: AppContext ()
+sendRestartEvent = do
+  resSeq <- getIncreasedResponseSequence
+  let evt = DAP.defaultTerminatedEvent {
+            DAP.seqTerminatedEvent = resSeq
+          , DAP.bodyTerminatedEvent = DAP.defaultTerminatedEventBody {
+              DAP.restartTerminatedEventBody = True
+            }
+          }
+
+  addResponse $ TerminatedEvent evt
+
+
+
+-- |
+--
 sendExitedEvent :: AppContext ()
 sendExitedEvent = do
   code <- getExitCode
@@ -329,23 +345,31 @@ killGHCi = do
 handleStoppedEventBody :: DAP.StoppedEventBody -> AppContext ()
 handleStoppedEventBody body
   | "complete" == DAP.reasonStoppedEventBody body = do
-    sendConsoleEventLF "debugging completed. "
-    isReRun <- view debugReRunableAppStores <$> get
-    if isReRun
-      then addRequestHP $ WrapRequest 
-         $ InternalTransitRequest
-         $ HdaInternalTransitRequest DebugRun_GHCiRun
-      else addRequestHP $ WrapRequest
-         $ InternalTerminateRequest
-         $ HdaInternalTerminateRequest ""
-  | otherwise = do
-    resSeq <- getIncreasedResponseSequence
-    let res = DAP.defaultStoppedEvent {
-              DAP.seqStoppedEvent = resSeq
-            , DAP.bodyStoppedEvent = body
-            }
+      sendConsoleEventLF "debugging completed. "
+      isReRun <- view debugReRunableAppStores <$> get
+      handleReRun isReRun
+  | otherwise = sendStoppedEvent
 
-    addResponse $ StoppedEvent res
+  where
+    handleReRun True = do
+      sendStoppedEvent
+      addRequestHP $ WrapRequest 
+                   $ InternalTransitRequest
+                   $ HdaInternalTransitRequest DebugRun_GHCiRun
+
+    handleReRun False = do
+      addRequestHP $ WrapRequest
+                   $ InternalTerminateRequest
+                   $ HdaInternalTerminateRequest ""
+
+    sendStoppedEvent = do
+      resSeq <- getIncreasedResponseSequence
+      let res = DAP.defaultStoppedEvent {
+                DAP.seqStoppedEvent = resSeq
+              , DAP.bodyStoppedEvent = body
+              }
+
+      addResponse $ StoppedEvent res
 
 
 -- |
@@ -460,4 +484,6 @@ addEvent evt = do
   mvar <- view eventStoreAppStores <$> get
   evts <- liftIO $ takeMVar mvar
   liftIO $ putMVar mvar (evts++[evt])
+
+
 

@@ -16,6 +16,7 @@ import qualified System.Environment as S
 import qualified Control.Exception.Safe as E
 import qualified Data.Map as M
 import qualified Data.List as L
+import qualified Data.String.Utils as U
 
 import Haskell.Debug.Adapter.Type
 import qualified Haskell.Debug.Adapter.Utility as U
@@ -110,18 +111,18 @@ type ExpectCallBack = Bool -> [String] -> [String] -> AppContext ()
 -- |
 --   expect prompt or eof
 -- 
-expectEOF :: ExpectCallBack -> AppContext ()
+expectEOF :: ExpectCallBack -> AppContext [String]
 expectEOF func = expectH' True func
 
 -- |
 --   expect prompt. eof throwError.
 --
-expectH :: ExpectCallBack -> AppContext ()
+expectH :: ExpectCallBack -> AppContext [String]
 expectH func = expectH' False func
 
 -- |
 --
-expectH' :: Bool -> ExpectCallBack -> AppContext ()
+expectH' :: Bool -> ExpectCallBack -> AppContext [String]
 expectH' tilEOF func = do
   pmpt <- view ghciPmptAppStores <$> get
   mvar <- view ghciProcAppStores <$> get
@@ -135,10 +136,10 @@ expectH' tilEOF func = do
     go False plen hdl acc = U.readLine hdl >>= go' plen hdl acc
     go True plen hdl acc = liftIO (S.hIsEOF hdl) >>= \case
       False -> U.readLine hdl >>= go' plen hdl acc
-      True  -> return ()
+      True  -> return acc
 
     go' plen hdl acc b = do
-      let newL = U.bs2str b
+      let newL = U.strip $ U.bs2str b
       if L.isSuffixOf _DAP_CMD_END2 newL
         then goEnd plen hdl acc
         else cont plen hdl acc newL
@@ -154,6 +155,7 @@ expectH' tilEOF func = do
           newAcc = acc ++ [l]
 
       func True newAcc [l]
+      return newAcc
 
 
 -- |

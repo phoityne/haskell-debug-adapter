@@ -15,6 +15,7 @@ import qualified Haskell.Debug.Adapter.Application as A
 import qualified Haskell.Debug.Adapter.Request as RQ
 import qualified Haskell.Debug.Adapter.Response as RP
 import qualified Haskell.Debug.Adapter.Thread as TD
+import qualified Haskell.Debug.Adapter.Watch as W
 
 
 -- |
@@ -53,6 +54,7 @@ run _ conf = E.bracket initialize finalize go
                   RQ.run appData
                 , A.run appData
                 , RP.run appData
+                , W.run appData
                 ]
       TD.start appData ths >>= wait
 

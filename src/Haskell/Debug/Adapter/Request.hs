@@ -141,6 +141,8 @@ createWrapRequest bs req
   | "continue" == DAP.commandRequest req = WrapRequest . ContinueRequest <$> (liftEither (eitherDecode bs))
   | "next" == DAP.commandRequest req = WrapRequest . NextRequest <$> (liftEither (eitherDecode bs))
   | "stepIn" == DAP.commandRequest req = WrapRequest . StepInRequest <$> (liftEither (eitherDecode bs))
+  | "evaluate" == DAP.commandRequest req = WrapRequest . EvaluateRequest <$> (liftEither (eitherDecode bs))
+  | "completions" == DAP.commandRequest req = WrapRequest . CompletionsRequest <$> (liftEither (eitherDecode bs))
   | otherwise = throwError $ "unsupported request command. " ++ lbs2str bs
 
 

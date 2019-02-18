@@ -18,7 +18,7 @@ import Control.Concurrent.Async
 import qualified System.IO as S
 import qualified Data.Text as T
 import qualified System.Log.Logger as L
-import qualified Data.ByteString as B
+--import qualified Data.ByteString as B
 import qualified System.Process as S
 import qualified Data.Version as V
 
@@ -92,6 +92,7 @@ data StateTransit =
   | DebugRun_Contaminated
   | DebugRun_Shutdown
   | DebugRun_GHCiRun
+  | Contaminated_Shutdown
   deriving (Show, Read, Eq)
 
 $(deriveJSON defaultOptions ''StateTransit)
@@ -110,6 +111,12 @@ data HdaInternalTerminateRequest = HdaInternalTerminateRequest {
 
 $(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "HdaInternalTerminateRequest" } ''HdaInternalTerminateRequest)
 
+data HdaInternalLoadRequest = HdaInternalLoadRequest {
+    pathHdaInternalLoadRequest :: FilePath
+  } deriving (Show, Read, Eq)
+
+$(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "HdaInternalLoadRequest" } ''HdaInternalLoadRequest)
+
 --------------------------------------------------------------------------------
 -- | DAP Request Data
 -- 
@@ -124,6 +131,7 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StackFrame"} ''DAP.Stac
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "Scope"} ''DAP.Scope)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "Variable"} ''DAP.Variable)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablePresentationHint"} ''DAP.VariablePresentationHint)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsItem"} ''DAP.CompletionsItem)
 
 
 -- jsonize
@@ -172,6 +180,12 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "NextArguments"} ''DAP.N
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInRequest"} ''DAP.StepInRequest)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInArguments"} ''DAP.StepInArguments)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "EvaluateRequest"} ''DAP.EvaluateRequest)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "EvaluateArguments"} ''DAP.EvaluateArguments)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsRequest"} ''DAP.CompletionsRequest)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsArguments"} ''DAP.CompletionsArguments)
+
 
 -- request
 data Request a where 
@@ -190,8 +204,11 @@ data Request a where
   ContinueRequest :: DAP.ContinueRequest -> Request DAP.ContinueRequest
   NextRequest :: DAP.NextRequest -> Request DAP.NextRequest
   StepInRequest :: DAP.StepInRequest -> Request DAP.StepInRequest
+  EvaluateRequest :: DAP.EvaluateRequest -> Request DAP.EvaluateRequest
+  CompletionsRequest :: DAP.CompletionsRequest -> Request DAP.CompletionsRequest
   InternalTransitRequest :: HdaInternalTransitRequest -> Request HdaInternalTransitRequest
   InternalTerminateRequest :: HdaInternalTerminateRequest -> Request HdaInternalTerminateRequest
+  InternalLoadRequest :: HdaInternalLoadRequest -> Request HdaInternalLoadRequest
 
 data WrapRequest = forall a. WrapRequest (Request a)
 
@@ -249,6 +266,12 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "NextResponse"} ''DAP.Ne
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInResponse"} ''DAP.StepInResponse)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "EvaluateResponse"} ''DAP.EvaluateResponse)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "EvaluateBody"} ''DAP.EvaluateBody)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsResponse"} ''DAP.CompletionsResponse)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsResponseBody"} ''DAP.CompletionsResponseBody)
+
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminatedEvent"} ''DAP.TerminatedEvent)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminatedEventBody"} ''DAP.TerminatedEventBody)
 
@@ -277,6 +300,8 @@ data Response =
   | ContinueResponse DAP.ContinueResponse
   | NextResponse DAP.NextResponse
   | StepInResponse DAP.StepInResponse
+  | EvaluateResponse DAP.EvaluateResponse
+  | CompletionsResponse DAP.CompletionsResponse
   deriving (Show, Read, Eq)
 
 $(deriveJSON defaultOptions{sumEncoding = UntaggedValue} ''Response)
@@ -295,6 +320,7 @@ data AppState s where
   GHCiRunState  :: AppState GHCiRunState
   DebugRunState :: AppState DebugRunState
   ShutdownState :: AppState ShutdownState
+  ContaminatedState :: AppState ContaminatedState
 
 class AppStateIF s where
   entryAction :: (AppState s) -> AppContext ()
@@ -331,7 +357,10 @@ data StateRequest s r where
   Init_Continue :: DAP.ContinueRequest -> StateRequest InitState DAP.ContinueRequest
   Init_Next :: DAP.NextRequest -> StateRequest InitState DAP.NextRequest
   Init_StepIn :: DAP.StepInRequest -> StateRequest InitState DAP.StepInRequest
+  Init_Evaluate :: DAP.EvaluateRequest -> StateRequest InitState DAP.EvaluateRequest
+  Init_Completions :: DAP.CompletionsRequest -> StateRequest InitState DAP.CompletionsRequest
   Init_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest InitState HdaInternalTerminateRequest
+  Init_InternalLoad :: HdaInternalLoadRequest -> StateRequest InitState HdaInternalLoadRequest
 
   GHCiRun_Initialize :: DAP.InitializeRequest -> StateRequest GHCiRunState DAP.InitializeRequest
   GHCiRun_Launch     :: DAP.LaunchRequest     -> StateRequest GHCiRunState DAP.LaunchRequest
@@ -347,7 +376,10 @@ data StateRequest s r where
   GHCiRun_Continue :: DAP.ContinueRequest -> StateRequest GHCiRunState DAP.ContinueRequest
   GHCiRun_Next :: DAP.NextRequest -> StateRequest GHCiRunState DAP.NextRequest
   GHCiRun_StepIn :: DAP.StepInRequest -> StateRequest GHCiRunState DAP.StepInRequest
+  GHCiRun_Evaluate :: DAP.EvaluateRequest -> StateRequest GHCiRunState DAP.EvaluateRequest
+  GHCiRun_Completions :: DAP.CompletionsRequest -> StateRequest GHCiRunState DAP.CompletionsRequest
   GHCiRun_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest GHCiRunState HdaInternalTerminateRequest
+  GHCiRun_InternalLoad :: HdaInternalLoadRequest -> StateRequest GHCiRunState HdaInternalLoadRequest
 
   DebugRun_Initialize :: DAP.InitializeRequest -> StateRequest DebugRunState DAP.InitializeRequest
   DebugRun_Launch     :: DAP.LaunchRequest     -> StateRequest DebugRunState DAP.LaunchRequest
@@ -363,7 +395,10 @@ data StateRequest s r where
   DebugRun_Continue :: DAP.ContinueRequest -> StateRequest DebugRunState DAP.ContinueRequest
   DebugRun_Next :: DAP.NextRequest -> StateRequest DebugRunState DAP.NextRequest
   DebugRun_StepIn :: DAP.StepInRequest -> StateRequest DebugRunState DAP.StepInRequest
+  DebugRun_Evaluate :: DAP.EvaluateRequest -> StateRequest DebugRunState DAP.EvaluateRequest
+  DebugRun_Completions :: DAP.CompletionsRequest -> StateRequest DebugRunState DAP.CompletionsRequest
   DebugRun_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest DebugRunState HdaInternalTerminateRequest
+  DebugRun_InternalLoad :: HdaInternalLoadRequest -> StateRequest DebugRunState HdaInternalLoadRequest
 
   Shutdown_Initialize :: DAP.InitializeRequest -> StateRequest ShutdownState DAP.InitializeRequest
   Shutdown_Launch     :: DAP.LaunchRequest     -> StateRequest ShutdownState DAP.LaunchRequest
@@ -379,7 +414,29 @@ data StateRequest s r where
   Shutdown_Continue :: DAP.ContinueRequest -> StateRequest ShutdownState DAP.ContinueRequest
   Shutdown_Next :: DAP.NextRequest -> StateRequest ShutdownState DAP.NextRequest
   Shutdown_StepIn :: DAP.StepInRequest -> StateRequest ShutdownState DAP.StepInRequest
+  Shutdown_Evaluate :: DAP.EvaluateRequest -> StateRequest ShutdownState DAP.EvaluateRequest
+  Shutdown_Completions :: DAP.CompletionsRequest -> StateRequest ShutdownState DAP.CompletionsRequest
   Shutdown_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest ShutdownState HdaInternalTerminateRequest
+  Shutdown_InternalLoad :: HdaInternalLoadRequest -> StateRequest ShutdownState HdaInternalLoadRequest
+
+  Contaminated_Initialize :: DAP.InitializeRequest -> StateRequest ContaminatedState DAP.InitializeRequest
+  Contaminated_Launch     :: DAP.LaunchRequest     -> StateRequest ContaminatedState DAP.LaunchRequest
+  Contaminated_Terminate :: DAP.TerminateRequest -> StateRequest ContaminatedState DAP.TerminateRequest
+  Contaminated_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest ContaminatedState DAP.SetBreakpointsRequest
+  Contaminated_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest ContaminatedState DAP.SetFunctionBreakpointsRequest
+  Contaminated_SetExceptionBreakpoints :: DAP.SetExceptionBreakpointsRequest -> StateRequest ContaminatedState DAP.SetExceptionBreakpointsRequest
+  Contaminated_ConfigurationDone :: DAP.ConfigurationDoneRequest -> StateRequest ContaminatedState DAP.ConfigurationDoneRequest
+  Contaminated_Threads :: DAP.ThreadsRequest -> StateRequest ContaminatedState DAP.ThreadsRequest
+  Contaminated_StackTrace :: DAP.StackTraceRequest -> StateRequest ContaminatedState DAP.StackTraceRequest
+  Contaminated_Scopes :: DAP.ScopesRequest -> StateRequest ContaminatedState DAP.ScopesRequest
+  Contaminated_Variables :: DAP.VariablesRequest -> StateRequest ContaminatedState DAP.VariablesRequest
+  Contaminated_Continue :: DAP.ContinueRequest -> StateRequest ContaminatedState DAP.ContinueRequest
+  Contaminated_Next :: DAP.NextRequest -> StateRequest ContaminatedState DAP.NextRequest
+  Contaminated_StepIn :: DAP.StepInRequest -> StateRequest ContaminatedState DAP.StepInRequest
+  Contaminated_Evaluate :: DAP.EvaluateRequest -> StateRequest ContaminatedState DAP.EvaluateRequest
+  Contaminated_Completions :: DAP.CompletionsRequest -> StateRequest ContaminatedState DAP.CompletionsRequest
+  Contaminated_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest ContaminatedState HdaInternalTerminateRequest
+  Contaminated_InternalLoad :: HdaInternalLoadRequest -> StateRequest ContaminatedState HdaInternalLoadRequest
 
 class StateRequestIF s r where
   action :: (StateRequest s r) -> AppContext (Maybe StateTransit)
@@ -450,7 +507,7 @@ data AppStores = AppStores {
   , _workspaceAppStores   :: MVar FilePath
   , _logPriorityAppStores :: MVar L.Priority
   , _ghciProcAppStores    :: MVar GHCiProc
-  , _ghciStdoutAppStores  :: MVar B.ByteString
+  --, _ghciStdoutAppStores  :: MVar B.ByteString
   , _ghciVerAppStores     :: MVar V.Version
   } 
 

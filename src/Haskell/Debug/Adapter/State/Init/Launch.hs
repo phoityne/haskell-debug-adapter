@@ -20,6 +20,7 @@ import qualified Data.Version as V
 
 import qualified GHCi.DAP as DAP
 import qualified Haskell.Debug.Adapter.Utility as U
+import qualified Haskell.Debug.Adapter.State.Utility as SU
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Logger as L
@@ -73,8 +74,11 @@ setUpConfig req = do
   let args = DAP.argumentsLaunchRequest req
   appStores <- get
   
-  let workspaceMVar = appStores^.workspaceAppStores
-  liftIO $ putMVar workspaceMVar $ DAP.workspaceLaunchRequestArguments args
+  let wsMVar = appStores^.workspaceAppStores
+      ws = DAP.workspaceLaunchRequestArguments args
+  _ <- liftIO $ takeMVar wsMVar
+  liftIO $ putMVar wsMVar ws
+  liftIO $ L.debugM _LOG_APP $ "workspace is " ++ ws
 
   let logPRMVar = appStores^.logPriorityAppStores
   logPR <- getLogPriority $ DAP.logLevelLaunchRequestArguments args
@@ -205,7 +209,9 @@ initGHCi :: AppContext ()
 initGHCi = do
   setPrompt
   setMainArgs
-  loadHsFile
+
+  file <- view startupAppStores <$> get
+  SU.loadHsFile file
 
 -- |
 --
@@ -222,6 +228,7 @@ setPrompt = do
   P.cmdAndOut cmd2
   P.expectH P.stdoutCallBk
 
+  return ()
 
 -- |
 --
@@ -234,15 +241,7 @@ setMainArgs = view mainArgsAppStores <$> get >>= \case
     P.cmdAndOut cmd
     P.expectH P.stdoutCallBk
 
--- |
---
-loadHsFile :: AppContext ()
-loadHsFile = do
-  file <- view startupAppStores <$> get
-  let cmd  = ":load "++file
-
-  P.cmdAndOut cmd
-  P.expectH P.stdoutCallBk
+    return ()
 
 
 -- |

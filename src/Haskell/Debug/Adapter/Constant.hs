@@ -175,3 +175,8 @@ _DAP_HEADER_OUTPUT_EVENT = "<<DAP_OUTPUT_EVENT>>"
 _DAP_CMD_END2 :: String
 _DAP_CMD_END2 = "<<DAP_CMD_END2>>"
 
+
+-- |
+--
+_HS_FILE_EXT :: String
+_HS_FILE_EXT = ".hs"

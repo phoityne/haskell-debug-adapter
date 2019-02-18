@@ -28,9 +28,9 @@ start dat acts = do
 --
 run :: AppStores -> IO ()
 run appData = do
-  L.debugM _LOG_APP "satrt thread manager"
+  L.debugM _LOG_THREAD_MGR "satrt thread manager"
   runApp appData app
-  L.debugM _LOG_APP "stop thread manager"
+  L.debugM _LOG_THREAD_MGR "stop thread manager"
 
 
 -- |
@@ -95,7 +95,7 @@ takeEvent = do
 --
 runEvent :: Event -> AppContext ()
 runEvent CriticalExitEvent = do
-  liftIO $ L.criticalM _LOG_NAME "Critical exit started."
+  liftIO $ L.criticalM _LOG_THREAD_MGR "Critical exit started."
   as <- view asyncsAppStores <$> get
   liftIO $ mapM_ cancel as
   

@@ -21,6 +21,7 @@ import Haskell.Debug.Adapter.State.Init()
 import Haskell.Debug.Adapter.State.GHCiRun()
 import Haskell.Debug.Adapter.State.DebugRun()
 import Haskell.Debug.Adapter.State.Shutdown()
+import Haskell.Debug.Adapter.State.Contaminated()
 
 
 -- |
@@ -30,10 +31,10 @@ defaultAppStores = do
   reqStore <- newMVar []
   resStore <- newMVar []
   evtStore <- newMVar []
-  wsStore  <- newEmptyMVar
+  wsStore  <- newMVar ""
   logPRStore <- newMVar L.WARNING
   procStore <- newEmptyMVar
-  bsStore <- newMVar $ str2bs ""
+  --bsStore <- newMVar $ str2bs ""
   verStore <- newEmptyMVar
   return AppStores {
     -- Read Only
@@ -53,7 +54,7 @@ defaultAppStores = do
     , _ghciPmptAppStores    = _GHCI_PROMPT_HDA
     , _mainArgsAppStores    = ""
     , _launchReqSeqAppStores = -1
-    , _debugReRunableAppStores = False
+    , _debugReRunableAppStores = True
 
     -- Read/Write ASync
     , _reqStoreAppStores    = reqStore
@@ -62,7 +63,7 @@ defaultAppStores = do
     , _workspaceAppStores   = wsStore
     , _logPriorityAppStores = logPRStore
     , _ghciProcAppStores    = procStore
-    , _ghciStdoutAppStores  = bsStore
+    --, _ghciStdoutAppStores  = bsStore
     , _ghciVerAppStores     = verStore
     }
 
@@ -183,12 +184,15 @@ transit st = actExitState
 -- |
 --
 updateState :: StateTransit -> AppContext ()
-updateState Init_GHCiRun     = changeState $ WrapAppState GHCiRunState
-updateState GHCiRun_DebugRun = changeState $ WrapAppState DebugRunState
-updateState GHCiRun_Shutdown = changeState $ WrapAppState ShutdownState
-updateState DebugRun_GHCiRun = changeState $ WrapAppState GHCiRunState
-updateState DebugRun_Shutdown = changeState $ WrapAppState ShutdownState
-updateState s = throwError $ "not yet implemented state. " ++ show s
+updateState Init_GHCiRun          = changeState $ WrapAppState GHCiRunState
+updateState Init_Shutdown         = changeState $ WrapAppState ShutdownState
+updateState GHCiRun_DebugRun      = changeState $ WrapAppState DebugRunState
+updateState GHCiRun_Contaminated  = changeState $ WrapAppState ContaminatedState
+updateState GHCiRun_Shutdown      = changeState $ WrapAppState ShutdownState
+updateState DebugRun_Contaminated = changeState $ WrapAppState ContaminatedState
+updateState DebugRun_Shutdown     = changeState $ WrapAppState ShutdownState
+updateState DebugRun_GHCiRun      = changeState $ WrapAppState GHCiRunState
+updateState Contaminated_Shutdown = changeState $ WrapAppState ShutdownState
 
 
 -- |
