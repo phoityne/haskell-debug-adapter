@@ -60,7 +60,9 @@ isStop :: AppContext Bool
 isStop = do
   as <- view asyncsAppStores <$> get
   res <- liftIO $ mapM poll as
-  -- liftIO $ L.debugM _LOG_THREAD_MGR $ "thread status." ++ show res
+  when (L.any isJust res) $
+    liftIO $ L.debugM _LOG_THREAD_MGR $ "thread status." ++ show res
+
   return $ L.all isJust res
 
 

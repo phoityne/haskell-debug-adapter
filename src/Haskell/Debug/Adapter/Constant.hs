@@ -100,6 +100,10 @@ _CONTENT_LENGTH = "Content-Length: "
 _TWO_CRLF :: String
 _TWO_CRLF = "\r\n\r\n"
 
+-- |
+--
+_1_MILLI_SEC :: Int
+_1_MILLI_SEC = 1 * 1000
 
 -- |
 --

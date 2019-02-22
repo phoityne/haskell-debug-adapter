@@ -3,14 +3,14 @@
 module Haskell.Debug.Adapter.Control where
 
 import System.IO
-import Control.Lens
+--import Control.Lens
 import qualified System.Log.Logger as L
 import qualified Control.Exception.Safe as E
 import Control.Concurrent.Async
 
 import Haskell.Debug.Adapter.Constant
 import Haskell.Debug.Adapter.Type
-import Haskell.Debug.Adapter.Logger
+--import Haskell.Debug.Adapter.Logger
 import qualified Haskell.Debug.Adapter.Application as A
 import qualified Haskell.Debug.Adapter.Request as RQ
 import qualified Haskell.Debug.Adapter.Response as RP
@@ -21,7 +21,7 @@ import qualified Haskell.Debug.Adapter.Watch as W
 -- |
 -- 
 run :: ArgData -> ConfigData -> IO Int
-run _ conf = E.bracket initialize finalize go
+run _ _ = E.bracket initialize finalize go
 
   where
     -- |
@@ -33,7 +33,7 @@ run _ conf = E.bracket initialize finalize go
       hSetBuffering stdout NoBuffering
       hSetEncoding  stdout utf8
 
-      setUpLogger (conf^.logFileConfigData) (conf^.logLevelConfigData)
+      -- setUpLogger (conf^.logFileConfigData) (conf^.logLevelConfigData)
       L.debugM _LOG_NAME $ "initialize called."
 
       A.defaultAppStores

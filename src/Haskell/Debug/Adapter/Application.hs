@@ -108,7 +108,7 @@ src = do
       liftIO (takeRequest mvar) >>= \case
         Just res -> return res
         Nothing -> do
-          liftIO $ threadDelay _10_MILLI_SEC
+          liftIO $ threadDelay _1_MILLI_SEC
           goApp
 
 -- |
