@@ -34,7 +34,6 @@ defaultAppStores = do
   wsStore  <- newMVar ""
   logPRStore <- newMVar L.WARNING
   procStore <- newEmptyMVar
-  --bsStore <- newMVar $ str2bs ""
   verStore <- newEmptyMVar
   return AppStores {
     -- Read Only
@@ -54,7 +53,8 @@ defaultAppStores = do
     , _ghciPmptAppStores    = _GHCI_PROMPT_HDA
     , _mainArgsAppStores    = ""
     , _launchReqSeqAppStores = -1
-    , _debugReRunableAppStores = True
+    , _debugReRunableAppStores = False
+
 
     -- Read/Write ASync
     , _reqStoreAppStores    = reqStore
@@ -63,7 +63,6 @@ defaultAppStores = do
     , _workspaceAppStores   = wsStore
     , _logPriorityAppStores = logPRStore
     , _ghciProcAppStores    = procStore
-    --, _ghciStdoutAppStores  = bsStore
     , _ghciVerAppStores     = verStore
     }
 
@@ -109,7 +108,7 @@ src = do
       liftIO (takeRequest mvar) >>= \case
         Just res -> return res
         Nothing -> do
-          liftIO $ threadDelay _100_MILLI_SEC
+          liftIO $ threadDelay _10_MILLI_SEC
           goApp
 
 -- |

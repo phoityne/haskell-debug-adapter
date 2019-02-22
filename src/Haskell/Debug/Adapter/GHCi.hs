@@ -17,6 +17,7 @@ import qualified Control.Exception.Safe as E
 import qualified Data.Map as M
 import qualified Data.List as L
 import qualified Data.String.Utils as U
+import qualified System.Log.Logger as L
 
 import Haskell.Debug.Adapter.Type
 import qualified Haskell.Debug.Adapter.Utility as U
@@ -140,6 +141,8 @@ expectH' tilEOF func = do
 
     go' plen hdl acc b = do
       let newL = U.strip $ U.bs2str b
+      liftIO $ L.debugM _LOG_NAME $ "zzz" ++ newL ++ "www"
+      liftIO $ L.debugM _LOG_NAME $ "eeeeeeeeeeeeee"
       if L.isSuffixOf _DAP_CMD_END2 newL
         then goEnd plen hdl acc
         else cont plen hdl acc newL

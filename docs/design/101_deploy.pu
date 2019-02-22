@@ -17,13 +17,20 @@ node "VSCODE" {
 }
 
 node "Haskell Debugger" {
+  component "haskell-dap" <<library>>
   component "hda" <<process>>
   rectangle ghci #line.dashed {
     component "ghci-dap" <<process>>
   }
 }
 
-[phoityne-vscode] --> [hda]
-[hda] --> [ghci-dap]
+[phoityne-vscode] -- [hda] : <<stdio>>
+[hda] --> [ghci-dap] : <<stdio>>
+[hda] -l-> [haskell-dap] : <<use>>
+[ghci-dap] -l-> [haskell-dap] : <<use>>
+
+note left of "phoityne-vscode"
+  hda4vsc
+end note
 
 @enduml

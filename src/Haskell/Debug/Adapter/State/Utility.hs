@@ -196,14 +196,18 @@ evaluateRequest req = flip catchError errHdl $ do
     lineCallBk True  s = U.sendStdoutEvent s
     lineCallBk False s
       | L.isPrefixOf _DAP_HEADER s = dapHdl $ drop (length _DAP_HEADER) s
-      | otherwise = U.sendStdoutEventLF s
+      | otherwise = do
+        liftIO $ L.errorM _LOG_APP s
+        U.sendStdoutEventLF s
 
     -- |
     --
     dapHdl :: String -> AppContext ()
     dapHdl str = case R.readEither str of
       Left err -> throwError $ err ++ " : " ++ str
-      Right (Left err) -> throwError $ err ++ " : " ++ str
+      Right (Left err) -> do
+        liftIO $ L.errorM _LOG_APP err
+        throwError $ err ++ " : " ++ str
       Right (Right body) -> do
         resSeq <- U.getIncreasedResponseSequence
         let res = DAP.defaultEvaluateResponse {

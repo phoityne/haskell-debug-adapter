@@ -352,10 +352,12 @@ handleStoppedEventBody body
 
   where
     handleReRun True = do
-      sendStoppedEvent
+      -- ghci and vscode can not rerun debugging without restart.
+      -- sendContinuedEvent
+      -- sendPauseEvent
       addRequestHP $ WrapRequest 
                    $ InternalTransitRequest
-                   $ HdaInternalTransitRequest DebugRun_GHCiRun
+                   $ HdaInternalTransitRequest DebugRun_Contaminated
 
     handleReRun False = do
       addRequestHP $ WrapRequest
@@ -371,6 +373,26 @@ handleStoppedEventBody body
 
       addResponse $ StoppedEvent res
 
+{-
+    sendContinuedEvent = do
+      resSeq <- getIncreasedResponseSequence
+      let res = DAP.defaultContinuedEvent {
+                DAP.seqContinuedEvent = resSeq
+              }
+
+      addResponse $ ContinuedEvent res
+
+    sendPauseEvent = do
+      resSeq <- getIncreasedResponseSequence
+      let res = DAP.defaultStoppedEvent {
+                DAP.seqStoppedEvent = resSeq
+              , DAP.bodyStoppedEvent = DAP.defaultStoppedEventBody {
+                  DAP.reasonStoppedEventBody = "pause"
+                }
+              }
+
+      addResponse $ StoppedEvent res
+-}
 
 -- |
 --

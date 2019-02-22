@@ -278,6 +278,10 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminatedEventBody"} '
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ExitedEvent"} ''DAP.ExitedEvent)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ExitedEventBody"} ''DAP.ExitedEventBody)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinuedEvent"} ''DAP.ContinuedEvent)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinuedEventBody"} ''DAP.ContinuedEventBody)
+
+
 -- response
 data Response = 
     InitializeResponse DAP.InitializeResponse
@@ -286,6 +290,7 @@ data Response =
   | StoppedEvent       DAP.StoppedEvent
   | TerminatedEvent    DAP.TerminatedEvent
   | ExitedEvent        DAP.ExitedEvent
+  | ContinuedEvent     DAP.ContinuedEvent
   | InitializedEvent   DAP.InitializedEvent
   | DisconnectResponse DAP.DisconnectResponse
   | TerminateResponse DAP.TerminateResponse

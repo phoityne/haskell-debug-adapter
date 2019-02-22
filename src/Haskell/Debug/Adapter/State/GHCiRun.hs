@@ -104,7 +104,7 @@ instance StateRequestIF GHCiRunState DAP.ThreadsRequest where
     let res = DAP.defaultThreadsResponse {
               DAP.seqThreadsResponse = resSeq
             , DAP.request_seqThreadsResponse = DAP.seqThreadsRequest req
-            , DAP.successThreadsResponse = True
+            , DAP.successThreadsResponse = False
             , DAP.messageThreadsResponse = "GHCiRun State. debugging not started."
             }
 
@@ -123,7 +123,7 @@ instance StateRequestIF GHCiRunState DAP.StackTraceRequest where
     let res = DAP.defaultStackTraceResponse {
               DAP.seqStackTraceResponse = resSeq
             , DAP.request_seqStackTraceResponse = DAP.seqStackTraceRequest req
-            , DAP.successStackTraceResponse = True
+            , DAP.successStackTraceResponse = False
             , DAP.messageStackTraceResponse = "GHCiRun State. debugging not started."
             }
 

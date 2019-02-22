@@ -133,7 +133,7 @@ instance StateRequestIF ContaminatedState DAP.ThreadsRequest where
     let res = DAP.defaultThreadsResponse {
               DAP.seqThreadsResponse = resSeq
             , DAP.request_seqThreadsResponse = DAP.seqThreadsRequest req
-            , DAP.successThreadsResponse = False
+            , DAP.successThreadsResponse = True
             , DAP.messageThreadsResponse = "Contaminated State. need restart."
             }
 

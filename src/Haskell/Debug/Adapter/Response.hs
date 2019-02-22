@@ -65,7 +65,7 @@ getResponse :: AppStores -> IO Response
 getResponse appDat = takeResponse appDat >>= \case
   Just res -> return res
   Nothing -> do
-    threadDelay (100 * 1000)
+    threadDelay _10_MILLI_SEC
     getResponse appDat
 
 
