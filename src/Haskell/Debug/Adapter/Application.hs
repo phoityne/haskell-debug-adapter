@@ -146,6 +146,11 @@ sink = do
       liftIO $ L.debugM _LOG_APP $ show req
       liftIO $ L.infoM _LOG_APP $ "disconnect. end of application thread."
       lift $ sendDisconnectResponse req
+    Just (WrapRequest (PauseRequest req)) -> do
+      liftIO $ L.debugM _LOG_APP $ show req
+      lift $ sendConsoleEventLF $ "pause request is not supported."
+      lift $ sendPauseResponse req
+      sink
     Just req -> do
       lift $ appMain req
       sink

@@ -254,6 +254,22 @@ sendDisconnectResponse req = do
 
 -- |
 --
+sendPauseResponse :: DAP.PauseRequest -> AppContext ()
+sendPauseResponse req = do
+  resSeq <- getIncreasedResponseSequence
+
+  let res = DAP.defaultPauseResponse {
+            DAP.seqPauseResponse         = resSeq
+          , DAP.request_seqPauseResponse = DAP.seqPauseRequest req
+          , DAP.successPauseResponse     = False
+          , DAP.messagePauseResponse     = "pause request is not supported."
+          }
+
+  addResponse $ PauseResponse res
+
+
+-- |
+--
 --   phoityne -> haskell-dap
 --   encoding RequestArgument to [Word8] because of using ghci command line interface.
 --
@@ -396,7 +412,7 @@ handleStoppedEventBody body
 
 -- |
 --
-readLine :: S.Handle -> AppContext BS.ByteString
+readLine :: S.Handle -> AppContext String
 readLine hdl =   isOpenHdl hdl
              >>= isReadableHdl
              >>= isNotEofHdl
@@ -406,34 +422,30 @@ readLine hdl =   isOpenHdl hdl
     go hdl = liftIO (goIO hdl) >>= liftEither
     
     goIO hdl = flip E.catchAny errHdl $ do
-      Right <$> BS.hGetLine hdl
+      Right <$> S.hGetLine hdl
 
     errHdl = return . Left . show
 
 -- |
 --
-readChar :: S.Handle -> AppContext BS.ByteString
-readChar hdl = readChars hdl 1
-
-
--- |
---
-readChars :: S.Handle -> Int -> AppContext BS.ByteString
-readChars hdl c = isOpenHdl hdl
-              >>= isReadableHdl
-              >>= isNotEofHdl
-              >>= go
-              >>= isNotEmpty
+readChar :: S.Handle -> AppContext String
+readChar hdl = isOpenHdl hdl
+           >>= isReadableHdl
+           >>= isNotEofHdl
+           >>= go
+           >>= toString
+           >>= isNotEmpty
 
   where
     go hdl = liftIO (goIO hdl) >>= liftEither
     
     goIO hdl = flip E.catchAny errHdl $ do
-      Right <$> BS.hGet hdl c
+      Right <$> S.hGetChar hdl
 
     errHdl = return . Left . show
 
-    
+    toString c = return [c]
+
 
 -- |
 --
@@ -485,9 +497,9 @@ isNotEofHdl rHdl = liftIO (S.hIsEOF rHdl) >>= \case
 
 -- |
 --
-isNotEmpty :: BS.ByteString -> AppContext BS.ByteString
+isNotEmpty :: String -> AppContext String
 isNotEmpty b
-  | b == BS.empty = throwError "empty input."
+  | null b = throwError "empty input."
   | otherwise = return b
 
 

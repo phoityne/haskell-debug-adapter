@@ -48,8 +48,8 @@ setBreakpointsRequest req = flip catchError errHdl $ do
     --
     dapHdl :: String -> AppContext ()
     dapHdl str = case R.readEither str of
-      Left err -> throwError $ err ++ " : " ++ str
-      Right (Left err) -> throwError $ err ++ " : " ++ str
+      Left err -> errHdl err >> return ()
+      Right (Left err) -> errHdl err >> return ()
       Right (Right body) -> do
         resSeq <- U.getIncreasedResponseSequence
         let res = DAP.defaultSetBreakpointsResponse {
@@ -136,8 +136,8 @@ setFunctionBreakpointsRequest req = flip catchError errHdl $ do
     --
     dapHdl :: String -> AppContext ()
     dapHdl str = case R.readEither str of
-      Left err -> throwError $ err ++ " : " ++ str
-      Right (Left err) -> throwError $ err ++ " : " ++ str
+      Left err -> errHdl err >> return ()
+      Right (Left err) -> errHdl err >> return ()
       Right (Right body) -> do
         resSeq <- U.getIncreasedResponseSequence
         let res = DAP.defaultSetFunctionBreakpointsResponse {
@@ -181,7 +181,7 @@ terminateGHCi = do
 -- |
 --
 evaluateRequest :: DAP.EvaluateRequest -> AppContext (Maybe StateTransit)
-evaluateRequest req = flip catchError errHdl $ do
+evaluateRequest req = do
 
   let args = DAP.argumentsEvaluateRequest req
       cmd = ":dap-evaluate " ++ U.showDAP args
@@ -204,10 +204,8 @@ evaluateRequest req = flip catchError errHdl $ do
     --
     dapHdl :: String -> AppContext ()
     dapHdl str = case R.readEither str of
-      Left err -> throwError $ err ++ " : " ++ str
-      Right (Left err) -> do
-        liftIO $ L.errorM _LOG_APP err
-        throwError $ err ++ " : " ++ str
+      Left err -> errHdl $ err ++ " : " ++ str
+      Right (Left err) -> errHdl err
       Right (Right body) -> do
         resSeq <- U.getIncreasedResponseSequence
         let res = DAP.defaultEvaluateResponse {
@@ -222,9 +220,9 @@ evaluateRequest req = flip catchError errHdl $ do
 
     -- |
     --
-    errHdl :: String -> AppContext (Maybe StateTransit)
+    errHdl :: String -> AppContext ()
     errHdl msg = do
-      liftIO $ L.errorM _LOG_APP msg
+      U.sendErrorEventLF msg
       resSeq <- U.getIncreasedResponseSequence
       let res = DAP.defaultEvaluateResponse {
                 DAP.seqEvaluateResponse = resSeq
@@ -234,7 +232,6 @@ evaluateRequest req = flip catchError errHdl $ do
               }
 
       U.addResponse $ EvaluateResponse res
-      return Nothing
 
 -- |
 --

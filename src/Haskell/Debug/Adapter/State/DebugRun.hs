@@ -48,6 +48,7 @@ instance AppStateIF DebugRunState where
   getStateRequest DebugRunState (WrapRequest (InitializeRequest req))              = SU.unsupported $ show req
   getStateRequest DebugRunState (WrapRequest (LaunchRequest req))                  = SU.unsupported $ show req
   getStateRequest DebugRunState (WrapRequest (DisconnectRequest req))              = SU.unsupported $ show req
+  getStateRequest DebugRunState (WrapRequest (PauseRequest req))                   = SU.unsupported $ show req
   
   getStateRequest DebugRunState (WrapRequest (TerminateRequest req))               = return . WrapStateRequest $ DebugRun_Terminate req
   getStateRequest DebugRunState (WrapRequest (SetBreakpointsRequest req))          = return . WrapStateRequest $ DebugRun_SetBreakpoints req

@@ -62,22 +62,22 @@ startGHCiIO cmd opts cwd envs = flip E.catches handlers $ do
   S.hSetBuffering toPhoityneHandle bufMode
   S.hSetEncoding toPhoityneHandle osEnc
   S.hSetNewlineMode toPhoityneHandle $ S.NewlineMode S.CRLF S.LF
-  S.hSetBinaryMode toPhoityneHandle True
+  --S.hSetBinaryMode toPhoityneHandle True
 
   S.hSetBuffering fromPhoityneHandle bufMode
   S.hSetEncoding fromPhoityneHandle  S.utf8
   S.hSetNewlineMode fromPhoityneHandle $ S.NewlineMode S.LF S.LF
-  S.hSetBinaryMode fromPhoityneHandle True
+  --S.hSetBinaryMode fromPhoityneHandle True
 
   S.hSetBuffering toGHCiHandle bufMode
   S.hSetEncoding toGHCiHandle S.utf8
   S.hSetNewlineMode toGHCiHandle $ S.NewlineMode S.LF S.LF
-  S.hSetBinaryMode toGHCiHandle True
+  --S.hSetBinaryMode toGHCiHandle True
 
   S.hSetBuffering fromGHCiHandle bufMode
   S.hSetEncoding fromGHCiHandle osEnc
   S.hSetNewlineMode fromGHCiHandle $ S.NewlineMode S.CRLF S.LF
-  S.hSetBinaryMode fromGHCiHandle True
+  --S.hSetBinaryMode fromGHCiHandle True
 
   runEnvs <- getRunEnv
 
@@ -140,7 +140,7 @@ expectH' tilEOF func = do
       True  -> return acc
 
     go' plen hdl acc b = do
-      let newL = U.strip $ U.bs2str b
+      let newL = U.rstrip b
       if L.isSuffixOf _DAP_CMD_END2 newL
         then goEnd plen hdl acc
         else cont plen hdl acc newL
@@ -167,8 +167,8 @@ expect key func = do
   proc <- liftIO $ readMVar mvar
   let hdl = proc^.rHdlGHCiProc
 
-  bs <- go (U.str2bs key) hdl B.empty
-  let strs = map rstrip $ lines $ U.bs2str bs
+  xs <- go key hdl ""
+  let strs = map U.rstrip $ lines xs
 
   func True strs strs
 
@@ -177,17 +177,18 @@ expect key func = do
       >>= go' kb hdl acc
 
     go' kb hdl acc b = do
-      let newAcc = B.append acc b
-      if B.isSuffixOf kb newAcc
+      let newAcc = acc ++ b
+      if L.isSuffixOf kb newAcc
         then return newAcc
         else go kb hdl newAcc
 
+{-
     rstrip :: [Char] -> [Char]
     rstrip [] = []
     rstrip xs
       | last xs == '\r' = init xs
       | otherwise = xs
-
+-}
 
 -- |
 --  write to ghci.

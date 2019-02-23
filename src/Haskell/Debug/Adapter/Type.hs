@@ -146,6 +146,9 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "LaunchRequestArguments"
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "DisconnectRequest"} ''DAP.DisconnectRequest)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "DisconnectRequestArguments"} ''DAP.DisconnectRequestArguments)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "PauseRequest"} ''DAP.PauseRequest)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "PauseRequestArguments"} ''DAP.PauseRequestArguments)
+
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminateRequest"} ''DAP.TerminateRequest)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminateRequestArguments"} ''DAP.TerminateRequestArguments)
 
@@ -192,6 +195,7 @@ data Request a where
   InitializeRequest :: DAP.InitializeRequest -> Request DAP.InitializeRequest
   LaunchRequest     :: DAP.LaunchRequest     -> Request DAP.LaunchRequest
   DisconnectRequest :: DAP.DisconnectRequest -> Request DAP.DisconnectRequest
+  PauseRequest :: DAP.PauseRequest -> Request DAP.PauseRequest
   TerminateRequest :: DAP.TerminateRequest -> Request DAP.TerminateRequest
   SetBreakpointsRequest :: DAP.SetBreakpointsRequest -> Request DAP.SetBreakpointsRequest
   SetFunctionBreakpointsRequest :: DAP.SetFunctionBreakpointsRequest -> Request DAP.SetFunctionBreakpointsRequest
@@ -235,6 +239,8 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StoppedEventBody"} ''DA
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "InitializedEvent"} ''DAP.InitializedEvent)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "DisconnectResponse"} ''DAP.DisconnectResponse)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "PauseResponse"} ''DAP.PauseResponse)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminateResponse"} ''DAP.TerminateResponse)
 
@@ -293,6 +299,7 @@ data Response =
   | ContinuedEvent     DAP.ContinuedEvent
   | InitializedEvent   DAP.InitializedEvent
   | DisconnectResponse DAP.DisconnectResponse
+  | PauseResponse DAP.PauseResponse
   | TerminateResponse DAP.TerminateResponse
   | SetBreakpointsResponse DAP.SetBreakpointsResponse
   | SetFunctionBreakpointsResponse DAP.SetFunctionBreakpointsResponse

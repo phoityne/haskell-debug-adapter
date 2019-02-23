@@ -37,6 +37,7 @@ instance AppStateIF ContaminatedState where
   getStateRequest ContaminatedState (WrapRequest (InitializeRequest req))              = SU.unsupported $ show req
   getStateRequest ContaminatedState (WrapRequest (LaunchRequest req))                  = SU.unsupported $ show req
   getStateRequest ContaminatedState (WrapRequest (DisconnectRequest req))              = SU.unsupported $ show req
+  getStateRequest ContaminatedState (WrapRequest (PauseRequest req))                   = SU.unsupported $ show req
   getStateRequest ContaminatedState (WrapRequest (TerminateRequest req))               = return . WrapStateRequest $ Contaminated_Terminate req
   
   getStateRequest ContaminatedState (WrapRequest (SetBreakpointsRequest req))          = return . WrapStateRequest $ Contaminated_SetBreakpoints req

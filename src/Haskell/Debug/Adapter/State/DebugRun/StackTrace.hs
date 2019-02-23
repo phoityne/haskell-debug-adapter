@@ -46,8 +46,8 @@ app req = flip catchError errHdl $ do
     --
     dapHdl :: String -> AppContext ()
     dapHdl str = case R.readEither str of
-      Left err -> throwError $ err ++ " : " ++ str
-      Right (Left err) -> throwError $ err ++ " : " ++ str
+      Left err -> errHdl err >> return ()
+      Right (Left err) -> errHdl err >> return ()
       Right (Right body) -> do
         resSeq <- U.getIncreasedResponseSequence
         let res = DAP.defaultStackTraceResponse {

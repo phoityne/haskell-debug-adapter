@@ -129,6 +129,7 @@ createWrapRequest bs req
   | "initialize" == DAP.commandRequest req = WrapRequest . InitializeRequest <$> (liftEither (eitherDecode bs))
   | "launch"     == DAP.commandRequest req = WrapRequest . LaunchRequest <$> (liftEither (eitherDecode bs))
   | "disconnect" == DAP.commandRequest req = WrapRequest . DisconnectRequest <$> (liftEither (eitherDecode bs))
+  | "pause" == DAP.commandRequest req = WrapRequest . PauseRequest <$> (liftEither (eitherDecode bs))
   | "terminate" == DAP.commandRequest req = WrapRequest . TerminateRequest <$> (liftEither (eitherDecode bs))
   | "setBreakpoints" == DAP.commandRequest req = WrapRequest . SetBreakpointsRequest <$> (liftEither (eitherDecode bs))
   | "setFunctionBreakpoints" == DAP.commandRequest req = WrapRequest . SetFunctionBreakpointsRequest <$> (liftEither (eitherDecode bs))

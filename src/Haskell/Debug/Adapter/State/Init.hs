@@ -34,6 +34,7 @@ instance AppStateIF InitState where
   getStateRequest InitState (WrapRequest (InitializeRequest req))              = return . WrapStateRequest $ Init_Initialize req
   getStateRequest InitState (WrapRequest (LaunchRequest req))                  = return . WrapStateRequest $ Init_Launch req
   getStateRequest InitState (WrapRequest (DisconnectRequest req))              = SU.unsupported $ show req
+  getStateRequest InitState (WrapRequest (PauseRequest req))                   = SU.unsupported $ show req
   getStateRequest InitState (WrapRequest (TerminateRequest req))               = SU.unsupported $ show req
   
   getStateRequest InitState (WrapRequest (SetBreakpointsRequest req))          = SU.unsupported $ show req
