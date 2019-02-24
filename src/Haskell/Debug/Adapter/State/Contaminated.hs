@@ -59,7 +59,7 @@ instance AppStateIF ContaminatedState where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.TerminateRequest where
   action (Contaminated_Terminate req) = do
@@ -71,7 +71,7 @@ instance StateRequestIF ContaminatedState DAP.TerminateRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.SetBreakpointsRequest where
   action (Contaminated_SetBreakpoints req) = do
@@ -89,7 +89,7 @@ instance StateRequestIF ContaminatedState DAP.SetBreakpointsRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.SetFunctionBreakpointsRequest where
   action (Contaminated_SetFunctionBreakpoints req) = do
@@ -107,7 +107,7 @@ instance StateRequestIF ContaminatedState DAP.SetFunctionBreakpointsRequest wher
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.SetExceptionBreakpointsRequest where
   action (Contaminated_SetExceptionBreakpoints req) = do
@@ -125,7 +125,7 @@ instance StateRequestIF ContaminatedState DAP.SetExceptionBreakpointsRequest whe
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.ThreadsRequest where
   action (Contaminated_Threads req) = do
@@ -143,7 +143,7 @@ instance StateRequestIF ContaminatedState DAP.ThreadsRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.StackTraceRequest where
   action (Contaminated_StackTrace req) = do
@@ -162,7 +162,7 @@ instance StateRequestIF ContaminatedState DAP.StackTraceRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.ScopesRequest where
   action (Contaminated_Scopes req) = do
@@ -181,7 +181,7 @@ instance StateRequestIF ContaminatedState DAP.ScopesRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.VariablesRequest where
   action (Contaminated_Variables req) = do
@@ -199,7 +199,7 @@ instance StateRequestIF ContaminatedState DAP.VariablesRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.ContinueRequest where
   action (Contaminated_Continue req) = do
@@ -209,7 +209,7 @@ instance StateRequestIF ContaminatedState DAP.ContinueRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.NextRequest where
   action (Contaminated_Next req) = do
@@ -219,7 +219,7 @@ instance StateRequestIF ContaminatedState DAP.NextRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.StepInRequest where
   action (Contaminated_StepIn req) = do
@@ -229,7 +229,7 @@ instance StateRequestIF ContaminatedState DAP.StepInRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF ContaminatedState DAP.EvaluateRequest where
   action (Contaminated_Evaluate req) = do

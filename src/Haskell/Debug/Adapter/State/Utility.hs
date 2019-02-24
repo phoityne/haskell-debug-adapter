@@ -254,7 +254,7 @@ completionsRequest :: DAP.CompletionsRequest -> AppContext (Maybe StateTransit)
 completionsRequest req = flip catchError errHdl $ do
 
   let args = DAP.argumentsCompletionsRequest req
-      key  = DAP.textCompletionsArguments args
+      key  = DAP.textCompletionsRequestArguments args
       size = "0-50"
       cmd = ":complete repl " ++ size ++ " \"" ++ key ++ "\""
 

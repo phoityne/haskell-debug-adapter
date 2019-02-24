@@ -133,10 +133,10 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminateRequest"} ''DA
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "TerminateRequestArguments"} ''DAP.TerminateRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetBreakpointsRequest"} ''DAP.SetBreakpointsRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetBreakpointsArguments"} ''DAP.SetBreakpointsArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetBreakpointsRequestArguments"} ''DAP.SetBreakpointsRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetFunctionBreakpointsRequest"} ''DAP.SetFunctionBreakpointsRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetFunctionBreakpointsArguments"} ''DAP.SetFunctionBreakpointsArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetFunctionBreakpointsRequestArguments"} ''DAP.SetFunctionBreakpointsRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetExceptionBreakpointsRequest"} ''DAP.SetExceptionBreakpointsRequest)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SetExceptionBreakpointsRequestArguments"} ''DAP.SetExceptionBreakpointsRequestArguments)
@@ -146,28 +146,28 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ConfigurationDoneReques
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ThreadsRequest"} ''DAP.ThreadsRequest)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StackTraceRequest"} ''DAP.StackTraceRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StackTraceArguments"} ''DAP.StackTraceArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StackTraceRequestArguments"} ''DAP.StackTraceRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ScopesRequest"} ''DAP.ScopesRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ScopesArguments"} ''DAP.ScopesArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ScopesRequestArguments"} ''DAP.ScopesRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesRequest"} ''DAP.VariablesRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesArguments"} ''DAP.VariablesArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesRequestArguments"} ''DAP.VariablesRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinueRequest"} ''DAP.ContinueRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinueArguments"} ''DAP.ContinueArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinueRequestArguments"} ''DAP.ContinueRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "NextRequest"} ''DAP.NextRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "NextArguments"} ''DAP.NextArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "NextRequestArguments"} ''DAP.NextRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInRequest"} ''DAP.StepInRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInArguments"} ''DAP.StepInArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInRequestArguments"} ''DAP.StepInRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "EvaluateRequest"} ''DAP.EvaluateRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "EvaluateArguments"} ''DAP.EvaluateArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "EvaluateRequestArguments"} ''DAP.EvaluateRequestArguments)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsRequest"} ''DAP.CompletionsRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsArguments"} ''DAP.CompletionsArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsRequestArguments"} ''DAP.CompletionsRequestArguments)
 
 
 -- request
@@ -206,7 +206,7 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ColumnDescriptor"} ''DA
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ExceptionBreakpointsFilter"} ''DAP.ExceptionBreakpointsFilter)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "InitializeResponse"} ''DAP.InitializeResponse)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "InitializeResponseCapabilities"} ''DAP.InitializeResponseCapabilities)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "InitializeResponseBody"} ''DAP.InitializeResponseBody)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "LaunchResponse"} ''DAP.LaunchResponse)
 
@@ -238,13 +238,13 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ThreadsResponse"} ''DAP
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ThreadsResponseBody"} ''DAP.ThreadsResponseBody)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StackTraceResponse"} ''DAP.StackTraceResponse)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StackTraceBody"} ''DAP.StackTraceBody)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StackTraceResponseBody"} ''DAP.StackTraceResponseBody)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ScopesResponse"} ''DAP.ScopesResponse)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ScopesBody"} ''DAP.ScopesBody)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ScopesResponseBody"} ''DAP.ScopesResponseBody)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesResponse"} ''DAP.VariablesResponse)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesBody"} ''DAP.VariablesBody)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesResponseBody"} ''DAP.VariablesResponseBody)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinueResponse"} ''DAP.ContinueResponse)
 
@@ -253,7 +253,7 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "NextResponse"} ''DAP.Ne
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "StepInResponse"} ''DAP.StepInResponse)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "EvaluateResponse"} ''DAP.EvaluateResponse)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "EvaluateBody"} ''DAP.EvaluateBody)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "EvaluateResponseBody"} ''DAP.EvaluateResponseBody)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsResponse"} ''DAP.CompletionsResponse)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsResponseBody"} ''DAP.CompletionsResponseBody)

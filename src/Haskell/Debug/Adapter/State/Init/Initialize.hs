@@ -27,26 +27,26 @@ app req = do
   debugEV _LOG_APP "initialize request called."
 
   resSeq <- U.getIncreasedResponseSequence
-  let capa = DAP.defaultInitializeResponseCapabilities {
-             DAP.supportsConfigurationDoneRequestInitializeResponseCapabilities  = True
-           , DAP.supportsFunctionBreakpointsInitializeResponseCapabilities       = True
-           , DAP.supportsConditionalBreakpointsInitializeResponseCapabilities    = True
-           , DAP.supportsHitConditionalBreakpointsInitializeResponseCapabilities = True
-           , DAP.supportsEvaluateForHoversInitializeResponseCapabilities         = True
-           , DAP.exceptionBreakpointFiltersInitializeResponseCapabilities        = [
+  let capa = DAP.defaultInitializeResponseBody {
+             DAP.supportsConfigurationDoneRequestInitializeResponseBody  = True
+           , DAP.supportsFunctionBreakpointsInitializeResponseBody       = True
+           , DAP.supportsConditionalBreakpointsInitializeResponseBody    = True
+           , DAP.supportsHitConditionalBreakpointsInitializeResponseBody = True
+           , DAP.supportsEvaluateForHoversInitializeResponseBody         = True
+           , DAP.exceptionBreakpointFiltersInitializeResponseBody        = [
                  DAP.ExceptionBreakpointsFilter "break-on-error" "break-on-error" False
                , DAP.ExceptionBreakpointsFilter "break-on-exception" "break-on-exception" False
                ]
-           , DAP.supportsStepBackInitializeResponseCapabilities                  = False
-           , DAP.supportsSetVariableInitializeResponseCapabilities               = False
-           , DAP.supportsRestartFrameInitializeResponseCapabilities              = False
-           , DAP.supportsGotoTargetsRequestInitializeResponseCapabilities        = False
-           , DAP.supportsStepInTargetsRequestInitializeResponseCapabilities      = False
-           , DAP.supportsCompletionsRequestInitializeResponseCapabilities        = True
-           , DAP.supportsModulesRequestInitializeResponseCapabilities            = False  -- no GUI on VSCode
-           , DAP.additionalModuleColumnsInitializeResponseCapabilities           = []     -- no GUI on VSCode
-           , DAP.supportsLogPointsInitializeResponseCapabilities                 = True
-           , DAP.supportsTerminateRequestInitializeResponseCapabilities          = True
+           , DAP.supportsStepBackInitializeResponseBody                  = False
+           , DAP.supportsSetVariableInitializeResponseBody               = False
+           , DAP.supportsRestartFrameInitializeResponseBody              = False
+           , DAP.supportsGotoTargetsRequestInitializeResponseBody        = False
+           , DAP.supportsStepInTargetsRequestInitializeResponseBody      = False
+           , DAP.supportsCompletionsRequestInitializeResponseBody        = True
+           , DAP.supportsModulesRequestInitializeResponseBody            = False  -- no GUI on VSCode
+           , DAP.additionalModuleColumnsInitializeResponseBody           = []     -- no GUI on VSCode
+           , DAP.supportsLogPointsInitializeResponseBody                 = True
+           , DAP.supportsTerminateRequestInitializeResponseBody          = True
            }
       res  = DAP.defaultInitializeResponse {
              DAP.seqInitializeResponse         = resSeq

@@ -59,7 +59,7 @@ instance AppStateIF GHCiRunState where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.SetBreakpointsRequest where
   action (GHCiRun_SetBreakpoints req) = do
@@ -67,7 +67,7 @@ instance StateRequestIF GHCiRunState DAP.SetBreakpointsRequest where
     SU.setBreakpointsRequest req
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.SetExceptionBreakpointsRequest where
   action (GHCiRun_SetExceptionBreakpoints req) = do
@@ -75,7 +75,7 @@ instance StateRequestIF GHCiRunState DAP.SetExceptionBreakpointsRequest where
     SU.setExceptionBreakpointsRequest req
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.SetFunctionBreakpointsRequest where
   action (GHCiRun_SetFunctionBreakpoints req) = do
@@ -84,7 +84,7 @@ instance StateRequestIF GHCiRunState DAP.SetFunctionBreakpointsRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.TerminateRequest where
   action (GHCiRun_Terminate req) = do
@@ -96,7 +96,7 @@ instance StateRequestIF GHCiRunState DAP.TerminateRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.ThreadsRequest where
   action (GHCiRun_Threads req) = do
@@ -115,7 +115,7 @@ instance StateRequestIF GHCiRunState DAP.ThreadsRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.StackTraceRequest where
   action (GHCiRun_StackTrace req) = do
@@ -134,7 +134,7 @@ instance StateRequestIF GHCiRunState DAP.StackTraceRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.ScopesRequest where
   action (GHCiRun_Scopes req) = do
@@ -153,7 +153,7 @@ instance StateRequestIF GHCiRunState DAP.ScopesRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.VariablesRequest where
   action (GHCiRun_Variables req) = do
@@ -172,7 +172,7 @@ instance StateRequestIF GHCiRunState DAP.VariablesRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.ContinueRequest where
   action (GHCiRun_Continue req) = do
@@ -190,7 +190,7 @@ instance StateRequestIF GHCiRunState DAP.ContinueRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.NextRequest where
   action (GHCiRun_Next req) = do
@@ -208,7 +208,7 @@ instance StateRequestIF GHCiRunState DAP.NextRequest where
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF GHCiRunState DAP.StepInRequest where
   action (GHCiRun_StepIn req) = do

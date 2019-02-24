@@ -142,8 +142,8 @@ stopOnEntry = do
 startDebug :: AppContext ()
 startDebug = do
   expr <- getTraceExpr
-  let args = DAP.defaultContinueArguments {
-             DAP.exprContinueArguments = Just expr
+  let args = DAP.defaultContinueRequestArguments {
+             DAP.exprContinueRequestArguments = Just expr
            }
 
   startDebugDAP args
@@ -194,7 +194,7 @@ startDebug = do
 
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF DebugRunState DAP.SetBreakpointsRequest where
   action (DebugRun_SetBreakpoints req) = do
@@ -202,7 +202,7 @@ instance StateRequestIF DebugRunState DAP.SetBreakpointsRequest where
     SU.setBreakpointsRequest req
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF DebugRunState DAP.SetExceptionBreakpointsRequest where
   action (DebugRun_SetExceptionBreakpoints req) = do
@@ -210,7 +210,7 @@ instance StateRequestIF DebugRunState DAP.SetExceptionBreakpointsRequest where
     SU.setExceptionBreakpointsRequest req
 
 -- |
---  Any errors should be send back as False result Response
+--  Any errors should be sent back as False result Response
 --
 instance StateRequestIF DebugRunState DAP.SetFunctionBreakpointsRequest where
   action (DebugRun_SetFunctionBreakpoints req) = do
