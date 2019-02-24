@@ -29,9 +29,12 @@ app :: DAP.ScopesRequest -> AppContext (Maybe StateTransit)
 app req = flip catchError errHdl $ do
   
   let args = DAP.argumentsScopesRequest req
-      cmd = ":dap-scopes " ++ U.showDAP args
+      dap = ":dap-scopes "
+      cmd = dap ++ U.showDAP args
+      dbg = dap ++ show args
 
   P.cmdAndOut cmd
+  U.debugEV _LOG_APP dbg
   P.expectH $ P.funcCallBk lineCallBk
 
   return Nothing
@@ -40,7 +43,9 @@ app req = flip catchError errHdl $ do
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s
     lineCallBk False s
-      | L.isPrefixOf _DAP_HEADER s = dapHdl $ drop (length _DAP_HEADER) s
+      | L.isPrefixOf _DAP_HEADER s = do
+        U.debugEV _LOG_APP s
+        dapHdl $ drop (length _DAP_HEADER) s
       | otherwise = U.sendStdoutEventLF s
 
     -- |

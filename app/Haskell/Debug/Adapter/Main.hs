@@ -1,23 +1,20 @@
 module Haskell.Debug.Adapter.Main (run) where
 
-import Haskell.Debug.Adapter.Type
-import Haskell.Debug.Adapter.Config
+import qualified System.IO as S
+import qualified Control.Exception.Safe as E
+
 import qualified Haskell.Debug.Adapter.Control as CTRL
 
-import qualified Control.Exception.Safe as E
 
 
 -- |
 --  Application Main
 -- 
-run :: ArgData -> IO Int
+run :: CTRL.ArgData -> IO Int
 run args = flip E.catchAny ehdl $ do
 
-  -- load config setting
-  conf <- getConfigData args
-
   -- run logic main
-  flip E.finally finalize $ CTRL.run args conf
+  flip E.finally finalize $ CTRL.run args S.stdin S.stdout
 
   where
     finalize = return () 

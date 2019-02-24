@@ -182,13 +182,6 @@ expect key func = do
         then return newAcc
         else go kb hdl newAcc
 
-{-
-    rstrip :: [Char] -> [Char]
-    rstrip [] = []
-    rstrip xs
-      | last xs == '\r' = init xs
-      | otherwise = xs
--}
 
 -- |
 --  write to ghci.
@@ -223,8 +216,14 @@ stdoutCallBk False _ xs = mapM_ U.sendStdoutEventLF xs
 -- |
 --
 cmdAndOut :: String -> AppContext ()
-cmdAndOut cmd = U.sendStdoutEventLF cmd >>  command cmd
-
+cmdAndOut cmd = do
+  pout cmd
+  command cmd
+  where
+    pout s
+      | L.isPrefixOf ":dap-" s = U.sendStdoutEventLF $ (takeWhile ((/=) ' ') s) ++ " ..."
+      | otherwise = U.sendStdoutEventLF s
+      
 
 -- |
 --  write to ghci.

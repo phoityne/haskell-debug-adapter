@@ -4,17 +4,18 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 37149a03807bbec6da488fe33a432abb4d766720fd6000696ef6f0c078c3f706
+-- hash: f096a4d5dc5a2f0a594b10f1c8b686101aeb2821e1f2cc1657b89af982fd236a
 
 name:           haskell-debug-adapter
-version:        0.0.1.0
-synopsis:       Initial project template from stack
+version:        0.0.29.0
+synopsis:       Haskell Debug Adapter.
 description:    Please see README.md
 category:       Development
-homepage:       http://github.com/githubuser/haskell-debug-adapter#readme
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2017 Author Here
+homepage:       https://github.com/phoityne/phoityne-vscode
+bug-reports:    https://github.com/phoityne/phoityne-vscode/issues
+author:         phoityne_hs
+maintainer:     phoityne.hs@gmail.com
+copyright:      2016-2019 phoityne_hs
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -24,19 +25,14 @@ extra-source-files:
 
 library
   exposed-modules:
-      Paths_haskell_debug_adapter
-      Haskell.Debug.Adapter.Constant
       Haskell.Debug.Adapter.Control
-      Haskell.Debug.Adapter.Logger
-      Haskell.Debug.Adapter.Type
-      Haskell.Debug.Adapter.Utility
+  other-modules:
       Haskell.Debug.Adapter.Application
+      Haskell.Debug.Adapter.Constant
+      Haskell.Debug.Adapter.GHCi
+      Haskell.Debug.Adapter.Logger
       Haskell.Debug.Adapter.Request
       Haskell.Debug.Adapter.Response
-      Haskell.Debug.Adapter.Thread
-      Haskell.Debug.Adapter.TH.Utility
-  other-modules:
-      Haskell.Debug.Adapter.GHCi
       Haskell.Debug.Adapter.State.Contaminated
       Haskell.Debug.Adapter.State.DebugRun
       Haskell.Debug.Adapter.State.DebugRun.Continue
@@ -55,7 +51,12 @@ library
       Haskell.Debug.Adapter.State.Init.Launch
       Haskell.Debug.Adapter.State.Shutdown
       Haskell.Debug.Adapter.State.Utility
+      Haskell.Debug.Adapter.TH.Utility
+      Haskell.Debug.Adapter.Thread
+      Haskell.Debug.Adapter.Type
+      Haskell.Debug.Adapter.Utility
       Haskell.Debug.Adapter.Watch
+      Paths_haskell_debug_adapter
   hs-source-dirs:
       src
   default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedLabels PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
@@ -68,6 +69,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , clock
+    , cmdargs
     , conduit
     , conduit-extra
     , containers
@@ -84,13 +86,15 @@ library
     , resourcet
     , safe-exceptions
     , text
+  if impl(ghc < 8.4.0)
+    build-depends:
+        unsupported-ghc-version >1 && <1
   default-language: Haskell2010
 
 executable haskell-debug-adapter
   main-is: Main.hs
   other-modules:
       Haskell.Debug.Adapter.Argument
-      Haskell.Debug.Adapter.Config
       Haskell.Debug.Adapter.Main
       Paths_haskell_debug_adapter
   hs-source-dirs:
@@ -98,18 +102,34 @@ executable haskell-debug-adapter
   default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedLabels PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-orphans -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
-      MissingH
+      Cabal
+    , MissingH
     , aeson
-    , base
+    , async
+    , base >=4.7 && <5
     , bytestring
+    , clock
     , cmdargs
+    , conduit
+    , conduit-extra
+    , containers
+    , data-default
+    , directory
+    , filepath
+    , fsnotify
+    , haskell-dap
     , haskell-debug-adapter
     , hslogger
     , lens
-    , safe
+    , mtl
+    , parsec
+    , process
+    , resourcet
     , safe-exceptions
     , text
-    , yaml
+  if impl(ghc < 8.4.0)
+    build-depends:
+        unsupported-ghc-version >1 && <1
   default-language: Haskell2010
 
 test-suite haskell-debug-adapter-test
@@ -127,15 +147,33 @@ test-suite haskell-debug-adapter-test
   default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedLabels PartialTypeSignatures PatternGuards PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-orphans -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
-      aeson
+      Cabal
+    , MissingH
+    , aeson
     , async
-    , base
+    , base >=4.7 && <5
     , bytestring
+    , clock
+    , cmdargs
+    , conduit
+    , conduit-extra
+    , containers
     , data-default
+    , directory
+    , filepath
+    , fsnotify
+    , haskell-dap
     , haskell-debug-adapter
     , hslogger
     , hspec
     , lens
+    , mtl
+    , parsec
     , process
+    , resourcet
     , safe-exceptions
+    , text
+  if impl(ghc < 8.4.0)
+    build-depends:
+        unsupported-ghc-version >1 && <1
   default-language: Haskell2010

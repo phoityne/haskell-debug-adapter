@@ -9,7 +9,7 @@ import Paths_haskell_debug_adapter (version)
 import Data.Version (showVersion)
 import System.Console.CmdArgs
 
-import Haskell.Debug.Adapter.Type
+import Haskell.Debug.Adapter.Control
 
 -- |
 --  Annotation Setting
@@ -21,12 +21,11 @@ setting = modes [mode]
          
   where
     mode = ArgData {
-        _yamlFileArgData = def
-          &= name "i"
-          &= name "ini"
+        _hackageVersionArgData = showVersion version
+          &= name "hackage-version"
+          &= typ "VERSION"
           &= explicit
-          &= typFile
-          &= help "setting yaml file"
+          &= help "hackage module version."
       } &= name "Mode"
         &= details detailMsg
         &= auto

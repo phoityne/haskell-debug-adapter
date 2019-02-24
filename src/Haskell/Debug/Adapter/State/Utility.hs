@@ -30,9 +30,12 @@ unsupported reqStr = do
 setBreakpointsRequest :: DAP.SetBreakpointsRequest -> AppContext (Maybe StateTransit)
 setBreakpointsRequest req = flip catchError errHdl $ do
   let args = DAP.argumentsSetBreakpointsRequest req
-      cmd = ":dap-set-breakpoints " ++ U.showDAP args
+      dap = ":dap-set-breakpoints "
+      cmd = dap ++ U.showDAP args
+      dbg = dap ++ show args
 
   P.cmdAndOut cmd
+  U.debugEV _LOG_APP dbg
   P.expectH $ P.funcCallBk lineCallBk
 
   return Nothing
@@ -41,7 +44,9 @@ setBreakpointsRequest req = flip catchError errHdl $ do
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s
     lineCallBk False s
-      | L.isPrefixOf _DAP_HEADER s = dapHdl $ drop (length _DAP_HEADER) s
+      | L.isPrefixOf _DAP_HEADER s = do
+        U.debugEV _LOG_APP s
+        dapHdl $ drop (length _DAP_HEADER) s
       | otherwise = U.sendStdoutEventLF s
 
     -- |
@@ -118,9 +123,12 @@ setExceptionBreakpointsRequest req = do
 setFunctionBreakpointsRequest :: DAP.SetFunctionBreakpointsRequest -> AppContext (Maybe StateTransit)
 setFunctionBreakpointsRequest req = flip catchError errHdl $ do
   let args = DAP.argumentsSetFunctionBreakpointsRequest req
-      cmd = ":dap-set-function-breakpoints " ++ U.showDAP args
+      dap = ":dap-set-function-breakpoints "
+      cmd = dap ++ U.showDAP args
+      dbg = dap ++ show args
 
   P.cmdAndOut cmd
+  U.debugEV _LOG_APP dbg
   P.expectH $ P.funcCallBk lineCallBk
 
   return Nothing
@@ -129,7 +137,9 @@ setFunctionBreakpointsRequest req = flip catchError errHdl $ do
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s
     lineCallBk False s
-      | L.isPrefixOf _DAP_HEADER s = dapHdl $ drop (length _DAP_HEADER) s
+      | L.isPrefixOf _DAP_HEADER s = do
+        U.debugEV _LOG_APP s
+        dapHdl $ drop (length _DAP_HEADER) s
       | otherwise = U.sendStdoutEventLF s
 
     -- |
@@ -184,9 +194,12 @@ evaluateRequest :: DAP.EvaluateRequest -> AppContext (Maybe StateTransit)
 evaluateRequest req = do
 
   let args = DAP.argumentsEvaluateRequest req
-      cmd = ":dap-evaluate " ++ U.showDAP args
+      dap = ":dap-evaluate "
+      cmd = dap ++ U.showDAP args
+      dbg = dap ++ show args
 
   P.cmdAndOut cmd
+  U.debugEV _LOG_APP dbg
   P.expectH $ P.funcCallBk lineCallBk
 
   return Nothing
@@ -195,7 +208,9 @@ evaluateRequest req = do
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s
     lineCallBk False s
-      | L.isPrefixOf _DAP_HEADER s = dapHdl $ drop (length _DAP_HEADER) s
+      | L.isPrefixOf _DAP_HEADER s = do
+        U.debugEV _LOG_APP s
+        dapHdl $ drop (length _DAP_HEADER) s
       | otherwise = do
         liftIO $ L.errorM _LOG_APP s
         U.sendStdoutEventLF s

@@ -26,8 +26,8 @@ import Haskell.Debug.Adapter.State.Contaminated()
 
 -- |
 -- 
-defaultAppStores :: IO AppStores
-defaultAppStores = do
+defaultAppStores :: S.Handle -> S.Handle -> IO AppStores
+defaultAppStores inHdl outHdl = do
   reqStore <- newMVar []
   resStore <- newMVar []
   evtStore <- newMVar []
@@ -39,8 +39,8 @@ defaultAppStores = do
     -- Read Only
       _appNameAppStores     = "haskell-debug-adapter"
     , _appVerAppStores      = showVersion version
-    , _inHandleAppStores    = S.stdin
-    , _outHandleAppStores   = S.stdout
+    , _inHandleAppStores    = inHdl
+    , _outHandleAppStores   = outHdl
     , _asyncsAppStores      = []
 
     -- Read/Write from Application

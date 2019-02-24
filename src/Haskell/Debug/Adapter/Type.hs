@@ -6,7 +6,6 @@
 module Haskell.Debug.Adapter.Type where
 
 
-import Data.Data
 import Data.Default
 import Control.Lens
 import Data.Aeson
@@ -24,25 +23,6 @@ import qualified Data.Version as V
 
 import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.TH.Utility
-
---------------------------------------------------------------------------------
--- | Command Line Argument Data Type
---
-data ArgData = ArgData {
-    _yamlFileArgData :: Maybe FilePath
-  } deriving (Data, Typeable, Show, Read, Eq)
-
-makeLenses ''ArgData
-$(deriveJSON
-  defaultOptions {
-      fieldLabelModifier = fieldModifier "ArgData"
-    }
-  ''ArgData)
-
-instance Default ArgData where
-  def = ArgData {
-        _yamlFileArgData = Nothing
-      }
 
 --------------------------------------------------------------------------------
 instance FromJSON  L.Priority  where
