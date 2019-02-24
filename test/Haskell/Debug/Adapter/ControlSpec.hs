@@ -3,11 +3,15 @@
 module Haskell.Debug.Adapter.ControlSpec where
 
 import Test.Hspec
+import Data.Aeson
 import Data.Default
-import qualified System.Log.Logger as L
+import Control.Concurrent (threadDelay)
+import qualified System.IO as S
+import Control.Concurrent.Async
 
 import Spec.Utility
 
+import qualified GHCi.DAP as DAP
 import Haskell.Debug.Adapter.Control
 
 -- |
@@ -25,12 +29,10 @@ spec = do
   
     beforeAll' :: IO ()
     beforeAll' = do
-      setUpLogger L.DEBUG
       return ()
 
     afterAll' ::IO ()
     afterAll' = do
-      tearDownLogger
       return ()
 
     before' :: IO ()
@@ -42,16 +44,30 @@ spec = do
 
     spec' :: Spec
     spec' = do
-      xdescribe "run" $ do
+      describe "run" $ do
         context "when default args" $ 
-          xit "should be 1" $ do
+          xit "should be 0" $ do
             let arg  = def
-                conf = def
-            res <- run arg conf
-            res `shouldBe` 1
+            (fromClient, toClient) <- createPipe
+            (fromServer, toServer) <- createPipe
 
-        context "when args" $ 
-          it "should throw exception" $ do
-            let arg  = def
-                conf = def
-            run arg conf `shouldThrow` anyException
+            (res, _) <- runConcurrently $ (,)
+              <$> Concurrently (run arg fromClient toClient)
+              <*> Concurrently (client toServer)
+
+            res `shouldBe` 0
+
+            S.hClose fromClient
+            S.hClose toClient
+            S.hClose fromServer
+            S.hClose toServer
+
+    client wHdl = do
+      let req = DAP.defaultInitializeRequest
+          jsonBS = encode req
+
+      request wHdl jsonBS
+
+      threadDelay _1_SEC
+
+      return ()

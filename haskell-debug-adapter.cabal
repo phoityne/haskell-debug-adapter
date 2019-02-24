@@ -4,15 +4,15 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f096a4d5dc5a2f0a594b10f1c8b686101aeb2821e1f2cc1657b89af982fd236a
+-- hash: c8d9cc5814a5c5111661e1bf85f8f8dad94e11fcbc55925ba72502d38b2d77d7
 
 name:           haskell-debug-adapter
 version:        0.0.29.0
 synopsis:       Haskell Debug Adapter.
 description:    Please see README.md
 category:       Development
-homepage:       https://github.com/phoityne/phoityne-vscode
-bug-reports:    https://github.com/phoityne/phoityne-vscode/issues
+homepage:       https://github.com/phoityne/haskell-debug-adapter/
+bug-reports:    https://github.com/phoityne/haskell-debug-adapter/issues
 author:         phoityne_hs
 maintainer:     phoityne.hs@gmail.com
 copyright:      2016-2019 phoityne_hs
@@ -136,10 +136,7 @@ test-suite haskell-debug-adapter-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Haskell.Debug.Adapter.ApplicationSpec
       Haskell.Debug.Adapter.ControlSpec
-      Haskell.Debug.Adapter.RequestSpec
-      Haskell.Debug.Adapter.ResponseSpec
       Spec.Utility
       Paths_haskell_debug_adapter
   hs-source-dirs:
