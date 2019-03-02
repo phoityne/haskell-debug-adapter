@@ -15,11 +15,7 @@ extra-source-files:
 - Changelog.md
 
 ghc-options:
-- -threaded
-- -rtsopts
-- -with-rtsopts=-N
 - -Wall
-- -Werror
 - -fno-warn-unused-do-bind
 - -fno-warn-name-shadowing
 - -fno-warn-orphans
@@ -108,6 +104,10 @@ executables:
   haskell-debug-adapter:
     main: Main.hs
     source-dirs: app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
     dependencies:
     - haskell-debug-adapter
 
@@ -115,6 +115,10 @@ tests:
   haskell-debug-adapter-test:
     main: Spec.hs
     source-dirs: test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
     dependencies:
     - hspec
     - haskell-debug-adapter

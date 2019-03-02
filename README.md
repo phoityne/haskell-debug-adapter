@@ -6,9 +6,9 @@ A [debug adapter](https://microsoft.github.io/debug-adapter-protocol/) for Haske
 ![101_deploy.png](https://raw.githubusercontent.com/phoityne/haskell-debug-adapter/master/docs/design/101_deploy.png)
 
 Started developing based on [phoityne-vscode-0.0.28.0](https://hackage.haskell.org/package/phoityne-vscode).  
-Changed package name and with some refactoring.
+Changed package name (because a name "phoityne-vscode" is ambiguous.), and with some refactoring.
 
-# Requirements
+# Requirement
   - haskell-dap
   - ghci-dap
 
@@ -17,7 +17,7 @@ Changed package name and with some refactoring.
 ```
 
 
-# Limitations
+# Limitation
 Currently this project is an __experimental__ design and implementation.
 
 * Dev and checked on windows10 ghc-8.4
