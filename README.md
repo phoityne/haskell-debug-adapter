@@ -18,7 +18,7 @@ Change package name and with some refactoring.
 
 
 # Limitations
-Currently this project is an experimental design and implementation.
+Currently this project is an __experimental__ design and implementation.
 
 * Dev and checked on windows10 ghc-8.4
 * The source file extension must be ".hs"
@@ -27,7 +27,7 @@ Currently this project is an experimental design and implementation.
 
 # Configuration
 
-## __.vscode/launch.json__
+## launch.json
 
 |NAME|REQUIRED OR OPTIONAL|DEFAULT SETTING|DESCRIPTION|
 |:--|:--:|:--|:--|
