@@ -10,7 +10,7 @@ import qualified Data.List as L
 import Control.Monad.Except
 import Control.Concurrent (threadDelay)
 
-import qualified GHCi.DAP as DAP
+import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U

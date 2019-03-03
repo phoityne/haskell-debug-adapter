@@ -11,7 +11,7 @@ import Control.Concurrent.Async
 
 import Spec.Utility
 
-import qualified GHCi.DAP as DAP
+import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Control
 
 -- |

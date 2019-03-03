@@ -21,7 +21,7 @@ import qualified Data.List as L
 import qualified Control.Exception.Safe as E
 
 
-import qualified GHCi.DAP as DAP
+import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
 

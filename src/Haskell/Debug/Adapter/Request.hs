@@ -12,7 +12,7 @@ import Control.Monad.State.Lazy
 import qualified System.Log.Logger as L
 import Control.Monad.Except
 
-import qualified GHCi.DAP as DAP
+import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Utility
 import Haskell.Debug.Adapter.Constant

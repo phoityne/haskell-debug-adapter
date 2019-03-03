@@ -12,7 +12,7 @@ import qualified Text.Read as R
 import qualified Data.List as L
 import qualified Data.String.Utils as U
 
-import qualified GHCi.DAP as DAP
+import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
 import Haskell.Debug.Adapter.Type

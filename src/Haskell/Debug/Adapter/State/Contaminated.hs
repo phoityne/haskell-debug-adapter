@@ -8,7 +8,7 @@ import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
 import Control.Concurrent (threadDelay)
 
-import qualified GHCi.DAP as DAP
+import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Type
 import qualified Haskell.Debug.Adapter.Utility as U
 import Haskell.Debug.Adapter.Constant

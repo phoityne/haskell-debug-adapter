@@ -6,7 +6,7 @@ module Haskell.Debug.Adapter.State.GHCiRun where
 import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
 
-import qualified GHCi.DAP as DAP
+import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Constant
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.State.GHCiRun.ConfigurationDone()

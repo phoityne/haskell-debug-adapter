@@ -21,7 +21,7 @@ import qualified System.Log.Logger as L
 import qualified System.Process as S
 import qualified Data.Version as V
 
-import qualified GHCi.DAP as DAP
+import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.TH.Utility
 
 --------------------------------------------------------------------------------

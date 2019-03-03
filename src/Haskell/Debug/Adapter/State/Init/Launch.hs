@@ -18,7 +18,7 @@ import qualified Data.ByteString.Lazy as LB
 import qualified Data.List as L
 import qualified Data.Version as V
 
-import qualified GHCi.DAP as DAP
+import qualified Haskell.DAP as DAP
 import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.State.Utility as SU
 import Haskell.Debug.Adapter.Type
