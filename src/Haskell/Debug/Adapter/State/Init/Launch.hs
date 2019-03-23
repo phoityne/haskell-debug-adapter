@@ -40,7 +40,7 @@ instance StateRequestIF InitState DAP.LaunchRequest where
 --   @see https://microsoft.github.io/debug-adapter-protocol/overview
 -- 
 app :: DAP.LaunchRequest -> AppContext (Maybe StateTransit)
-app req = do
+app req = flip catchError errHdl $ do
   
   setUpConfig req
   setUpLogger req
@@ -53,7 +53,10 @@ app req = do
   -- must start here. can not start in the entry of GHCiRun State.
   -- because there is a transition from DebugRun to GHCiRun.
   startGHCi req
-  initGHCi
+  setPrompt
+  launchCmd req
+  setMainArgs
+  loadStarupFile
 
   -- dont send launch response here.
   -- it must send after configuration done response.
@@ -65,6 +68,23 @@ app req = do
   U.addResponse $ InitializedEvent $ DAP.defaultInitializedEvent {DAP.seqInitializedEvent = initSeq}
   
   return $ Just Init_GHCiRun
+
+  where
+    -- |
+    --
+    errHdl :: String -> AppContext (Maybe StateTransit)
+    errHdl msg = do
+      liftIO $ L.errorM _LOG_APP msg
+      resSeq <- U.getIncreasedResponseSequence
+      let res = DAP.defaultLaunchResponse {
+                DAP.seqLaunchResponse = resSeq
+              , DAP.request_seqLaunchResponse = DAP.seqLaunchRequest req
+              , DAP.successLaunchResponse = False
+              , DAP.messageLaunchResponse = msg
+              }
+
+      U.addResponse $ LaunchResponse res
+      return Nothing
 
 
 -- |
@@ -205,16 +225,6 @@ startGHCi req = do
 
 -- |
 --
-initGHCi :: AppContext ()
-initGHCi = do
-  setPrompt
-  setMainArgs
-
-  file <- view startupAppStores <$> get
-  SU.loadHsFile file
-
--- |
---
 setPrompt :: AppContext ()
 setPrompt = do
   p <- view ghciPmptAppStores <$> get
@@ -230,6 +240,23 @@ setPrompt = do
 
   return ()
 
+
+-- |
+--
+launchCmd :: DAP.LaunchRequest -> AppContext ()
+launchCmd req = do
+  let args = DAP.argumentsLaunchRequest req
+      dap = ":dap-launch "
+      cmd = dap ++ U.showDAP args
+      dbg = dap ++ show args
+
+  P.cmdAndOut cmd
+  U.debugEV _LOG_APP dbg
+  P.expectH P.stdoutCallBk
+
+  return ()
+
+
 -- |
 --
 setMainArgs :: AppContext ()
@@ -242,6 +269,14 @@ setMainArgs = view mainArgsAppStores <$> get >>= \case
     P.expectH P.stdoutCallBk
 
     return ()
+
+
+-- |
+--
+loadStarupFile :: AppContext ()
+loadStarupFile = do
+  file <- view startupAppStores <$> get
+  SU.loadHsFile file
 
 
 -- |

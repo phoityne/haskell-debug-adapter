@@ -13,11 +13,9 @@ import Distribution.System
 import qualified System.Process as S
 import qualified System.IO as S
 import qualified System.Environment as S
-import qualified Control.Exception.Safe as E
 import qualified Data.Map as M
 import qualified Data.List as L
 import qualified Data.String.Utils as U
---import qualified System.Log.Logger as L
 
 import Haskell.Debug.Adapter.Type
 import qualified Haskell.Debug.Adapter.Utility as U
@@ -33,7 +31,7 @@ startGHCi :: String
           -> M.Map String String
           -> AppContext ()
 startGHCi cmd opts cwd envs = 
-  liftIO (startGHCiIO cmd opts cwd envs) >>= liftEither >>= updateGHCi
+  U.liftIOE (startGHCiIO cmd opts cwd envs) >>= liftEither >>= updateGHCi
 
   where
     updateGHCi proc = do
@@ -49,7 +47,7 @@ startGHCiIO :: String
             -> FilePath
             -> M.Map String String
             -> IO (Either ErrMsg GHCiProc)
-startGHCiIO cmd opts cwd envs = flip E.catches handlers $ do
+startGHCiIO cmd opts cwd envs = do
 
   (fromPhoityneHandle, toGHCiHandle) <- S.createPipe
   (fromGHCiHandle, toPhoityneHandle) <- S.createPipe
@@ -86,9 +84,6 @@ startGHCiIO cmd opts cwd envs = flip E.catches handlers $ do
   return . Right $ GHCiProc toGHCiHandle fromGHCiHandle fromGHCiHandle ghciGHCi
 
   where
-    handlers = [ E.Handler someExcept ]
-    someExcept (e :: E.SomeException) = return . Left . show $ e
-
     -- |
     -- 
     getReadHandleEncoding :: IO TextEncoding
@@ -192,13 +187,8 @@ command cmd = do
   proc <- liftIO $ readMVar mver
   let hdl = proc^.wHdLGHCiProc
 
-  liftIO (goIO hdl cmd) >>= liftEither
+  U.liftIOE (Right <$> S.hPutStrLn hdl cmd) >>= liftEither
 
-  where
-    goIO hdl cmd = flip E.catchAny errHdl $ do
-      Right <$> S.hPutStrLn hdl cmd
-
-    errHdl e = return $ Left $ show e
 
 -- |
 --  write to ghci.

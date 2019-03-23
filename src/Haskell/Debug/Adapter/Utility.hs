@@ -419,12 +419,8 @@ readLine hdl =   isOpenHdl hdl
              >>= go
 
   where
-    go hdl = liftIO (goIO hdl) >>= liftEither
+    go hdl = liftIOE (Right <$> S.hGetLine hdl) >>= liftEither
     
-    goIO hdl = flip E.catchAny errHdl $ do
-      Right <$> S.hGetLine hdl
-
-    errHdl = return . Left . show
 
 -- |
 --
@@ -437,13 +433,8 @@ readChar hdl = isOpenHdl hdl
            >>= isNotEmpty
 
   where
-    go hdl = liftIO (goIO hdl) >>= liftEither
+    go hdl = liftIOE (Right <$> S.hGetChar hdl) >>= liftEither
     
-    goIO hdl = flip E.catchAny errHdl $ do
-      Right <$> S.hGetChar hdl
-
-    errHdl = return . Left . show
-
     toString c = return [c]
 
 
@@ -463,12 +454,7 @@ readCharsL hdl c = isOpenHdl hdl
                >>= isNotEmptyL
 
   where
-    go hdl = liftIO (goIO hdl) >>= liftEither
-
-    goIO hdl = flip E.catchAny errHdl $ do
-      Right <$> BSL.hGet hdl c
-
-    errHdl = return . Left . show
+    go hdl = liftIOE (Right <$> BSL.hGet hdl c) >>= liftEither
 
 
 -- |
@@ -519,5 +505,16 @@ addEvent evt = do
   evts <- liftIO $ takeMVar mvar
   liftIO $ putMVar mvar (evts++[evt])
 
+
+-- |
+--
+liftIOE :: IO a -> AppContext a
+liftIOE f = liftIO (go f) >>= liftEither
+  where
+    go :: IO b -> IO (Either String b)
+    go f = E.catchAny (Right <$> f) errHdl
+
+    errHdl :: E.SomeException -> IO (Either String a)
+    errHdl = return . Left . show
 
 
