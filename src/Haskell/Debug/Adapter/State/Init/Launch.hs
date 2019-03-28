@@ -179,7 +179,10 @@ startGHCi req = do
       cmdStr = DAP.ghciCmdLaunchRequestArguments args
       cmdList = filter (not.null) $ U.split " " cmdStr
       cmd  = head cmdList
-      opts = tail cmdList
+  
+  U.debugEV _LOG_APP $ show cmdList
+
+  opts <- addWithGHC (tail cmdList)
 
   appStores <- get
   cwd <- liftIO $ readMVar $ appStores^.workspaceAppStores
@@ -221,7 +224,6 @@ startGHCi req = do
       -- U.debugEV _LOG_APP $ "GHCi version is " ++ V.showVersion v
       mver <- view ghciVerAppStores <$> get
       liftIO $ putMVar mver v
-
 
 -- |
 --
@@ -277,6 +279,26 @@ loadStarupFile :: AppContext ()
 loadStarupFile = do
   file <- view startupAppStores <$> get
   SU.loadHsFile file
+
+
+-- |
+--
+addWithGHC :: [String] -> AppContext [String]
+addWithGHC [] = return []
+addWithGHC cmds
+  | L.elem "--with-ghc=haskell-dap" cmds = do
+    U.infoEV _LOG_APP "can not use haskell-dap. deleting \"--with-ghc=haskell-dap\""
+    addWithGHC $ L.delete "--with-ghc=haskell-dap" cmds
+  | withGhciExists cmds = return cmds
+  | "ghci" == head cmds = do
+    U.infoEV _LOG_APP "\"--with-ghc\" option not found. adding \"--with-ghc=ghci-dap\""
+    return $ head cmds:"--with-ghc=ghci-dap":tail cmds
+  | otherwise = return cmds
+  where
+    withGhciExists [] = False
+    withGhciExists (x:xs)
+      | L.isPrefixOf "--with-ghc=" x = True
+      | otherwise = withGhciExists xs
 
 
 -- |
