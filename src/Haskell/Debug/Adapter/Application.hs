@@ -25,7 +25,7 @@ import Haskell.Debug.Adapter.State.Contaminated()
 
 
 -- |
--- 
+--
 defaultAppStores :: S.Handle -> S.Handle -> IO AppStores
 defaultAppStores inHdl outHdl = do
   reqStore <- newMVar []
@@ -163,8 +163,7 @@ appMain :: WrapRequest -> AppContext ()
 appMain (WrapRequest (InternalTransitRequest (HdaInternalTransitRequest s))) = transit s
 appMain reqW = do
   stateW <- view appStateWAppStores <$> get
-  
-  getStateRequestW stateW reqW >>= actionW >>= \case
+  doActivityW stateW reqW >>= \case
     Nothing -> return ()
     Just st -> transit st
 
@@ -174,7 +173,7 @@ transit :: StateTransit -> AppContext ()
 transit st = actExitState
           >> updateState st
           >> actEntryState
-           
+
   where
     actExitState = do
       stateW <- view appStateWAppStores <$> get

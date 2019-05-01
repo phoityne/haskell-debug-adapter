@@ -17,14 +17,6 @@ import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.GHCi as P
 
 
--- | 
---
-unsupported :: String -> AppContext WrapStateRequest
-unsupported reqStr = do
-  let msg = "InitState does not support this request. " ++ reqStr
-  throwError msg
-
-
 -- |
 --
 setBreakpointsRequest :: DAP.SetBreakpointsRequest -> AppContext (Maybe StateTransit)
@@ -39,7 +31,7 @@ setBreakpointsRequest req = flip catchError errHdl $ do
   P.expectH $ P.funcCallBk lineCallBk
 
   return Nothing
-  
+
   where
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s
@@ -102,13 +94,13 @@ setExceptionBreakpointsRequest req = do
   U.addResponse $ SetExceptionBreakpointsResponse res
 
   return Nothing
-  
+
   where
     getOptions filters
       | null filters                      = ["-fno-break-on-exception", "-fno-break-on-error"]
       | filters == ["break-on-error"]     = ["-fno-break-on-exception", "-fbreak-on-error"]
       | filters == ["break-on-exception"] = ["-fbreak-on-exception",    "-fno-break-on-error"]
-      | otherwise                         = ["-fbreak-on-exception",    "-fbreak-on-error" ] 
+      | otherwise                         = ["-fbreak-on-exception",    "-fbreak-on-error" ]
 
     go opt = do
       let cmd = ":set " ++ opt
@@ -132,7 +124,7 @@ setFunctionBreakpointsRequest req = flip catchError errHdl $ do
   P.expectH $ P.funcCallBk lineCallBk
 
   return Nothing
-  
+
   where
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s
@@ -203,7 +195,7 @@ evaluateRequest req = do
   P.expectH $ P.funcCallBk lineCallBk
 
   return Nothing
-  
+
   where
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s
@@ -276,7 +268,7 @@ completionsRequest req = flip catchError errHdl $ do
   U.addResponse $ CompletionsResponse res
 
   return Nothing
-  
+
   where
     -- |
     --

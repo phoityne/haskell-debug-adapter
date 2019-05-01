@@ -13,7 +13,7 @@ import Haskell.Debug.Adapter.State.GHCiRun.ConfigurationDone()
 import qualified Haskell.Debug.Adapter.State.Utility as SU
 import qualified Haskell.Debug.Adapter.Utility as U
 
-instance AppStateIF GHCiRunState where
+instance AppStateIF GHCiRunStateData where
   -- |
   --
   entryAction GHCiRunState = do
@@ -27,79 +27,90 @@ instance AppStateIF GHCiRunState where
     return ()
 
 
-  -- | 
+  -- |
   --
-  getStateRequest GHCiRunState (WrapRequest (InitializeRequest req))              = SU.unsupported $ show req
-  getStateRequest GHCiRunState (WrapRequest (LaunchRequest req))                  = SU.unsupported $ show req
-  getStateRequest GHCiRunState (WrapRequest (DisconnectRequest req))              = SU.unsupported $ show req
-  getStateRequest GHCiRunState (WrapRequest (PauseRequest req))                   = SU.unsupported $ show req
-  
-  getStateRequest GHCiRunState (WrapRequest (TerminateRequest req))               = return . WrapStateRequest $ GHCiRun_Terminate req
-  getStateRequest GHCiRunState (WrapRequest (SetBreakpointsRequest req))          = return . WrapStateRequest $ GHCiRun_SetBreakpoints req
-  getStateRequest GHCiRunState (WrapRequest (SetFunctionBreakpointsRequest req))  = return . WrapStateRequest $ GHCiRun_SetFunctionBreakpoints req
-  getStateRequest GHCiRunState (WrapRequest (SetExceptionBreakpointsRequest req)) = return . WrapStateRequest $ GHCiRun_SetExceptionBreakpoints req
-  getStateRequest GHCiRunState (WrapRequest (ConfigurationDoneRequest req))       = return . WrapStateRequest $ GHCiRun_ConfigurationDone req
-  
-  getStateRequest GHCiRunState (WrapRequest (ThreadsRequest req))                 = return . WrapStateRequest $ GHCiRun_Threads req
-  getStateRequest GHCiRunState (WrapRequest (StackTraceRequest req))              = return . WrapStateRequest $ GHCiRun_StackTrace req
-  getStateRequest GHCiRunState (WrapRequest (ScopesRequest req))                  = return . WrapStateRequest $ GHCiRun_Scopes req
-  getStateRequest GHCiRunState (WrapRequest (VariablesRequest req))               = return . WrapStateRequest $ GHCiRun_Variables req
+  doActivity s (WrapRequest r@InitializeRequest{})              = action2 s r
+  doActivity s (WrapRequest r@LaunchRequest{})                  = action2 s r
+  doActivity s (WrapRequest r@DisconnectRequest{})              = action2 s r
+  doActivity s (WrapRequest r@PauseRequest{})                   = action2 s r
+  doActivity s (WrapRequest r@TerminateRequest{})               = action2 s r
+  doActivity s (WrapRequest r@SetBreakpointsRequest{})          = action2 s r
+  doActivity s (WrapRequest r@SetFunctionBreakpointsRequest{})  = action2 s r
+  doActivity s (WrapRequest r@SetExceptionBreakpointsRequest{}) = action2 s r
+  doActivity s (WrapRequest r@ConfigurationDoneRequest{})       = action2 s r
+  doActivity s (WrapRequest r@ThreadsRequest{})                 = action2 s r
+  doActivity s (WrapRequest r@StackTraceRequest{})              = action2 s r
+  doActivity s (WrapRequest r@ScopesRequest{})                  = action2 s r
+  doActivity s (WrapRequest r@VariablesRequest{})               = action2 s r
+  doActivity s (WrapRequest r@ContinueRequest{})                = action2 s r
+  doActivity s (WrapRequest r@NextRequest{})                    = action2 s r
+  doActivity s (WrapRequest r@StepInRequest{})                  = action2 s r
+  doActivity s (WrapRequest r@EvaluateRequest{})                = action2 s r
+  doActivity s (WrapRequest r@CompletionsRequest{})             = action2 s r
+  doActivity s (WrapRequest r@InternalTransitRequest{})         = action2 s r
+  doActivity s (WrapRequest r@InternalTerminateRequest{})       = action2 s r
+  doActivity s (WrapRequest r@InternalLoadRequest{})            = action2 s r
 
-  getStateRequest GHCiRunState (WrapRequest (ContinueRequest req))                = return . WrapStateRequest $ GHCiRun_Continue req
-  getStateRequest GHCiRunState (WrapRequest (NextRequest req))                    = return . WrapStateRequest $ GHCiRun_Next req
-  getStateRequest GHCiRunState (WrapRequest (StepInRequest req))                  = return . WrapStateRequest $ GHCiRun_StepIn req
+-- |
+--   default nop.
+--
+instance StateActivityIF GHCiRunStateData DAP.InitializeRequest
 
-  getStateRequest GHCiRunState (WrapRequest (EvaluateRequest req))                = return . WrapStateRequest $ GHCiRun_Evaluate req
-  getStateRequest GHCiRunState (WrapRequest (CompletionsRequest req))             = return . WrapStateRequest $ GHCiRun_Completions req
+-- |
+--   default nop.
+--
+instance StateActivityIF GHCiRunStateData DAP.LaunchRequest
 
-  getStateRequest GHCiRunState (WrapRequest (InternalTransitRequest req))         = SU.unsupported $ show req
+-- |
+--   default nop.
+--
+instance StateActivityIF GHCiRunStateData DAP.DisconnectRequest
 
-  getStateRequest GHCiRunState (WrapRequest (InternalTerminateRequest req))       = return . WrapStateRequest $ GHCiRun_InternalTerminate req
-  getStateRequest GHCiRunState (WrapRequest (InternalLoadRequest req))            = return . WrapStateRequest $ GHCiRun_InternalLoad req
-
+-- |
+--   default nop.
+--
+instance StateActivityIF GHCiRunStateData DAP.PauseRequest
 
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.SetBreakpointsRequest where
-  action (GHCiRun_SetBreakpoints req) = do
-    liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetBreakpointsRequest called. " ++ show req
-    SU.setBreakpointsRequest req
-
--- |
---  Any errors should be sent back as False result Response
---
-instance StateRequestIF GHCiRunState DAP.SetExceptionBreakpointsRequest where
-  action (GHCiRun_SetExceptionBreakpoints req) = do
-    liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetExceptionBreakpointsRequest called. " ++ show req
-    SU.setExceptionBreakpointsRequest req
-
--- |
---  Any errors should be sent back as False result Response
---
-instance StateRequestIF GHCiRunState DAP.SetFunctionBreakpointsRequest where
-  action (GHCiRun_SetFunctionBreakpoints req) = do
-    liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetFunctionBreakpointsRequest called. " ++ show req
-    SU.setFunctionBreakpointsRequest req
-
-
--- |
---  Any errors should be sent back as False result Response
---
-instance StateRequestIF GHCiRunState DAP.TerminateRequest where
-  action (GHCiRun_Terminate req) = do
+instance StateActivityIF GHCiRunStateData DAP.TerminateRequest where
+  action2 _ (TerminateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState TerminateRequest called. " ++ show req
 
     SU.terminateRequest req
 
     return $ Just GHCiRun_Shutdown
 
+-- |
+--  Any errors should be sent back as False result Response
+--
+instance StateActivityIF GHCiRunStateData DAP.SetBreakpointsRequest where
+  action2 _ (SetBreakpointsRequest req) = do
+    liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetBreakpointsRequest called. " ++ show req
+    SU.setBreakpointsRequest req
 
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.ThreadsRequest where
-  action (GHCiRun_Threads req) = do
+instance StateActivityIF GHCiRunStateData DAP.SetExceptionBreakpointsRequest where
+  action2 _ (SetExceptionBreakpointsRequest req) = do
+    liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetExceptionBreakpointsRequest called. " ++ show req
+    SU.setExceptionBreakpointsRequest req
+
+-- |
+--  Any errors should be sent back as False result Response
+--
+instance StateActivityIF GHCiRunStateData DAP.SetFunctionBreakpointsRequest where
+  action2 _ (SetFunctionBreakpointsRequest req) = do
+    liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetFunctionBreakpointsRequest called. " ++ show req
+    SU.setFunctionBreakpointsRequest req
+
+-- |
+--  Any errors should be sent back as False result Response
+--
+instance StateActivityIF GHCiRunStateData DAP.ThreadsRequest where
+  action2 _ (ThreadsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState ThreadsRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultThreadsResponse {
@@ -112,13 +123,11 @@ instance StateRequestIF GHCiRunState DAP.ThreadsRequest where
     U.addResponse $ ThreadsResponse res
     return Nothing
 
-
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.StackTraceRequest where
-  action (GHCiRun_StackTrace req) = do
+instance StateActivityIF GHCiRunStateData DAP.StackTraceRequest where
+  action2 _ (StackTraceRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState StackTraceRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultStackTraceResponse {
@@ -131,13 +140,11 @@ instance StateRequestIF GHCiRunState DAP.StackTraceRequest where
     U.addResponse $ StackTraceResponse res
     return Nothing
 
-
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.ScopesRequest where
-  action (GHCiRun_Scopes req) = do
+instance StateActivityIF GHCiRunStateData DAP.ScopesRequest where
+  action2 _ (ScopesRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState ScopesRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultScopesResponse {
@@ -150,13 +157,11 @@ instance StateRequestIF GHCiRunState DAP.ScopesRequest where
     U.addResponse $ ScopesResponse res
     return Nothing
 
-
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.VariablesRequest where
-  action (GHCiRun_Variables req) = do
+instance StateActivityIF GHCiRunStateData DAP.VariablesRequest where
+  action2 _ (VariablesRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState VariablesRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultVariablesResponse {
@@ -170,12 +175,11 @@ instance StateRequestIF GHCiRunState DAP.VariablesRequest where
     return Nothing
 
 
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.ContinueRequest where
-  action (GHCiRun_Continue req) = do
+instance StateActivityIF GHCiRunStateData DAP.ContinueRequest where
+  action2 _ (ContinueRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState ContinueRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultContinueResponse {
@@ -192,8 +196,8 @@ instance StateRequestIF GHCiRunState DAP.ContinueRequest where
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.NextRequest where
-  action (GHCiRun_Next req) = do
+instance StateActivityIF GHCiRunStateData DAP.NextRequest where
+  action2 _ (NextRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState NextRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultNextResponse {
@@ -210,8 +214,8 @@ instance StateRequestIF GHCiRunState DAP.NextRequest where
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.StepInRequest where
-  action (GHCiRun_StepIn req) = do
+instance StateActivityIF GHCiRunStateData DAP.StepInRequest where
+  action2 _ (StepInRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState StepInRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultStepInResponse {
@@ -225,37 +229,43 @@ instance StateRequestIF GHCiRunState DAP.StepInRequest where
     return $ Just GHCiRun_DebugRun
 
 
-
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.EvaluateRequest where
-  action (GHCiRun_Evaluate req) = do
+instance StateActivityIF GHCiRunStateData DAP.EvaluateRequest where
+  action2 _ (EvaluateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState EvaluateRequest called. " ++ show req
     SU.evaluateRequest req
 
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.CompletionsRequest where
-  action (GHCiRun_Completions req) = do
+instance StateActivityIF GHCiRunStateData DAP.CompletionsRequest where
+  action2 _ (CompletionsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState CompletionsRequest called. " ++ show req
     SU.completionsRequest req
 
+-- |
+--   default nop.
+--
+instance StateActivityIF GHCiRunStateData HdaInternalTransitRequest
 
 -- |
---   Any errors should be critical. don't catch anything here.
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState HdaInternalTerminateRequest where
-  action (GHCiRun_InternalTerminate req) = do
+instance StateActivityIF GHCiRunStateData HdaInternalTerminateRequest where
+  action2 _ (InternalTerminateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState InternalTerminateRequest called. " ++ show req
     SU.internalTerminateRequest
     return $ Just GHCiRun_Shutdown
-  
 
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState HdaInternalLoadRequest where
-  action (GHCiRun_InternalLoad req) = do
-    liftIO $ L.debugM _LOG_APP $ "GHCiRunState InternalLoadRequest called. " ++ show req
-    SU.loadHsFile $ pathHdaInternalLoadRequest req
-    return $ Just GHCiRun_Contaminated
+instance StateActivityIF GHCiRunStateData HdaInternalLoadRequest where
+  action2 _ (InternalLoadRequest req) = do
+    liftIO $ L.debugM _LOG_APP $ "GHCiRunState InternalTerminateRequest called. " ++ show req
+    SU.internalTerminateRequest
+    return $ Just GHCiRun_Shutdown
+
 

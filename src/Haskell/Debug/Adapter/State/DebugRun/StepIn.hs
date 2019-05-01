@@ -16,10 +16,10 @@ import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.GHCi as P
 
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState DAP.StepInRequest where
-  --action :: (StateRequest s r) -> AppContext ()
-  action (DebugRun_StepIn req) = do
+instance StateActivityIF DebugRunStateData DAP.StepInRequest where
+  action2 _ (StepInRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState StepInRequest called. " ++ show req
     app req
 
@@ -27,7 +27,7 @@ instance StateRequestIF DebugRunState DAP.StepInRequest where
 --
 app :: DAP.StepInRequest -> AppContext (Maybe StateTransit)
 app req = flip catchError errHdl $ do
-  
+
   let args = DAP.argumentsStepInRequest req
       dap = ":dap-step-in "
       cmd = dap ++ U.showDAP args
@@ -47,7 +47,7 @@ app req = flip catchError errHdl $ do
   U.addResponse $ StepInResponse res
 
   return Nothing
-  
+
   where
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s

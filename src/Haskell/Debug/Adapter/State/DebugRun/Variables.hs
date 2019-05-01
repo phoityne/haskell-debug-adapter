@@ -16,9 +16,10 @@ import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.GHCi as P
 
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState DAP.VariablesRequest where
-  action (DebugRun_Variables req) = do
+instance StateActivityIF DebugRunStateData DAP.VariablesRequest where
+  action2 _ (VariablesRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState VariablesRequest called. " ++ show req
     app req
 
@@ -26,7 +27,7 @@ instance StateRequestIF DebugRunState DAP.VariablesRequest where
 --
 app :: DAP.VariablesRequest -> AppContext (Maybe StateTransit)
 app req = flip catchError errHdl $ do
-  
+
   let args = DAP.argumentsVariablesRequest req
       dap = ":dap-variables "
       cmd = dap ++ U.showDAP args
@@ -37,7 +38,7 @@ app req = flip catchError errHdl $ do
   P.expectH $ P.funcCallBk lineCallBk
 
   return Nothing
-  
+
   where
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s

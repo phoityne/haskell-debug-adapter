@@ -15,16 +15,16 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.State.Utility as SU
 
 
--- | 
+-- |
 --
-instance AppStateIF ContaminatedState where
+instance AppStateIF ContaminatedStateData where
   -- |
   --
   entryAction ContaminatedState = do
     liftIO $ L.debugM _LOG_APP "ContaminatedState entryAction called."
     return ()
 
-    
+
   -- |
   --
   exitAction ContaminatedState = do
@@ -32,49 +32,66 @@ instance AppStateIF ContaminatedState where
     return ()
 
 
-  -- | 
+  -- |
   --
-  getStateRequest ContaminatedState (WrapRequest (InitializeRequest req))              = SU.unsupported $ show req
-  getStateRequest ContaminatedState (WrapRequest (LaunchRequest req))                  = SU.unsupported $ show req
-  getStateRequest ContaminatedState (WrapRequest (DisconnectRequest req))              = SU.unsupported $ show req
-  getStateRequest ContaminatedState (WrapRequest (PauseRequest req))                   = SU.unsupported $ show req
-  getStateRequest ContaminatedState (WrapRequest (TerminateRequest req))               = return . WrapStateRequest $ Contaminated_Terminate req
-  
-  getStateRequest ContaminatedState (WrapRequest (SetBreakpointsRequest req))          = return . WrapStateRequest $ Contaminated_SetBreakpoints req
-  getStateRequest ContaminatedState (WrapRequest (SetFunctionBreakpointsRequest req))  = return . WrapStateRequest $ Contaminated_SetFunctionBreakpoints req
-  getStateRequest ContaminatedState (WrapRequest (SetExceptionBreakpointsRequest req)) = return . WrapStateRequest $ Contaminated_SetExceptionBreakpoints req
-  getStateRequest ContaminatedState (WrapRequest (ConfigurationDoneRequest req))       = SU.unsupported $ show req
-  getStateRequest ContaminatedState (WrapRequest (ThreadsRequest req))                 = return . WrapStateRequest $ Contaminated_Threads req
-  getStateRequest ContaminatedState (WrapRequest (StackTraceRequest req))              = return . WrapStateRequest $ Contaminated_StackTrace req
-  getStateRequest ContaminatedState (WrapRequest (ScopesRequest req))                  = return . WrapStateRequest $ Contaminated_Scopes req
-  getStateRequest ContaminatedState (WrapRequest (VariablesRequest req))               = return . WrapStateRequest $ Contaminated_Variables req
-  getStateRequest ContaminatedState (WrapRequest (ContinueRequest req))                = return . WrapStateRequest $ Contaminated_Continue req
-  getStateRequest ContaminatedState (WrapRequest (NextRequest req))                    = return . WrapStateRequest $ Contaminated_Next req
-  getStateRequest ContaminatedState (WrapRequest (StepInRequest req))                  = return . WrapStateRequest $ Contaminated_StepIn req
-  getStateRequest ContaminatedState (WrapRequest (EvaluateRequest req))                = return . WrapStateRequest $ Contaminated_Evaluate req
-  getStateRequest ContaminatedState (WrapRequest (CompletionsRequest req))             = return . WrapStateRequest $ Contaminated_Completions req
-  getStateRequest ContaminatedState (WrapRequest (InternalTransitRequest req))         = SU.unsupported $ show req
-  getStateRequest ContaminatedState (WrapRequest (InternalTerminateRequest req))       = return . WrapStateRequest $ Contaminated_InternalTerminate req
-  getStateRequest ContaminatedState (WrapRequest (InternalLoadRequest req))            = return . WrapStateRequest $ Contaminated_InternalLoad req
+  doActivity s (WrapRequest r@InitializeRequest{})              = action2 s r
+  doActivity s (WrapRequest r@LaunchRequest{})                  = action2 s r
+  doActivity s (WrapRequest r@DisconnectRequest{})              = action2 s r
+  doActivity s (WrapRequest r@PauseRequest{})                   = action2 s r
+  doActivity s (WrapRequest r@TerminateRequest{})               = action2 s r
+  doActivity s (WrapRequest r@SetBreakpointsRequest{})          = action2 s r
+  doActivity s (WrapRequest r@SetFunctionBreakpointsRequest{})  = action2 s r
+  doActivity s (WrapRequest r@SetExceptionBreakpointsRequest{}) = action2 s r
+  doActivity s (WrapRequest r@ConfigurationDoneRequest{})       = action2 s r
+  doActivity s (WrapRequest r@ThreadsRequest{})                 = action2 s r
+  doActivity s (WrapRequest r@StackTraceRequest{})              = action2 s r
+  doActivity s (WrapRequest r@ScopesRequest{})                  = action2 s r
+  doActivity s (WrapRequest r@VariablesRequest{})               = action2 s r
+  doActivity s (WrapRequest r@ContinueRequest{})                = action2 s r
+  doActivity s (WrapRequest r@NextRequest{})                    = action2 s r
+  doActivity s (WrapRequest r@StepInRequest{})                  = action2 s r
+  doActivity s (WrapRequest r@EvaluateRequest{})                = action2 s r
+  doActivity s (WrapRequest r@CompletionsRequest{})             = action2 s r
+  doActivity s (WrapRequest r@InternalTransitRequest{})         = action2 s r
+  doActivity s (WrapRequest r@InternalTerminateRequest{})       = action2 s r
+  doActivity s (WrapRequest r@InternalLoadRequest{})            = action2 s r
 
+-- |
+--   default nop.
+--
+instance StateActivityIF ContaminatedStateData DAP.InitializeRequest
+
+-- |
+--   default nop.
+--
+instance StateActivityIF ContaminatedStateData DAP.LaunchRequest
+
+-- |
+--   default nop.
+--
+instance StateActivityIF ContaminatedStateData DAP.DisconnectRequest
+
+-- |
+--   default nop.
+--
+instance StateActivityIF ContaminatedStateData DAP.PauseRequest
 
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.TerminateRequest where
-  action (Contaminated_Terminate req) = do
+instance StateActivityIF ContaminatedStateData DAP.TerminateRequest where
+  action2 _ (TerminateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState TerminateRequest called. " ++ show req
 
     SU.terminateRequest req
 
     return $ Just Contaminated_Shutdown
 
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.SetBreakpointsRequest where
-  action (Contaminated_SetBreakpoints req) = do
+instance StateActivityIF ContaminatedStateData DAP.SetBreakpointsRequest where
+  action2 _ (SetBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState SetBreakpointsRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultSetBreakpointsResponse {
@@ -87,12 +104,11 @@ instance StateRequestIF ContaminatedState DAP.SetBreakpointsRequest where
     U.addResponse $ SetBreakpointsResponse res
     return Nothing
 
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.SetFunctionBreakpointsRequest where
-  action (Contaminated_SetFunctionBreakpoints req) = do
+instance StateActivityIF ContaminatedStateData DAP.SetFunctionBreakpointsRequest where
+  action2 _ (SetFunctionBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState SetFunctionBreakpointsRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultSetFunctionBreakpointsResponse {
@@ -105,12 +121,11 @@ instance StateRequestIF ContaminatedState DAP.SetFunctionBreakpointsRequest wher
     U.addResponse $ SetFunctionBreakpointsResponse res
     return Nothing
 
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.SetExceptionBreakpointsRequest where
-  action (Contaminated_SetExceptionBreakpoints req) = do
+instance StateActivityIF ContaminatedStateData DAP.SetExceptionBreakpointsRequest where
+  action2 _ (SetExceptionBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState SetExceptionBreakpointsRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultSetExceptionBreakpointsResponse {
@@ -123,12 +138,16 @@ instance StateRequestIF ContaminatedState DAP.SetExceptionBreakpointsRequest whe
     U.addResponse $ SetExceptionBreakpointsResponse res
     return Nothing
 
+-- |
+--   default nop.
+--
+instance StateActivityIF ContaminatedStateData DAP.ConfigurationDoneRequest
 
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.ThreadsRequest where
-  action (Contaminated_Threads req) = do
+instance StateActivityIF ContaminatedStateData DAP.ThreadsRequest where
+  action2 _ (ThreadsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState ThreadsRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultThreadsResponse {
@@ -141,12 +160,11 @@ instance StateRequestIF ContaminatedState DAP.ThreadsRequest where
     U.addResponse $ ThreadsResponse res
     return Nothing
 
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.StackTraceRequest where
-  action (Contaminated_StackTrace req) = do
+instance StateActivityIF ContaminatedStateData DAP.StackTraceRequest where
+  action2 _ (StackTraceRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState StackTraceRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultStackTraceResponse {
@@ -159,13 +177,11 @@ instance StateRequestIF ContaminatedState DAP.StackTraceRequest where
     U.addResponse $ StackTraceResponse res
     return Nothing
 
-
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.ScopesRequest where
-  action (Contaminated_Scopes req) = do
+instance StateActivityIF ContaminatedStateData DAP.ScopesRequest where
+  action2 _ (ScopesRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState ScopesRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultScopesResponse {
@@ -178,13 +194,11 @@ instance StateRequestIF ContaminatedState DAP.ScopesRequest where
     U.addResponse $ ScopesResponse res
     return Nothing
 
-
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.VariablesRequest where
-  action (Contaminated_Variables req) = do
+instance StateActivityIF ContaminatedStateData DAP.VariablesRequest where
+  action2 _ (VariablesRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState VariablesRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultVariablesResponse {
@@ -197,67 +211,68 @@ instance StateRequestIF ContaminatedState DAP.VariablesRequest where
     U.addResponse $ VariablesResponse res
     return Nothing
 
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.ContinueRequest where
-  action (Contaminated_Continue req) = do
+instance StateActivityIF ContaminatedStateData DAP.ContinueRequest where
+  action2 _ (ContinueRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState ContinueRequest called. " ++ show req
     restartEvent
     return $ Just Contaminated_Shutdown
 
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.NextRequest where
-  action (Contaminated_Next req) = do
+instance StateActivityIF ContaminatedStateData DAP.NextRequest where
+  action2 _ (NextRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState NextRequest called. " ++ show req
     restartEvent
     return $ Just Contaminated_Shutdown
 
-
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.StepInRequest where
-  action (Contaminated_StepIn req) = do
+instance StateActivityIF ContaminatedStateData DAP.StepInRequest where
+  action2 _ (StepInRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState StepInRequest called. " ++ show req
     restartEvent
     return $ Just Contaminated_Shutdown
 
+-- |
+--  Any errors should be sent back as False result Response
+--
+instance StateActivityIF ContaminatedStateData DAP.EvaluateRequest where
+  action2 _ (EvaluateRequest req) = do
+    liftIO $ L.debugM _LOG_APP $ "ContaminatedState EvaluateRequest called. " ++ show req
+    SU.evaluateRequest req
 
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState DAP.EvaluateRequest where
-  action (Contaminated_Evaluate req) = do
-    liftIO $ L.debugM _LOG_APP $ "ContaminatedState EvaluateRequest called. " ++ show req
-    SU.evaluateRequest req
-
-
--- |
---
-instance StateRequestIF ContaminatedState DAP.CompletionsRequest where
-  action (Contaminated_Completions req) = do
+instance StateActivityIF ContaminatedStateData DAP.CompletionsRequest where
+  action2 _ (CompletionsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState CompletionsRequest called. " ++ show req
     SU.completionsRequest req
 
 -- |
---   Any errors should be critical. don't catch anything here.
+--   default nop.
 --
-instance StateRequestIF ContaminatedState HdaInternalTerminateRequest where
-  action (Contaminated_InternalTerminate req) = do
+instance StateActivityIF ContaminatedStateData HdaInternalTransitRequest
+
+-- |
+--  Any errors should be sent back as False result Response
+--
+instance StateActivityIF ContaminatedStateData HdaInternalTerminateRequest where
+  action2 _ (InternalTerminateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState InternalTerminateRequest called. " ++ show req
     SU.internalTerminateRequest
     return $ Just Contaminated_Shutdown
-  
 
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF ContaminatedState HdaInternalLoadRequest where
-  action (Contaminated_InternalLoad req) = do
+instance StateActivityIF ContaminatedStateData HdaInternalLoadRequest where
+  action2 _ (InternalLoadRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "ContaminatedState InternalLoadRequest called. " ++ show req
     SU.loadHsFile $ pathHdaInternalLoadRequest req
     return Nothing

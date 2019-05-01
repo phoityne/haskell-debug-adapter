@@ -16,9 +16,10 @@ import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.GHCi as P
 
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState DAP.NextRequest where
-  action (DebugRun_Next req) = do
+instance StateActivityIF DebugRunStateData DAP.NextRequest where
+  action2 _ (NextRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState NextRequest called. " ++ show req
     app req
 
@@ -26,7 +27,7 @@ instance StateRequestIF DebugRunState DAP.NextRequest where
 --
 app :: DAP.NextRequest -> AppContext (Maybe StateTransit)
 app req = flip catchError errHdl $ do
-  
+
   let args = DAP.argumentsNextRequest req
       dap = ":dap-next "
       cmd = dap ++ U.showDAP args
@@ -46,7 +47,7 @@ app req = flip catchError errHdl $ do
   U.addResponse $ NextResponse res
 
   return Nothing
-  
+
   where
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s
@@ -63,7 +64,7 @@ app req = flip catchError errHdl $ do
       Left err -> errHdl err >> return ()
       Right (Left err) -> errHdl err >> return ()
       Right (Right body) -> U.handleStoppedEventBody body
-        
+
 
     -- |
     --

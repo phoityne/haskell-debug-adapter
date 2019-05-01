@@ -1,5 +1,5 @@
 name: haskell-debug-adapter
-version: '0.0.30.0'
+version: '0.0.31.0'
 synopsis: Haskell Debug Adapter.
 description: Please see README.md
 category: Development
@@ -68,7 +68,7 @@ default-extensions:
 when:
 - condition: impl(ghc < 8.4.0)
   buildable: False
-  
+
 dependencies:
 - base >=4.7 && <5
 - mtl
@@ -99,7 +99,7 @@ library:
   source-dirs: src
   exposed-modules:
   - Haskell.Debug.Adapter.Control
-  
+
 executables:
   haskell-debug-adapter:
     main: Main.hs

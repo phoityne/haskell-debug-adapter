@@ -15,10 +15,10 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
 
 -- |
---   Any errors should be critical. don't catch anything here.
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF GHCiRunState DAP.ConfigurationDoneRequest where
-  action (GHCiRun_ConfigurationDone req) = do
+instance StateActivityIF GHCiRunStateData DAP.ConfigurationDoneRequest where
+  action2 _ (ConfigurationDoneRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState ConfigurationDoneRequest called. " ++ show req
     app req
 
@@ -40,7 +40,7 @@ app req = do
           }
 
   U.addResponse $ ConfigurationDoneResponse res
-  
+
   -- launch response must be sent after configuration done response.
   reqSeq <- view launchReqSeqAppStores <$> get
   resSeq <- U.getIncreasedResponseSequence

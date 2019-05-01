@@ -26,22 +26,22 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Logger as L
 import qualified Haskell.Debug.Adapter.GHCi as P
 
+
 -- |
 --   Any errors should be critical. don't catch anything here.
 --
-instance StateRequestIF InitState DAP.LaunchRequest where
-  action (Init_Launch req) = do
+instance StateActivityIF InitStateData DAP.LaunchRequest where
+  action2 _ (LaunchRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "InitState LaunchRequest called. " ++ show req
     app req
-
 
 -- |
 --   @see https://github.com/Microsoft/vscode/issues/4902
 --   @see https://microsoft.github.io/debug-adapter-protocol/overview
--- 
+--
 app :: DAP.LaunchRequest -> AppContext (Maybe StateTransit)
 app req = flip catchError errHdl $ do
-  
+
   setUpConfig req
   setUpLogger req
   createTasksJsonFile
@@ -66,7 +66,7 @@ app req = flip catchError errHdl $ do
   -- ConfigurationDone request.
   initSeq <- U.getIncreasedResponseSequence
   U.addResponse $ InitializedEvent $ DAP.defaultInitializedEvent {DAP.seqInitializedEvent = initSeq}
-  
+
   return $ Just Init_GHCiRun
 
   where
@@ -93,7 +93,7 @@ setUpConfig :: DAP.LaunchRequest -> AppContext ()
 setUpConfig req = do
   let args = DAP.argumentsLaunchRequest req
   appStores <- get
-  
+
   let wsMVar = appStores^.workspaceAppStores
       ws = DAP.workspaceLaunchRequestArguments args
   _ <- liftIO $ takeMVar wsMVar
@@ -154,13 +154,13 @@ createTasksJsonFile = do
     --
     checkDir jsonDir = liftIO (doesDirectoryExist jsonDir) >>= \case
       False -> throwError $ "setting folder not found. skip saveing tasks.json. DIR:" ++ jsonDir
-      True -> return () 
+      True -> return ()
 
     -- |
     --
     checkFile jsonFile = liftIO (doesFileExist jsonFile) >>= \case
       True -> throwError $ "tasks.json file exists. " ++ jsonFile
-      False -> return () 
+      False -> return ()
 
     -- |
     --
@@ -179,7 +179,7 @@ startGHCi req = do
       cmdStr = DAP.ghciCmdLaunchRequestArguments args
       cmdList = filter (not.null) $ U.split " " cmdStr
       cmd  = head cmdList
-  
+
   U.debugEV _LOG_APP $ show cmdList
 
   opts <- addWithGHC (tail cmdList)

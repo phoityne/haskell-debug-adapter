@@ -13,13 +13,12 @@ import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.State.Utility as SU
 
 -- |
---   Any errors should be critical. don't catch anything here.
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState HdaInternalTerminateRequest where
-  action (DebugRun_InternalTerminate req) = do
+instance StateActivityIF DebugRunStateData HdaInternalTerminateRequest where
+  action2 _ (InternalTerminateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState InternalTerminateRequest called. " ++ show req
     app req
-
 
 -- |
 --

@@ -12,9 +12,9 @@ import Haskell.Debug.Adapter.Utility
 import Haskell.Debug.Adapter.Constant
 
 
--- | 
+-- |
 --
-instance AppStateIF ShutdownState where
+instance AppStateIF ShutdownStateData where
   -- |
   --
   entryAction ShutdownState = do
@@ -24,7 +24,7 @@ instance AppStateIF ShutdownState where
 
     return ()
 
-    
+
   -- |
   --
   exitAction ShutdownState = do
@@ -32,10 +32,10 @@ instance AppStateIF ShutdownState where
     throwError msg
 
 
-  -- | 
+  -- |
   --
-  getStateRequest ShutdownState _ = do
+  doActivity ShutdownState _ = do
     let msg = "ShutdownState does not support any request."
-    throwError msg
-
+    infoEV _LOG_APP msg
+    return Nothing
 

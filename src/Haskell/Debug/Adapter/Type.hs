@@ -2,9 +2,9 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Haskell.Debug.Adapter.Type where
-
 
 import Data.Default
 import Control.Lens
@@ -17,12 +17,12 @@ import Control.Concurrent.Async
 import qualified System.IO as S
 import qualified Data.Text as T
 import qualified System.Log.Logger as L
---import qualified Data.ByteString as B
 import qualified System.Process as S
 import qualified Data.Version as V
 
 import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.TH.Utility
+import Haskell.Debug.Adapter.Constant
 
 --------------------------------------------------------------------------------
 instance FromJSON  L.Priority  where
@@ -38,10 +38,10 @@ instance ToJSON L.Priority  where
   toJSON (L.CRITICAL)  = String $ T.pack "CRITICAL"
   toJSON (L.ALERT)     = String $ T.pack "ALERT"
   toJSON (L.EMERGENCY) = String $ T.pack "EMERGENCY"
-  
+
 --------------------------------------------------------------------------------
 -- | Config Data
--- 
+--
 data ConfigData = ConfigData {
     _workDirConfigData  :: FilePath
   , _logFileConfigData  :: FilePath
@@ -53,7 +53,7 @@ makeLenses ''ConfigData
 instance Default ConfigData where
   def = ConfigData {
         _workDirConfigData  = "."
-      , _logFileConfigData  = "haskell-debug-adapter.log" 
+      , _logFileConfigData  = "haskell-debug-adapter.log"
       , _logLevelConfigData = L.WARNING
       }
 
@@ -84,7 +84,7 @@ data HdaInternalTransitRequest = HdaInternalTransitRequest {
   } deriving (Show, Read, Eq)
 
 $(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "HdaInternalTransitRequest" } ''HdaInternalTransitRequest)
-  
+
 data HdaInternalTerminateRequest = HdaInternalTerminateRequest {
     msgHdaInternalTerminateRequest :: String
   } deriving (Show, Read, Eq)
@@ -99,7 +99,7 @@ $(deriveJSON defaultOptions { fieldLabelModifier = fieldModifier "HdaInternalLoa
 
 --------------------------------------------------------------------------------
 -- | DAP Request Data
--- 
+--
 
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "Source"} ''DAP.Source)
@@ -171,7 +171,7 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsRequestArgum
 
 
 -- request
-data Request a where 
+data Request a where
   InitializeRequest :: DAP.InitializeRequest -> Request DAP.InitializeRequest
   LaunchRequest     :: DAP.LaunchRequest     -> Request DAP.LaunchRequest
   DisconnectRequest :: DAP.DisconnectRequest -> Request DAP.DisconnectRequest
@@ -194,11 +194,13 @@ data Request a where
   InternalTerminateRequest :: HdaInternalTerminateRequest -> Request HdaInternalTerminateRequest
   InternalLoadRequest :: HdaInternalLoadRequest -> Request HdaInternalLoadRequest
 
+deriving instance Show r => Show (Request r)
+
 data WrapRequest = forall a. WrapRequest (Request a)
 
 --------------------------------------------------------------------------------
 -- | DAP Response Data
--- 
+--
 
 -- jsonize
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "Response"} ''DAP.Response)
@@ -269,7 +271,7 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinuedEventBody"} ''
 
 
 -- response
-data Response = 
+data Response =
     InitializeResponse DAP.InitializeResponse
   | LaunchResponse     DAP.LaunchResponse
   | OutputEvent        DAP.OutputEvent
@@ -300,160 +302,59 @@ $(deriveJSON defaultOptions{sumEncoding = UntaggedValue} ''Response)
 
 --------------------------------------------------------------------------------
 -- | State
--- 
-data InitState
-data GHCiRunState
-data DebugRunState
-data ContaminatedState
-data ShutdownState
+--
+data InitStateData         = InitStateData deriving (Show, Eq)
+data GHCiRunStateData      = GHCiRunStateData deriving (Show, Eq)
+data DebugRunStateData     = DebugRunStateData deriving (Show, Eq)
+data ContaminatedStateData = ContaminatedStateData deriving (Show, Eq)
+data ShutdownStateData     = ShutdownStateData deriving (Show, Eq)
 
 data AppState s where
-  InitState     :: AppState InitState
-  GHCiRunState  :: AppState GHCiRunState
-  DebugRunState :: AppState DebugRunState
-  ShutdownState :: AppState ShutdownState
-  ContaminatedState :: AppState ContaminatedState
+  InitState     :: AppState InitStateData
+  GHCiRunState  :: AppState GHCiRunStateData
+  DebugRunState :: AppState DebugRunStateData
+  ShutdownState :: AppState ShutdownStateData
+  ContaminatedState :: AppState ContaminatedStateData
+
+deriving instance Show s => Show (AppState s)
 
 class AppStateIF s where
   entryAction :: (AppState s) -> AppContext ()
   exitAction  :: (AppState s) -> AppContext ()
-  getStateRequest :: (AppState s) -> WrapRequest -> AppContext WrapStateRequest
+  doActivity  :: (AppState s) -> WrapRequest -> AppContext (Maybe StateTransit)
 
-data WrapAppState = forall s. (AppStateIF s) =>  WrapAppState (AppState s)
+data WrapAppState = forall s. (AppStateIF s) => WrapAppState (AppState s)
 
 class WrapAppStateIF s where
   entryActionW :: s -> AppContext ()
   exitActionW  :: s -> AppContext ()
-  getStateRequestW :: s -> WrapRequest -> AppContext WrapStateRequest
+  doActivityW  :: s -> WrapRequest -> AppContext (Maybe StateTransit)
 
 instance WrapAppStateIF WrapAppState where
   entryActionW (WrapAppState s) = entryAction s
   exitActionW  (WrapAppState s) = exitAction s
-  getStateRequestW (WrapAppState s) r = getStateRequest s r
-  
+  doActivityW  (WrapAppState s) r = doActivity s r
 
---------------------------------------------------------------------------------------
-
-data StateRequest s r where
-  Init_Initialize :: DAP.InitializeRequest -> StateRequest InitState DAP.InitializeRequest
-  Init_Launch     :: DAP.LaunchRequest     -> StateRequest InitState DAP.LaunchRequest
-  Init_Terminate :: DAP.TerminateRequest -> StateRequest InitState DAP.TerminateRequest
-  Init_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest InitState DAP.SetBreakpointsRequest
-  Init_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest InitState DAP.SetFunctionBreakpointsRequest
-  Init_SetExceptionBreakpoints :: DAP.SetExceptionBreakpointsRequest -> StateRequest InitState DAP.SetExceptionBreakpointsRequest
-  Init_ConfigurationDone :: DAP.ConfigurationDoneRequest -> StateRequest InitState DAP.ConfigurationDoneRequest
-  Init_Threads :: DAP.ThreadsRequest -> StateRequest InitState DAP.ThreadsRequest
-  Init_StackTrace :: DAP.StackTraceRequest -> StateRequest InitState DAP.StackTraceRequest
-  Init_Scopes :: DAP.ScopesRequest -> StateRequest InitState DAP.ScopesRequest
-  Init_Variables :: DAP.VariablesRequest -> StateRequest InitState DAP.VariablesRequest
-  Init_Continue :: DAP.ContinueRequest -> StateRequest InitState DAP.ContinueRequest
-  Init_Next :: DAP.NextRequest -> StateRequest InitState DAP.NextRequest
-  Init_StepIn :: DAP.StepInRequest -> StateRequest InitState DAP.StepInRequest
-  Init_Evaluate :: DAP.EvaluateRequest -> StateRequest InitState DAP.EvaluateRequest
-  Init_Completions :: DAP.CompletionsRequest -> StateRequest InitState DAP.CompletionsRequest
-  Init_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest InitState HdaInternalTerminateRequest
-  Init_InternalLoad :: HdaInternalLoadRequest -> StateRequest InitState HdaInternalLoadRequest
-
-  GHCiRun_Initialize :: DAP.InitializeRequest -> StateRequest GHCiRunState DAP.InitializeRequest
-  GHCiRun_Launch     :: DAP.LaunchRequest     -> StateRequest GHCiRunState DAP.LaunchRequest
-  GHCiRun_Terminate :: DAP.TerminateRequest -> StateRequest GHCiRunState DAP.TerminateRequest
-  GHCiRun_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest GHCiRunState DAP.SetBreakpointsRequest
-  GHCiRun_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest GHCiRunState DAP.SetFunctionBreakpointsRequest
-  GHCiRun_SetExceptionBreakpoints :: DAP.SetExceptionBreakpointsRequest -> StateRequest GHCiRunState DAP.SetExceptionBreakpointsRequest
-  GHCiRun_ConfigurationDone :: DAP.ConfigurationDoneRequest -> StateRequest GHCiRunState DAP.ConfigurationDoneRequest
-  GHCiRun_Threads :: DAP.ThreadsRequest -> StateRequest GHCiRunState DAP.ThreadsRequest
-  GHCiRun_StackTrace :: DAP.StackTraceRequest -> StateRequest GHCiRunState DAP.StackTraceRequest
-  GHCiRun_Scopes :: DAP.ScopesRequest -> StateRequest GHCiRunState DAP.ScopesRequest
-  GHCiRun_Variables :: DAP.VariablesRequest -> StateRequest GHCiRunState DAP.VariablesRequest
-  GHCiRun_Continue :: DAP.ContinueRequest -> StateRequest GHCiRunState DAP.ContinueRequest
-  GHCiRun_Next :: DAP.NextRequest -> StateRequest GHCiRunState DAP.NextRequest
-  GHCiRun_StepIn :: DAP.StepInRequest -> StateRequest GHCiRunState DAP.StepInRequest
-  GHCiRun_Evaluate :: DAP.EvaluateRequest -> StateRequest GHCiRunState DAP.EvaluateRequest
-  GHCiRun_Completions :: DAP.CompletionsRequest -> StateRequest GHCiRunState DAP.CompletionsRequest
-  GHCiRun_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest GHCiRunState HdaInternalTerminateRequest
-  GHCiRun_InternalLoad :: HdaInternalLoadRequest -> StateRequest GHCiRunState HdaInternalLoadRequest
-
-  DebugRun_Initialize :: DAP.InitializeRequest -> StateRequest DebugRunState DAP.InitializeRequest
-  DebugRun_Launch     :: DAP.LaunchRequest     -> StateRequest DebugRunState DAP.LaunchRequest
-  DebugRun_Terminate :: DAP.TerminateRequest -> StateRequest DebugRunState DAP.TerminateRequest
-  DebugRun_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest DebugRunState DAP.SetBreakpointsRequest
-  DebugRun_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest DebugRunState DAP.SetFunctionBreakpointsRequest
-  DebugRun_SetExceptionBreakpoints :: DAP.SetExceptionBreakpointsRequest -> StateRequest DebugRunState DAP.SetExceptionBreakpointsRequest
-  DebugRun_ConfigurationDone :: DAP.ConfigurationDoneRequest -> StateRequest DebugRunState DAP.ConfigurationDoneRequest
-  DebugRun_Threads :: DAP.ThreadsRequest -> StateRequest DebugRunState DAP.ThreadsRequest
-  DebugRun_StackTrace :: DAP.StackTraceRequest -> StateRequest DebugRunState DAP.StackTraceRequest
-  DebugRun_Scopes :: DAP.ScopesRequest -> StateRequest DebugRunState DAP.ScopesRequest
-  DebugRun_Variables :: DAP.VariablesRequest -> StateRequest DebugRunState DAP.VariablesRequest
-  DebugRun_Continue :: DAP.ContinueRequest -> StateRequest DebugRunState DAP.ContinueRequest
-  DebugRun_Next :: DAP.NextRequest -> StateRequest DebugRunState DAP.NextRequest
-  DebugRun_StepIn :: DAP.StepInRequest -> StateRequest DebugRunState DAP.StepInRequest
-  DebugRun_Evaluate :: DAP.EvaluateRequest -> StateRequest DebugRunState DAP.EvaluateRequest
-  DebugRun_Completions :: DAP.CompletionsRequest -> StateRequest DebugRunState DAP.CompletionsRequest
-  DebugRun_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest DebugRunState HdaInternalTerminateRequest
-  DebugRun_InternalLoad :: HdaInternalLoadRequest -> StateRequest DebugRunState HdaInternalLoadRequest
-
-  Shutdown_Initialize :: DAP.InitializeRequest -> StateRequest ShutdownState DAP.InitializeRequest
-  Shutdown_Launch     :: DAP.LaunchRequest     -> StateRequest ShutdownState DAP.LaunchRequest
-  Shutdown_Terminate :: DAP.TerminateRequest -> StateRequest ShutdownState DAP.TerminateRequest
-  Shutdown_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest ShutdownState DAP.SetBreakpointsRequest
-  Shutdown_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest ShutdownState DAP.SetFunctionBreakpointsRequest
-  Shutdown_SetExceptionBreakpoints :: DAP.SetExceptionBreakpointsRequest -> StateRequest ShutdownState DAP.SetExceptionBreakpointsRequest
-  Shutdown_ConfigurationDone :: DAP.ConfigurationDoneRequest -> StateRequest ShutdownState DAP.ConfigurationDoneRequest
-  Shutdown_Threads :: DAP.ThreadsRequest -> StateRequest ShutdownState DAP.ThreadsRequest
-  Shutdown_StackTrace :: DAP.StackTraceRequest -> StateRequest ShutdownState DAP.StackTraceRequest
-  Shutdown_Scopes :: DAP.ScopesRequest -> StateRequest ShutdownState DAP.ScopesRequest
-  Shutdown_Variables :: DAP.VariablesRequest -> StateRequest ShutdownState DAP.VariablesRequest
-  Shutdown_Continue :: DAP.ContinueRequest -> StateRequest ShutdownState DAP.ContinueRequest
-  Shutdown_Next :: DAP.NextRequest -> StateRequest ShutdownState DAP.NextRequest
-  Shutdown_StepIn :: DAP.StepInRequest -> StateRequest ShutdownState DAP.StepInRequest
-  Shutdown_Evaluate :: DAP.EvaluateRequest -> StateRequest ShutdownState DAP.EvaluateRequest
-  Shutdown_Completions :: DAP.CompletionsRequest -> StateRequest ShutdownState DAP.CompletionsRequest
-  Shutdown_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest ShutdownState HdaInternalTerminateRequest
-  Shutdown_InternalLoad :: HdaInternalLoadRequest -> StateRequest ShutdownState HdaInternalLoadRequest
-
-  Contaminated_Initialize :: DAP.InitializeRequest -> StateRequest ContaminatedState DAP.InitializeRequest
-  Contaminated_Launch     :: DAP.LaunchRequest     -> StateRequest ContaminatedState DAP.LaunchRequest
-  Contaminated_Terminate :: DAP.TerminateRequest -> StateRequest ContaminatedState DAP.TerminateRequest
-  Contaminated_SetBreakpoints :: DAP.SetBreakpointsRequest -> StateRequest ContaminatedState DAP.SetBreakpointsRequest
-  Contaminated_SetFunctionBreakpoints :: DAP.SetFunctionBreakpointsRequest -> StateRequest ContaminatedState DAP.SetFunctionBreakpointsRequest
-  Contaminated_SetExceptionBreakpoints :: DAP.SetExceptionBreakpointsRequest -> StateRequest ContaminatedState DAP.SetExceptionBreakpointsRequest
-  Contaminated_ConfigurationDone :: DAP.ConfigurationDoneRequest -> StateRequest ContaminatedState DAP.ConfigurationDoneRequest
-  Contaminated_Threads :: DAP.ThreadsRequest -> StateRequest ContaminatedState DAP.ThreadsRequest
-  Contaminated_StackTrace :: DAP.StackTraceRequest -> StateRequest ContaminatedState DAP.StackTraceRequest
-  Contaminated_Scopes :: DAP.ScopesRequest -> StateRequest ContaminatedState DAP.ScopesRequest
-  Contaminated_Variables :: DAP.VariablesRequest -> StateRequest ContaminatedState DAP.VariablesRequest
-  Contaminated_Continue :: DAP.ContinueRequest -> StateRequest ContaminatedState DAP.ContinueRequest
-  Contaminated_Next :: DAP.NextRequest -> StateRequest ContaminatedState DAP.NextRequest
-  Contaminated_StepIn :: DAP.StepInRequest -> StateRequest ContaminatedState DAP.StepInRequest
-  Contaminated_Evaluate :: DAP.EvaluateRequest -> StateRequest ContaminatedState DAP.EvaluateRequest
-  Contaminated_Completions :: DAP.CompletionsRequest -> StateRequest ContaminatedState DAP.CompletionsRequest
-  Contaminated_InternalTerminate :: HdaInternalTerminateRequest -> StateRequest ContaminatedState HdaInternalTerminateRequest
-  Contaminated_InternalLoad :: HdaInternalLoadRequest -> StateRequest ContaminatedState HdaInternalLoadRequest
-
-class StateRequestIF s r where
-  action :: (StateRequest s r) -> AppContext (Maybe StateTransit)
-
-data WrapStateRequest = forall s r. (StateRequestIF s r) => WrapStateRequest (StateRequest s r)
-
-class WrapStateRequestIF w where
-  actionW :: w -> AppContext  (Maybe StateTransit)
-
-instance WrapStateRequestIF WrapStateRequest where
-  actionW (WrapStateRequest x) = action x
-
-
+-- |
+--
+class  (Show s, Show r) => StateActivityIF s r where
+  action2 :: (AppState s) -> (Request r) -> AppContext (Maybe StateTransit)
+  --action2 _ _ = return Nothing
+  action2 s r = do
+    liftIO $ L.warningM _LOG_APP $ show s ++ " " ++ show r ++ " not supported. nop."
+    return Nothing
 
 --------------------------------------------------------------------------------
 -- | Event
--- 
+--
 data Event =
   CriticalExitEvent
   deriving (Show, Read, Eq)
 
 
 --------------------------------------------------------------------------------
--- | 
--- 
+-- |
+--
 data GHCiProc = GHCiProc {
     _wHdLGHCiProc :: S.Handle
   , _rHdlGHCiProc :: S.Handle
@@ -464,14 +365,14 @@ data GHCiProc = GHCiProc {
 
 --------------------------------------------------------------------------------
 -- | Application Context
--- 
-                      
+--
+
 type ErrMsg = String
-type AppContext = StateT AppStores (ExceptT ErrMsg IO) 
+type AppContext = StateT AppStores (ExceptT ErrMsg IO)
 
 
 -- | Application Context Data
--- 
+--
 data AppStores = AppStores {
   -- Read Only
     _appNameAppStores     :: String
@@ -501,7 +402,7 @@ data AppStores = AppStores {
   , _ghciProcAppStores    :: MVar GHCiProc
   --, _ghciStdoutAppStores  :: MVar B.ByteString
   , _ghciVerAppStores     :: MVar V.Version
-  } 
+  }
 
 makeLenses ''AppStores
 makeLenses ''GHCiProc

@@ -1,4 +1,7 @@
 
+20190505 haskell-debug-adapter-0.0.31.0
+  * [MODIFY] refactor some types.
+
 
 20190402 haskell-debug-adapter-0.0.30.0
   * [INFO] support ghci-dap-0.0.12.0.

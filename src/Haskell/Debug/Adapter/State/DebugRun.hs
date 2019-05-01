@@ -29,7 +29,7 @@ import Haskell.Debug.Adapter.State.DebugRun.InternalTerminate()
 import qualified Haskell.Debug.Adapter.State.Utility as SU
 
 
-instance AppStateIF DebugRunState where
+instance AppStateIF DebugRunStateData where
   -- |
   --
   entryAction DebugRunState = do
@@ -43,33 +43,49 @@ instance AppStateIF DebugRunState where
     return ()
 
 
-  -- | 
+  -- |
   --
-  getStateRequest DebugRunState (WrapRequest (InitializeRequest req))              = SU.unsupported $ show req
-  getStateRequest DebugRunState (WrapRequest (LaunchRequest req))                  = SU.unsupported $ show req
-  getStateRequest DebugRunState (WrapRequest (DisconnectRequest req))              = SU.unsupported $ show req
-  getStateRequest DebugRunState (WrapRequest (PauseRequest req))                   = SU.unsupported $ show req
-  
-  getStateRequest DebugRunState (WrapRequest (TerminateRequest req))               = return . WrapStateRequest $ DebugRun_Terminate req
-  getStateRequest DebugRunState (WrapRequest (SetBreakpointsRequest req))          = return . WrapStateRequest $ DebugRun_SetBreakpoints req
-  getStateRequest DebugRunState (WrapRequest (SetFunctionBreakpointsRequest req))  = return . WrapStateRequest $ DebugRun_SetFunctionBreakpoints req
-  getStateRequest DebugRunState (WrapRequest (SetExceptionBreakpointsRequest req)) = return . WrapStateRequest $ DebugRun_SetExceptionBreakpoints req
+  doActivity s (WrapRequest r@InitializeRequest{})              = action2 s r
+  doActivity s (WrapRequest r@LaunchRequest{})                  = action2 s r
+  doActivity s (WrapRequest r@DisconnectRequest{})              = action2 s r
+  doActivity s (WrapRequest r@PauseRequest{})                   = action2 s r
+  doActivity s (WrapRequest r@TerminateRequest{})               = action2 s r
+  doActivity s (WrapRequest r@SetBreakpointsRequest{})          = action2 s r
+  doActivity s (WrapRequest r@SetFunctionBreakpointsRequest{})  = action2 s r
+  doActivity s (WrapRequest r@SetExceptionBreakpointsRequest{}) = action2 s r
+  doActivity s (WrapRequest r@ConfigurationDoneRequest{})       = action2 s r
+  doActivity s (WrapRequest r@ThreadsRequest{})                 = action2 s r
+  doActivity s (WrapRequest r@StackTraceRequest{})              = action2 s r
+  doActivity s (WrapRequest r@ScopesRequest{})                  = action2 s r
+  doActivity s (WrapRequest r@VariablesRequest{})               = action2 s r
+  doActivity s (WrapRequest r@ContinueRequest{})                = action2 s r
+  doActivity s (WrapRequest r@NextRequest{})                    = action2 s r
+  doActivity s (WrapRequest r@StepInRequest{})                  = action2 s r
+  doActivity s (WrapRequest r@EvaluateRequest{})                = action2 s r
+  doActivity s (WrapRequest r@CompletionsRequest{})             = action2 s r
+  doActivity s (WrapRequest r@InternalTransitRequest{})         = action2 s r
+  doActivity s (WrapRequest r@InternalTerminateRequest{})       = action2 s r
+  doActivity s (WrapRequest r@InternalLoadRequest{})            = action2 s r
 
-  getStateRequest DebugRunState (WrapRequest (ConfigurationDoneRequest req))       = SU.unsupported $ show req
+-- |
+--   default nop.
+--
+instance StateActivityIF DebugRunStateData DAP.InitializeRequest
 
-  getStateRequest DebugRunState (WrapRequest (ThreadsRequest req))                 = return . WrapStateRequest $ DebugRun_Threads req
-  getStateRequest DebugRunState (WrapRequest (StackTraceRequest req))              = return . WrapStateRequest $ DebugRun_StackTrace req
-  getStateRequest DebugRunState (WrapRequest (ScopesRequest req))                  = return . WrapStateRequest $ DebugRun_Scopes req
-  getStateRequest DebugRunState (WrapRequest (VariablesRequest req))               = return . WrapStateRequest $ DebugRun_Variables req
-  getStateRequest DebugRunState (WrapRequest (ContinueRequest req))                = return . WrapStateRequest $ DebugRun_Continue req
-  getStateRequest DebugRunState (WrapRequest (NextRequest req))                    = return . WrapStateRequest $ DebugRun_Next req
-  getStateRequest DebugRunState (WrapRequest (StepInRequest req))                  = return . WrapStateRequest $ DebugRun_StepIn req
-  getStateRequest DebugRunState (WrapRequest (EvaluateRequest req))                = return . WrapStateRequest $ DebugRun_Evaluate req
-  getStateRequest DebugRunState (WrapRequest (CompletionsRequest req))             = return . WrapStateRequest $ DebugRun_Completions req
+-- |
+--   default nop.
+--
+instance StateActivityIF DebugRunStateData DAP.LaunchRequest
 
-  getStateRequest DebugRunState (WrapRequest (InternalTransitRequest req))         = SU.unsupported $ show req
-  getStateRequest DebugRunState (WrapRequest (InternalTerminateRequest req))       = return . WrapStateRequest $ DebugRun_InternalTerminate req
-  getStateRequest DebugRunState (WrapRequest (InternalLoadRequest req))            = return . WrapStateRequest $ DebugRun_InternalLoad req
+-- |
+--   default nop.
+--
+instance StateActivityIF DebugRunStateData DAP.DisconnectRequest
+
+-- |
+--   default nop.
+--
+instance StateActivityIF DebugRunStateData DAP.PauseRequest
 
 -- |
 --
@@ -91,7 +107,7 @@ stopOnEntry = do
 
   P.cmdAndOut cmd
   res <- P.expectH P.stdoutCallBk
-  
+
   withAdhocAddDapHeader $ filter (U.startswith _DAP_HEADER) res
 
   where
@@ -123,7 +139,7 @@ stopOnEntry = do
 
       P.cmdAndOut cmd
       res <- P.expectH P.stdoutCallBk
-      
+
       withAdhocDelDapHeader $ filter (U.startswith _DAP_HEADER) res
 
     -- |
@@ -156,7 +172,7 @@ startDebug = do
         return $ U.strip $ func ++ " " ++ funcArgs
 
     startDebugDAP args = do
-        
+
       let dap = ":dap-continue "
           cmd = dap ++ U.showDAP args
           dbg = dap ++ show args
@@ -164,10 +180,10 @@ startDebug = do
       P.cmdAndOut cmd
       U.debugEV _LOG_APP dbg
       P.expectH $ P.funcCallBk lineCallBk
-      
+
       return ()
 
-    
+
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s
     lineCallBk False s
@@ -196,46 +212,58 @@ startDebug = do
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState DAP.SetBreakpointsRequest where
-  action (DebugRun_SetBreakpoints req) = do
+instance StateActivityIF DebugRunStateData DAP.SetBreakpointsRequest where
+  action2 _ (SetBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState SetBreakpointsRequest called. " ++ show req
     SU.setBreakpointsRequest req
 
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState DAP.SetExceptionBreakpointsRequest where
-  action (DebugRun_SetExceptionBreakpoints req) = do
+instance StateActivityIF DebugRunStateData DAP.SetExceptionBreakpointsRequest where
+  action2 _ (SetExceptionBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState SetExceptionBreakpointsRequest called. " ++ show req
     SU.setExceptionBreakpointsRequest req
 
 -- |
 --  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState DAP.SetFunctionBreakpointsRequest where
-  action (DebugRun_SetFunctionBreakpoints req) = do
+instance StateActivityIF DebugRunStateData DAP.SetFunctionBreakpointsRequest where
+  action2 _ (SetFunctionBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState SetFunctionBreakpointsRequest called. " ++ show req
     SU.setFunctionBreakpointsRequest req
 
 -- |
+--   default nop.
 --
-instance StateRequestIF DebugRunState DAP.EvaluateRequest where
-  action (DebugRun_Evaluate req) = do
+instance StateActivityIF DebugRunStateData DAP.ConfigurationDoneRequest
+
+-- |
+--  Any errors should be sent back as False result Response
+--
+instance StateActivityIF DebugRunStateData DAP.EvaluateRequest where
+  action2 _ (EvaluateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState EvaluateRequest called. " ++ show req
     SU.evaluateRequest req
 
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState DAP.CompletionsRequest where
-  action (DebugRun_Completions req) = do
+instance StateActivityIF DebugRunStateData DAP.CompletionsRequest where
+  action2 _ (CompletionsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState CompletionsRequest called. " ++ show req
     SU.completionsRequest req
 
+-- |
+--   default nop.
+--
+instance StateActivityIF DebugRunStateData HdaInternalTransitRequest
 
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState HdaInternalLoadRequest where
-  action (DebugRun_InternalLoad req) = do
+instance StateActivityIF DebugRunStateData HdaInternalLoadRequest where
+  action2 _ (InternalLoadRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState InternalLoadRequest called. " ++ show req
     SU.loadHsFile $ pathHdaInternalLoadRequest req
     return $ Just DebugRun_Contaminated

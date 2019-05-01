@@ -15,11 +15,12 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.GHCi as P
 
+
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState DAP.ScopesRequest where
-  --action :: (StateRequest s r) -> AppContext ()
-  action (DebugRun_Scopes req) = do
+instance StateActivityIF DebugRunStateData DAP.ScopesRequest where
+  action2 _ (ScopesRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState ScopesRequest called. " ++ show req
     app req
 
@@ -27,7 +28,7 @@ instance StateRequestIF DebugRunState DAP.ScopesRequest where
 --
 app :: DAP.ScopesRequest -> AppContext (Maybe StateTransit)
 app req = flip catchError errHdl $ do
-  
+
   let args = DAP.argumentsScopesRequest req
       dap = ":dap-scopes "
       cmd = dap ++ U.showDAP args
@@ -38,7 +39,7 @@ app req = flip catchError errHdl $ do
   P.expectH $ P.funcCallBk lineCallBk
 
   return Nothing
-  
+
   where
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s

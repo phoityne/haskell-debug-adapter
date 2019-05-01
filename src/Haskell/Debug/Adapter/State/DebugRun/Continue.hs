@@ -16,9 +16,10 @@ import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.GHCi as P
 
 -- |
+--  Any errors should be sent back as False result Response
 --
-instance StateRequestIF DebugRunState DAP.ContinueRequest where
-  action (DebugRun_Continue req) = do
+instance StateActivityIF DebugRunStateData DAP.ContinueRequest where
+  action2 _ (ContinueRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState ContinueRequest called. " ++ show req
     app req
 
@@ -26,7 +27,7 @@ instance StateRequestIF DebugRunState DAP.ContinueRequest where
 --
 app :: DAP.ContinueRequest -> AppContext (Maybe StateTransit)
 app req = flip catchError errHdl $ do
-  
+
   let args = DAP.argumentsContinueRequest req
       dap = ":dap-continue "
       cmd = dap ++ U.showDAP args
@@ -46,7 +47,7 @@ app req = flip catchError errHdl $ do
   U.addResponse $ ContinueResponse res
 
   return Nothing
-  
+
   where
     lineCallBk :: Bool -> String -> AppContext ()
     lineCallBk True  s = U.sendStdoutEvent s
