@@ -17,7 +17,7 @@ import qualified Haskell.Debug.Adapter.State.Utility as SU
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.TerminateRequest where
-  action2 _ (TerminateRequest req) = do
+  action _ (TerminateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState TerminateRequest called. " ++ show req
     app req
 

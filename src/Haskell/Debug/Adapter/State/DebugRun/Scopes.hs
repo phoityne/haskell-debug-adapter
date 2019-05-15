@@ -20,7 +20,7 @@ import qualified Haskell.Debug.Adapter.GHCi as P
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.ScopesRequest where
-  action2 _ (ScopesRequest req) = do
+  action _ (ScopesRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState ScopesRequest called. " ++ show req
     app req
 

@@ -45,27 +45,27 @@ instance AppStateIF DebugRunStateData where
 
   -- |
   --
-  doActivity s (WrapRequest r@InitializeRequest{})              = action2 s r
-  doActivity s (WrapRequest r@LaunchRequest{})                  = action2 s r
-  doActivity s (WrapRequest r@DisconnectRequest{})              = action2 s r
-  doActivity s (WrapRequest r@PauseRequest{})                   = action2 s r
-  doActivity s (WrapRequest r@TerminateRequest{})               = action2 s r
-  doActivity s (WrapRequest r@SetBreakpointsRequest{})          = action2 s r
-  doActivity s (WrapRequest r@SetFunctionBreakpointsRequest{})  = action2 s r
-  doActivity s (WrapRequest r@SetExceptionBreakpointsRequest{}) = action2 s r
-  doActivity s (WrapRequest r@ConfigurationDoneRequest{})       = action2 s r
-  doActivity s (WrapRequest r@ThreadsRequest{})                 = action2 s r
-  doActivity s (WrapRequest r@StackTraceRequest{})              = action2 s r
-  doActivity s (WrapRequest r@ScopesRequest{})                  = action2 s r
-  doActivity s (WrapRequest r@VariablesRequest{})               = action2 s r
-  doActivity s (WrapRequest r@ContinueRequest{})                = action2 s r
-  doActivity s (WrapRequest r@NextRequest{})                    = action2 s r
-  doActivity s (WrapRequest r@StepInRequest{})                  = action2 s r
-  doActivity s (WrapRequest r@EvaluateRequest{})                = action2 s r
-  doActivity s (WrapRequest r@CompletionsRequest{})             = action2 s r
-  doActivity s (WrapRequest r@InternalTransitRequest{})         = action2 s r
-  doActivity s (WrapRequest r@InternalTerminateRequest{})       = action2 s r
-  doActivity s (WrapRequest r@InternalLoadRequest{})            = action2 s r
+  doActivity s (WrapRequest r@InitializeRequest{})              = action s r
+  doActivity s (WrapRequest r@LaunchRequest{})                  = action s r
+  doActivity s (WrapRequest r@DisconnectRequest{})              = action s r
+  doActivity s (WrapRequest r@PauseRequest{})                   = action s r
+  doActivity s (WrapRequest r@TerminateRequest{})               = action s r
+  doActivity s (WrapRequest r@SetBreakpointsRequest{})          = action s r
+  doActivity s (WrapRequest r@SetFunctionBreakpointsRequest{})  = action s r
+  doActivity s (WrapRequest r@SetExceptionBreakpointsRequest{}) = action s r
+  doActivity s (WrapRequest r@ConfigurationDoneRequest{})       = action s r
+  doActivity s (WrapRequest r@ThreadsRequest{})                 = action s r
+  doActivity s (WrapRequest r@StackTraceRequest{})              = action s r
+  doActivity s (WrapRequest r@ScopesRequest{})                  = action s r
+  doActivity s (WrapRequest r@VariablesRequest{})               = action s r
+  doActivity s (WrapRequest r@ContinueRequest{})                = action s r
+  doActivity s (WrapRequest r@NextRequest{})                    = action s r
+  doActivity s (WrapRequest r@StepInRequest{})                  = action s r
+  doActivity s (WrapRequest r@EvaluateRequest{})                = action s r
+  doActivity s (WrapRequest r@CompletionsRequest{})             = action s r
+  doActivity s (WrapRequest r@InternalTransitRequest{})         = action s r
+  doActivity s (WrapRequest r@InternalTerminateRequest{})       = action s r
+  doActivity s (WrapRequest r@InternalLoadRequest{})            = action s r
 
 -- |
 --   default nop.
@@ -213,7 +213,7 @@ startDebug = do
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.SetBreakpointsRequest where
-  action2 _ (SetBreakpointsRequest req) = do
+  action _ (SetBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState SetBreakpointsRequest called. " ++ show req
     SU.setBreakpointsRequest req
 
@@ -221,7 +221,7 @@ instance StateActivityIF DebugRunStateData DAP.SetBreakpointsRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.SetExceptionBreakpointsRequest where
-  action2 _ (SetExceptionBreakpointsRequest req) = do
+  action _ (SetExceptionBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState SetExceptionBreakpointsRequest called. " ++ show req
     SU.setExceptionBreakpointsRequest req
 
@@ -229,7 +229,7 @@ instance StateActivityIF DebugRunStateData DAP.SetExceptionBreakpointsRequest wh
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.SetFunctionBreakpointsRequest where
-  action2 _ (SetFunctionBreakpointsRequest req) = do
+  action _ (SetFunctionBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState SetFunctionBreakpointsRequest called. " ++ show req
     SU.setFunctionBreakpointsRequest req
 
@@ -242,7 +242,7 @@ instance StateActivityIF DebugRunStateData DAP.ConfigurationDoneRequest
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.EvaluateRequest where
-  action2 _ (EvaluateRequest req) = do
+  action _ (EvaluateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState EvaluateRequest called. " ++ show req
     SU.evaluateRequest req
 
@@ -250,7 +250,7 @@ instance StateActivityIF DebugRunStateData DAP.EvaluateRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.CompletionsRequest where
-  action2 _ (CompletionsRequest req) = do
+  action _ (CompletionsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState CompletionsRequest called. " ++ show req
     SU.completionsRequest req
 
@@ -263,7 +263,7 @@ instance StateActivityIF DebugRunStateData HdaInternalTransitRequest
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData HdaInternalLoadRequest where
-  action2 _ (InternalLoadRequest req) = do
+  action _ (InternalLoadRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState InternalLoadRequest called. " ++ show req
     SU.loadHsFile $ pathHdaInternalLoadRequest req
     return $ Just DebugRun_Contaminated

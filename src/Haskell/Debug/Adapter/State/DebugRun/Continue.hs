@@ -19,7 +19,7 @@ import qualified Haskell.Debug.Adapter.GHCi as P
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.ContinueRequest where
-  action2 _ (ContinueRequest req) = do
+  action _ (ContinueRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState ContinueRequest called. " ++ show req
     app req
 

@@ -16,7 +16,7 @@ import qualified Haskell.Debug.Adapter.State.Utility as SU
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData HdaInternalTerminateRequest where
-  action2 _ (InternalTerminateRequest req) = do
+  action _ (InternalTerminateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState InternalTerminateRequest called. " ++ show req
     app req
 

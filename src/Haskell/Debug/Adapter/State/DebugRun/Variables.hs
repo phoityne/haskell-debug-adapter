@@ -19,7 +19,7 @@ import qualified Haskell.Debug.Adapter.GHCi as P
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.VariablesRequest where
-  action2 _ (VariablesRequest req) = do
+  action _ (VariablesRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState VariablesRequest called. " ++ show req
     app req
 

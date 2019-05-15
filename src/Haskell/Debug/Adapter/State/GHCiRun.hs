@@ -29,27 +29,27 @@ instance AppStateIF GHCiRunStateData where
 
   -- |
   --
-  doActivity s (WrapRequest r@InitializeRequest{})              = action2 s r
-  doActivity s (WrapRequest r@LaunchRequest{})                  = action2 s r
-  doActivity s (WrapRequest r@DisconnectRequest{})              = action2 s r
-  doActivity s (WrapRequest r@PauseRequest{})                   = action2 s r
-  doActivity s (WrapRequest r@TerminateRequest{})               = action2 s r
-  doActivity s (WrapRequest r@SetBreakpointsRequest{})          = action2 s r
-  doActivity s (WrapRequest r@SetFunctionBreakpointsRequest{})  = action2 s r
-  doActivity s (WrapRequest r@SetExceptionBreakpointsRequest{}) = action2 s r
-  doActivity s (WrapRequest r@ConfigurationDoneRequest{})       = action2 s r
-  doActivity s (WrapRequest r@ThreadsRequest{})                 = action2 s r
-  doActivity s (WrapRequest r@StackTraceRequest{})              = action2 s r
-  doActivity s (WrapRequest r@ScopesRequest{})                  = action2 s r
-  doActivity s (WrapRequest r@VariablesRequest{})               = action2 s r
-  doActivity s (WrapRequest r@ContinueRequest{})                = action2 s r
-  doActivity s (WrapRequest r@NextRequest{})                    = action2 s r
-  doActivity s (WrapRequest r@StepInRequest{})                  = action2 s r
-  doActivity s (WrapRequest r@EvaluateRequest{})                = action2 s r
-  doActivity s (WrapRequest r@CompletionsRequest{})             = action2 s r
-  doActivity s (WrapRequest r@InternalTransitRequest{})         = action2 s r
-  doActivity s (WrapRequest r@InternalTerminateRequest{})       = action2 s r
-  doActivity s (WrapRequest r@InternalLoadRequest{})            = action2 s r
+  doActivity s (WrapRequest r@InitializeRequest{})              = action s r
+  doActivity s (WrapRequest r@LaunchRequest{})                  = action s r
+  doActivity s (WrapRequest r@DisconnectRequest{})              = action s r
+  doActivity s (WrapRequest r@PauseRequest{})                   = action s r
+  doActivity s (WrapRequest r@TerminateRequest{})               = action s r
+  doActivity s (WrapRequest r@SetBreakpointsRequest{})          = action s r
+  doActivity s (WrapRequest r@SetFunctionBreakpointsRequest{})  = action s r
+  doActivity s (WrapRequest r@SetExceptionBreakpointsRequest{}) = action s r
+  doActivity s (WrapRequest r@ConfigurationDoneRequest{})       = action s r
+  doActivity s (WrapRequest r@ThreadsRequest{})                 = action s r
+  doActivity s (WrapRequest r@StackTraceRequest{})              = action s r
+  doActivity s (WrapRequest r@ScopesRequest{})                  = action s r
+  doActivity s (WrapRequest r@VariablesRequest{})               = action s r
+  doActivity s (WrapRequest r@ContinueRequest{})                = action s r
+  doActivity s (WrapRequest r@NextRequest{})                    = action s r
+  doActivity s (WrapRequest r@StepInRequest{})                  = action s r
+  doActivity s (WrapRequest r@EvaluateRequest{})                = action s r
+  doActivity s (WrapRequest r@CompletionsRequest{})             = action s r
+  doActivity s (WrapRequest r@InternalTransitRequest{})         = action s r
+  doActivity s (WrapRequest r@InternalTerminateRequest{})       = action s r
+  doActivity s (WrapRequest r@InternalLoadRequest{})            = action s r
 
 -- |
 --   default nop.
@@ -75,7 +75,7 @@ instance StateActivityIF GHCiRunStateData DAP.PauseRequest
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.TerminateRequest where
-  action2 _ (TerminateRequest req) = do
+  action _ (TerminateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState TerminateRequest called. " ++ show req
 
     SU.terminateRequest req
@@ -86,7 +86,7 @@ instance StateActivityIF GHCiRunStateData DAP.TerminateRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.SetBreakpointsRequest where
-  action2 _ (SetBreakpointsRequest req) = do
+  action _ (SetBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetBreakpointsRequest called. " ++ show req
     SU.setBreakpointsRequest req
 
@@ -94,7 +94,7 @@ instance StateActivityIF GHCiRunStateData DAP.SetBreakpointsRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.SetExceptionBreakpointsRequest where
-  action2 _ (SetExceptionBreakpointsRequest req) = do
+  action _ (SetExceptionBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetExceptionBreakpointsRequest called. " ++ show req
     SU.setExceptionBreakpointsRequest req
 
@@ -102,7 +102,7 @@ instance StateActivityIF GHCiRunStateData DAP.SetExceptionBreakpointsRequest whe
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.SetFunctionBreakpointsRequest where
-  action2 _ (SetFunctionBreakpointsRequest req) = do
+  action _ (SetFunctionBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState SetFunctionBreakpointsRequest called. " ++ show req
     SU.setFunctionBreakpointsRequest req
 
@@ -110,7 +110,7 @@ instance StateActivityIF GHCiRunStateData DAP.SetFunctionBreakpointsRequest wher
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.ThreadsRequest where
-  action2 _ (ThreadsRequest req) = do
+  action _ (ThreadsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState ThreadsRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultThreadsResponse {
@@ -127,7 +127,7 @@ instance StateActivityIF GHCiRunStateData DAP.ThreadsRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.StackTraceRequest where
-  action2 _ (StackTraceRequest req) = do
+  action _ (StackTraceRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState StackTraceRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultStackTraceResponse {
@@ -144,7 +144,7 @@ instance StateActivityIF GHCiRunStateData DAP.StackTraceRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.ScopesRequest where
-  action2 _ (ScopesRequest req) = do
+  action _ (ScopesRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState ScopesRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultScopesResponse {
@@ -161,7 +161,7 @@ instance StateActivityIF GHCiRunStateData DAP.ScopesRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.VariablesRequest where
-  action2 _ (VariablesRequest req) = do
+  action _ (VariablesRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState VariablesRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultVariablesResponse {
@@ -179,7 +179,7 @@ instance StateActivityIF GHCiRunStateData DAP.VariablesRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.ContinueRequest where
-  action2 _ (ContinueRequest req) = do
+  action _ (ContinueRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState ContinueRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultContinueResponse {
@@ -197,7 +197,7 @@ instance StateActivityIF GHCiRunStateData DAP.ContinueRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.NextRequest where
-  action2 _ (NextRequest req) = do
+  action _ (NextRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState NextRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultNextResponse {
@@ -215,7 +215,7 @@ instance StateActivityIF GHCiRunStateData DAP.NextRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.StepInRequest where
-  action2 _ (StepInRequest req) = do
+  action _ (StepInRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState StepInRequest called. " ++ show req
     resSeq <- U.getIncreasedResponseSequence
     let res = DAP.defaultStepInResponse {
@@ -233,7 +233,7 @@ instance StateActivityIF GHCiRunStateData DAP.StepInRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.EvaluateRequest where
-  action2 _ (EvaluateRequest req) = do
+  action _ (EvaluateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState EvaluateRequest called. " ++ show req
     SU.evaluateRequest req
 
@@ -241,7 +241,7 @@ instance StateActivityIF GHCiRunStateData DAP.EvaluateRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.CompletionsRequest where
-  action2 _ (CompletionsRequest req) = do
+  action _ (CompletionsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState CompletionsRequest called. " ++ show req
     SU.completionsRequest req
 
@@ -254,7 +254,7 @@ instance StateActivityIF GHCiRunStateData HdaInternalTransitRequest
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData HdaInternalTerminateRequest where
-  action2 _ (InternalTerminateRequest req) = do
+  action _ (InternalTerminateRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState InternalTerminateRequest called. " ++ show req
     SU.internalTerminateRequest
     return $ Just GHCiRun_Shutdown
@@ -263,7 +263,7 @@ instance StateActivityIF GHCiRunStateData HdaInternalTerminateRequest where
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData HdaInternalLoadRequest where
-  action2 _ (InternalLoadRequest req) = do
+  action _ (InternalLoadRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState InternalTerminateRequest called. " ++ show req
     SU.internalTerminateRequest
     return $ Just GHCiRun_Shutdown

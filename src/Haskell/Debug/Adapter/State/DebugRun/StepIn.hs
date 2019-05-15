@@ -19,7 +19,7 @@ import qualified Haskell.Debug.Adapter.GHCi as P
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.StepInRequest where
-  action2 _ (StepInRequest req) = do
+  action _ (StepInRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState StepInRequest called. " ++ show req
     app req
 

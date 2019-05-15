@@ -31,27 +31,27 @@ instance AppStateIF InitStateData where
 
   -- |
   --
-  doActivity s (WrapRequest r@InitializeRequest{})              = action2 s r
-  doActivity s (WrapRequest r@LaunchRequest{})                  = action2 s r
-  doActivity s (WrapRequest r@DisconnectRequest{})              = action2 s r
-  doActivity s (WrapRequest r@PauseRequest{})                   = action2 s r
-  doActivity s (WrapRequest r@TerminateRequest{})               = action2 s r
-  doActivity s (WrapRequest r@SetBreakpointsRequest{})          = action2 s r
-  doActivity s (WrapRequest r@SetFunctionBreakpointsRequest{})  = action2 s r
-  doActivity s (WrapRequest r@SetExceptionBreakpointsRequest{}) = action2 s r
-  doActivity s (WrapRequest r@ConfigurationDoneRequest{})       = action2 s r
-  doActivity s (WrapRequest r@ThreadsRequest{})                 = action2 s r
-  doActivity s (WrapRequest r@StackTraceRequest{})              = action2 s r
-  doActivity s (WrapRequest r@ScopesRequest{})                  = action2 s r
-  doActivity s (WrapRequest r@VariablesRequest{})               = action2 s r
-  doActivity s (WrapRequest r@ContinueRequest{})                = action2 s r
-  doActivity s (WrapRequest r@NextRequest{})                    = action2 s r
-  doActivity s (WrapRequest r@StepInRequest{})                  = action2 s r
-  doActivity s (WrapRequest r@EvaluateRequest{})                = action2 s r
-  doActivity s (WrapRequest r@CompletionsRequest{})             = action2 s r
-  doActivity s (WrapRequest r@InternalTransitRequest{})         = action2 s r
-  doActivity s (WrapRequest r@InternalTerminateRequest{})       = action2 s r
-  doActivity s (WrapRequest r@InternalLoadRequest{})            = action2 s r
+  doActivity s (WrapRequest r@InitializeRequest{})              = action s r
+  doActivity s (WrapRequest r@LaunchRequest{})                  = action s r
+  doActivity s (WrapRequest r@DisconnectRequest{})              = action s r
+  doActivity s (WrapRequest r@PauseRequest{})                   = action s r
+  doActivity s (WrapRequest r@TerminateRequest{})               = action s r
+  doActivity s (WrapRequest r@SetBreakpointsRequest{})          = action s r
+  doActivity s (WrapRequest r@SetFunctionBreakpointsRequest{})  = action s r
+  doActivity s (WrapRequest r@SetExceptionBreakpointsRequest{}) = action s r
+  doActivity s (WrapRequest r@ConfigurationDoneRequest{})       = action s r
+  doActivity s (WrapRequest r@ThreadsRequest{})                 = action s r
+  doActivity s (WrapRequest r@StackTraceRequest{})              = action s r
+  doActivity s (WrapRequest r@ScopesRequest{})                  = action s r
+  doActivity s (WrapRequest r@VariablesRequest{})               = action s r
+  doActivity s (WrapRequest r@ContinueRequest{})                = action s r
+  doActivity s (WrapRequest r@NextRequest{})                    = action s r
+  doActivity s (WrapRequest r@StepInRequest{})                  = action s r
+  doActivity s (WrapRequest r@EvaluateRequest{})                = action s r
+  doActivity s (WrapRequest r@CompletionsRequest{})             = action s r
+  doActivity s (WrapRequest r@InternalTransitRequest{})         = action s r
+  doActivity s (WrapRequest r@InternalTerminateRequest{})       = action s r
+  doActivity s (WrapRequest r@InternalLoadRequest{})            = action s r
 
 -- |
 --   default nop.

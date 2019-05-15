@@ -18,7 +18,7 @@ import Haskell.Debug.Adapter.Utility
 --   Any errors should be critical. don't catch anything here.
 --
 instance StateActivityIF InitStateData DAP.InitializeRequest where
-  action2 _ (InitializeRequest req) = do
+  action _ (InitializeRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "InitState InitializeRequest called. " ++ show req
     app req
 

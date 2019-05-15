@@ -20,7 +20,7 @@ import qualified Haskell.Debug.Adapter.GHCi as P
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF DebugRunStateData DAP.StackTraceRequest where
-  action2 _ (StackTraceRequest req) = do
+  action _ (StackTraceRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState StackTraceRequest called. " ++ show req
     app req
 

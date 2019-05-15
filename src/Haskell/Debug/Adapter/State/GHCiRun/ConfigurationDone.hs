@@ -18,7 +18,7 @@ import qualified Haskell.Debug.Adapter.Utility as U
 --  Any errors should be sent back as False result Response
 --
 instance StateActivityIF GHCiRunStateData DAP.ConfigurationDoneRequest where
-  action2 _ (ConfigurationDoneRequest req) = do
+  action _ (ConfigurationDoneRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "GHCiRunState ConfigurationDoneRequest called. " ++ show req
     app req
 

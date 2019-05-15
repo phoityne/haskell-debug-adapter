@@ -31,7 +31,7 @@ import qualified Haskell.Debug.Adapter.GHCi as P
 --   Any errors should be critical. don't catch anything here.
 --
 instance StateActivityIF InitStateData DAP.LaunchRequest where
-  action2 _ (LaunchRequest req) = do
+  action _ (LaunchRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "InitState LaunchRequest called. " ++ show req
     app req
 

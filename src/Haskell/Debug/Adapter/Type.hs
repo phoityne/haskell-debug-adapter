@@ -338,9 +338,9 @@ instance WrapAppStateIF WrapAppState where
 -- |
 --
 class  (Show s, Show r) => StateActivityIF s r where
-  action2 :: (AppState s) -> (Request r) -> AppContext (Maybe StateTransit)
-  --action2 _ _ = return Nothing
-  action2 s r = do
+  action :: (AppState s) -> (Request r) -> AppContext (Maybe StateTransit)
+  --action _ _ = return Nothing
+  action s r = do
     liftIO $ L.warningM _LOG_APP $ show s ++ " " ++ show r ++ " not supported. nop."
     return Nothing
 
