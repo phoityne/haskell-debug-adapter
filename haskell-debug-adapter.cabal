@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.1.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bdbb77dee4fb24c9ebba6688c717b597fe7f4a5777a04bae83277c3c8361e821
+-- hash: cb5088a89d433877d6cc0a8a89bb17bbe0075162b1310d7f14704bb1ccb6311f
 
 name:           haskell-debug-adapter
-version:        0.0.31.0
+version:        0.0.32.0
 synopsis:       Haskell Debug Adapter.
 description:    Please see README.md
 category:       Development

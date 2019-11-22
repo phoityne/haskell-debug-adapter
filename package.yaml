@@ -1,5 +1,5 @@
 name: haskell-debug-adapter
-version: '0.0.31.0'
+version: '0.0.32.0'
 synopsis: Haskell Debug Adapter.
 description: Please see README.md
 category: Development
