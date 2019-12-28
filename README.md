@@ -1,5 +1,5 @@
 
-# HDA : Haskell Debug Adapter
+# Haskell Debug Adapter
 
 A [debug adapter](https://microsoft.github.io/debug-adapter-protocol/) for Haskell debugging system.
 
@@ -22,13 +22,8 @@ Install them at once.
 # Limitation
 Currently this project is an __experimental__ design and implementation.
 
-* Dev and checked on windows10 ghc-8.6
+* Developed and tested on windows10 ghc-8.6
 * The source file extension must be ".hs"
 * Can not use STDIN handle while debugging. 
 
 
-# Configuration
-
-## launch.json
-
-  see : https://github.com/phoityne/hdx4vsc#vscodelaunchjson

@@ -15,7 +15,6 @@ import qualified System.IO as S
 import qualified System.Environment as S
 import qualified Data.Map as M
 import qualified Data.List as L
-import qualified Data.String.Utils as U
 
 import Haskell.Debug.Adapter.Type
 import qualified Haskell.Debug.Adapter.Utility as U
@@ -30,7 +29,7 @@ startGHCi :: String
           -> FilePath
           -> M.Map String String
           -> AppContext ()
-startGHCi cmd opts cwd envs = 
+startGHCi cmd opts cwd envs =
   U.liftIOE (startGHCiIO cmd opts cwd envs) >>= liftEither >>= updateGHCi
 
   where
@@ -85,19 +84,19 @@ startGHCiIO cmd opts cwd envs = do
 
   where
     -- |
-    -- 
+    --
     getReadHandleEncoding :: IO TextEncoding
     getReadHandleEncoding = if
       | Windows == buildOS -> mkTextEncoding "CP932//TRANSLIT"
       | otherwise -> mkTextEncoding "UTF-8//TRANSLIT"
 
     -- |
-    -- 
+    --
     getRunEnv
       | null envs = return Nothing
       | otherwise = do
           curEnvs <- S.getEnvironment
-          return $ Just $ M.toList envs ++ curEnvs 
+          return $ Just $ M.toList envs ++ curEnvs
 
 
 -- |
@@ -106,7 +105,7 @@ type ExpectCallBack = Bool -> [String] -> [String] -> AppContext ()
 
 -- |
 --   expect prompt or eof
--- 
+--
 expectEOF :: ExpectCallBack -> AppContext [String]
 expectEOF func = expectH' True func
 
@@ -127,7 +126,7 @@ expectH' tilEOF func = do
       plen = length pmpt
 
   go tilEOF plen hdl []
-  
+
   where
     go False plen hdl acc = U.readLine hdl >>= go' plen hdl acc
     go True plen hdl acc = liftIO (S.hIsEOF hdl) >>= \case
@@ -213,7 +212,7 @@ cmdAndOut cmd = do
     pout s
       | L.isPrefixOf ":dap-" s = U.sendStdoutEventLF $ (takeWhile ((/=) ' ') s) ++ " ..."
       | otherwise = U.sendStdoutEventLF s
-      
+
 
 -- |
 --  write to ghci.

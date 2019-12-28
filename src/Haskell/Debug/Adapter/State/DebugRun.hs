@@ -10,7 +10,6 @@ import Control.Monad.Except
 import Control.Lens
 import qualified Text.Read as R
 import qualified Data.List as L
-import qualified Data.String.Utils as U
 
 import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Constant

@@ -47,8 +47,8 @@ lbs2str = TL.unpack. TLE.decodeUtf8
 
 
 -- |
---  
--- 
+--
+--
 loadFile :: FilePath -> IO BS.ByteString
 loadFile path = do
   bs <- C.runConduitRes
@@ -58,15 +58,15 @@ loadFile path = do
 
 
 -- |
---  
--- 
+--
+--
 saveFile :: FilePath -> BS.ByteString -> IO ()
 saveFile path cont = saveFileBSL path $ BSL.fromStrict cont
 
 
 -- |
---  
--- 
+--
+--
 saveFileBSL :: FilePath -> BSL.ByteString -> IO ()
 saveFileBSL path cont = C.runConduitRes
   $ C.sourceLbs cont
@@ -74,14 +74,14 @@ saveFileBSL path cont = C.runConduitRes
 
 
 -- |
---  
--- 
+--
+--
 add2File :: FilePath -> BS.ByteString -> IO ()
 add2File path cont = add2FileBSL path $ BSL.fromStrict cont
 
 -- |
---  
--- 
+--
+--
 add2FileBSL :: FilePath -> BSL.ByteString -> IO ()
 add2FileBSL path cont = C.runConduitRes
   $ C.sourceLbs cont
@@ -89,17 +89,17 @@ add2FileBSL path cont = C.runConduitRes
 
   where hdl = S.openFile path S.AppendMode
 
-           
+
 -- |
 --  utility
--- 
+--
 showEE :: (Show e) => Either e a -> Either ErrMsg a
 showEE (Right v) = Right v
 showEE (Left  e) = Left $ show e
 
 
 -- |
--- 
+--
 runApp :: AppStores -> AppContext a -> IO (Either ErrMsg (a, AppStores))
 runApp dat app = runExceptT $ runStateT app dat
 
@@ -187,7 +187,7 @@ sendOutputEventWithType evType msg = do
                 DAP.seqOutputEvent = resSeq
               , DAP.bodyOutputEvent = body
               }
-              
+
   addResponse $ OutputEvent outEvt
 
 -- |
@@ -232,7 +232,7 @@ logEV pr name msg = do
   mvar <- view logPriorityAppStores <$> get
   logPR <- liftIO $ readMVar mvar
   let msg' = if L.isSuffixOf _LF_STR msg then msg else msg ++ _LF_STR
-   
+
   when (pr >= logPR) $ do
     sendStdoutEvent $ "[" ++ show pr ++ "][" ++ name ++ "] " ++ msg'
 
@@ -326,7 +326,7 @@ sendExitedEvent = do
       Nothing -> do
         liftIO $ L.infoM _LOG_NAME "force kill ghci."
         force
-    
+
     force = killGHCi >> getGHCiExitCode >>= \case
       Just c -> return c
       Nothing -> do
@@ -371,7 +371,7 @@ handleStoppedEventBody body
       -- ghci and vscode can not rerun debugging without restart.
       -- sendContinuedEvent
       -- sendPauseEvent
-      addRequestHP $ WrapRequest 
+      addRequestHP $ WrapRequest
                    $ InternalTransitRequest
                    $ HdaInternalTransitRequest DebugRun_Contaminated
 
@@ -420,7 +420,7 @@ readLine hdl =   isOpenHdl hdl
 
   where
     go hdl = liftIOE (Right <$> S.hGetLine hdl) >>= liftEither
-    
+
 
 -- |
 --
@@ -434,7 +434,7 @@ readChar hdl = isOpenHdl hdl
 
   where
     go hdl = liftIOE (Right <$> S.hGetChar hdl) >>= liftEither
-    
+
     toString c = return [c]
 
 
@@ -517,4 +517,35 @@ liftIOE f = liftIO (go f) >>= liftEither
     errHdl :: E.SomeException -> IO (Either String a)
     errHdl = return . Left . show
 
+
+-- |
+--
+rstrip :: String -> String
+rstrip = T.unpack . T.stripEnd . T.pack
+
+
+-- |
+--
+strip :: String -> String
+strip = T.unpack . T.strip . T.pack
+
+-- |
+--
+replace :: String -> String -> String -> String
+replace a b c = T.unpack $ T.replace (T.pack a) (T.pack b) (T.pack c)
+
+-- |
+--
+split :: String -> String -> [String]
+split a b = map T.unpack $ T.splitOn (T.pack a) (T.pack b)
+
+-- |
+--
+join :: String -> [String] -> String
+join a b = T.unpack $ T.intercalate (T.pack a) $ map T.pack b
+
+-- |
+--
+startswith :: String -> String -> Bool
+startswith a b = T.isPrefixOf (T.pack a) (T.pack b)
 

@@ -13,7 +13,6 @@ import System.FilePath
 import Text.Parsec
 import qualified Text.Read as R
 import qualified System.Log.Logger as L
-import qualified Data.String.Utils as U
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.List as L
 import qualified Data.Version as V
