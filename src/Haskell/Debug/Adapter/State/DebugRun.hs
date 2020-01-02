@@ -9,7 +9,6 @@ import Control.Monad.State.Lazy
 import Control.Monad.Except
 import Control.Lens
 import qualified Text.Read as R
-import qualified Data.List as L
 
 import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Constant
@@ -104,8 +103,8 @@ stopOnEntry = do
       funcBp   = (startupFile, DAP.FunctionBreakpoint funcName Nothing Nothing)
       cmd = ":dap-set-function-breakpoint " ++ U.showDAP funcBp
 
-  P.cmdAndOut cmd
-  res <- P.expectH P.stdoutCallBk
+  P.command cmd
+  res <- P.expectPmpt
 
   withAdhocAddDapHeader $ filter (U.startswith _DAP_HEADER) res
 
@@ -136,8 +135,8 @@ stopOnEntry = do
     adhocDelBreakpoint bp = do
       let cmd = ":dap-delete-breakpoint " ++ U.showDAP bp
 
-      P.cmdAndOut cmd
-      res <- P.expectH P.stdoutCallBk
+      P.command cmd
+      res <- P.expectPmpt
 
       withAdhocDelDapHeader $ filter (U.startswith _DAP_HEADER) res
 
@@ -176,20 +175,11 @@ startDebug = do
           cmd = dap ++ U.showDAP args
           dbg = dap ++ show args
 
-      P.cmdAndOut cmd
+      P.command cmd
       U.debugEV _LOG_APP dbg
-      P.expectH $ P.funcCallBk lineCallBk
+      P.expectPmpt >>= SU.takeDapResult >>= dapHdl
 
       return ()
-
-
-    lineCallBk :: Bool -> String -> AppContext ()
-    lineCallBk True  s = U.sendStdoutEvent s
-    lineCallBk False s
-      | L.isPrefixOf _DAP_HEADER s = do
-        U.debugEV _LOG_APP s
-        dapHdl $ drop (length _DAP_HEADER) s
-      | otherwise = U.sendStdoutEventLF s
 
     -- |
     --

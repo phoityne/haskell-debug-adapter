@@ -100,114 +100,17 @@ startGHCiIO cmd opts cwd envs = do
 
 
 -- |
---
-type ExpectCallBack = Bool -> [String] -> [String] -> AppContext ()
-
--- |
---   expect prompt or eof
---
-expectEOF :: ExpectCallBack -> AppContext [String]
-expectEOF func = expectH' True func
-
--- |
---   expect prompt. eof throwError.
---
-expectH :: ExpectCallBack -> AppContext [String]
-expectH func = expectH' False func
-
--- |
---
-expectH' :: Bool -> ExpectCallBack -> AppContext [String]
-expectH' tilEOF func = do
-  pmpt <- view ghciPmptAppStores <$> get
-  mvar <- view ghciProcAppStores <$> get
-  proc <- liftIO $ readMVar mvar
-  let hdl = proc^.rHdlGHCiProc
-      plen = length pmpt
-
-  go tilEOF plen hdl []
-
-  where
-    go False plen hdl acc = U.readLine hdl >>= go' plen hdl acc
-    go True plen hdl acc = liftIO (S.hIsEOF hdl) >>= \case
-      False -> U.readLine hdl >>= go' plen hdl acc
-      True  -> return acc
-
-    go' plen hdl acc b = do
-      let newL = U.rstrip b
-      if L.isSuffixOf _DAP_CMD_END2 newL
-        then goEnd plen hdl acc
-        else cont plen hdl acc newL
-
-    cont plen hdl acc newL = do
-      let newAcc = acc ++ [newL]
-      func False newAcc [newL]
-      go tilEOF plen hdl newAcc
-
-    goEnd plen hdl acc = do
-      b <- liftIO $ B.hGet hdl plen
-      let l = U.bs2str b
-          newAcc = acc ++ [l]
-
-      func True newAcc [l]
-      return newAcc
-
-
--- |
---
-expect :: String -> ExpectCallBack -> AppContext ()
-expect key func = do
-  mvar <- view ghciProcAppStores <$> get
-  proc <- liftIO $ readMVar mvar
-  let hdl = proc^.rHdlGHCiProc
-
-  xs <- go key hdl ""
-  let strs = map U.rstrip $ lines xs
-
-  func True strs strs
-
-  where
-    go kb hdl acc = U.readChar hdl
-      >>= go' kb hdl acc
-
-    go' kb hdl acc b = do
-      let newAcc = acc ++ b
-      if L.isSuffixOf kb newAcc
-        then return newAcc
-        else go kb hdl newAcc
-
-
--- |
 --  write to ghci.
 --
 command :: String -> AppContext ()
 command cmd = do
   mver <- view ghciProcAppStores <$> get
-  proc <- liftIO $ readMVar mver
+  proc <- U.liftIOE $ readMVar mver
   let hdl = proc^.wHdLGHCiProc
 
-  U.liftIOE (Right <$> S.hPutStrLn hdl cmd) >>= liftEither
-
-
--- |
---  write to ghci.
---
-stdoutCallBk :: Bool -> [String] -> [String] -> AppContext ()
-stdoutCallBk _ _ ([]) = return ()
-stdoutCallBk True  _ (x:[]) = U.sendStdoutEvent x
-stdoutCallBk False _ (x:[]) = U.sendStdoutEventLF x
-stdoutCallBk True  _ xs = do
-  mapM_ U.sendStdoutEventLF $ init xs
-  U.sendStdoutEvent $ last xs
-stdoutCallBk False _ xs = mapM_ U.sendStdoutEventLF xs
-
-
--- |
---
-cmdAndOut :: String -> AppContext ()
-cmdAndOut cmd = do
+  U.liftIOE $ S.hPutStrLn hdl cmd
   pout cmd
-  command cmd
+
   where
     pout s
       | L.isPrefixOf ":dap-" s = U.sendStdoutEventLF $ (takeWhile ((/=) ' ') s) ++ " ..."
@@ -215,12 +118,61 @@ cmdAndOut cmd = do
 
 
 -- |
---  write to ghci.
 --
-funcCallBk :: (Bool -> String -> AppContext ()) -> Bool -> [String] -> [String] -> AppContext ()
-funcCallBk _ _ _ ([]) = return ()
-funcCallBk f b _ (x:[]) = f b x
-funcCallBk f True  _ xs = do
-  mapM_ (f False) $ init xs
-  f True $ last xs
-funcCallBk f False _ xs = mapM_ (f False) xs
+expectInitPmpt :: String -> AppContext [String]
+expectInitPmpt pmpt = do
+  mvar <- view ghciProcAppStores <$> get
+  proc <- U.liftIOE $ readMVar mvar
+  let hdl = proc^.rHdlGHCiProc
+
+  xs <- go pmpt hdl ""
+
+  let strs = map U.rstrip $ lines xs
+  pout strs
+  return strs
+
+  where
+    go key hdl acc = U.readChar hdl
+                >>= byPmpt key hdl acc
+
+    byPmpt key hdl acc b = do
+      let newAcc = acc ++ b
+      if L.isSuffixOf key newAcc
+        then return newAcc
+        else go key hdl newAcc
+
+    pout [] = return ()
+    pout (x:[]) = U.sendStdoutEvent x
+    pout (x:xs) = U.sendStdoutEventLF x >> pout xs
+
+-- |
+--
+expectPmpt :: AppContext [String]
+expectPmpt = do
+  pmpt <- view ghciPmptAppStores <$> get
+  mvar <- view ghciProcAppStores <$> get
+  proc <- U.liftIOE $ readMVar mvar
+  let hdl = proc^.rHdlGHCiProc
+      plen = length pmpt
+
+  go plen hdl []
+
+  where
+    go plen hdl acc = U.liftIOE (S.hIsEOF hdl) >>= \case
+      True  -> return acc
+      False -> U.readLine hdl >>= byLine plen hdl acc
+
+    byLine plen hdl acc line
+      | L.isSuffixOf _DAP_CMD_END2 line = goEnd plen hdl acc
+      | otherwise = cont plen hdl acc line
+
+    cont plen hdl acc l = do
+      when (not (U.startswith _DAP_HEADER l)) $ U.sendStdoutEventLF l
+      go plen hdl $ acc ++ [l]
+
+    goEnd plen hdl acc = do
+      b <- U.liftIOE $ B.hGet hdl plen
+      let l = U.bs2str b
+      U.sendStdoutEvent l
+      return $ acc ++ [l]
+

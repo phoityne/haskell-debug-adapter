@@ -184,32 +184,27 @@ startGHCi req = do
   opts <- addWithGHC (tail cmdList)
 
   appStores <- get
-  cwd <- liftIO $ readMVar $ appStores^.workspaceAppStores
+  cwd <- U.liftIOE $ readMVar $ appStores^.workspaceAppStores
 
-  liftIO $ L.debugM _LOG_APP $ "ghci initial prompt [" ++ initPmpt ++ "]."
+  U.liftIOE $ L.debugM _LOG_APP $ "ghci initial prompt [" ++ initPmpt ++ "]."
 
-  U.sendStdoutEventLF $ "CWD:" ++ cwd
-  U.sendStdoutEventLF $ "CMD:" ++ L.intercalate " " (cmd : opts)
-  U.sendStdoutEventLF ""
+  U.sendConsoleEventLF $ "CWD: " ++ cwd
+  U.sendConsoleEventLF $ "CMD: " ++ L.intercalate " " (cmd : opts)
+  U.sendConsoleEventLF ""
 
   P.startGHCi cmd opts cwd envs
-  P.expect initPmpt expCallBK
+  res <- P.expectInitPmpt initPmpt
+
+  updateGHCiVersion res
 
   where
-    expCallBK _ _ ([]) = return ()
-    expCallBK True  acc (x:[]) = do
-      U.sendStdoutEvent x
-      updateGHCiVersion acc
-    expCallBK False _ (x:[]) = U.sendStdoutEventLF x
-    expCallBK True  _ xs = do
-      mapM_ U.sendStdoutEventLF $ init xs
-      U.sendStdoutEvent $ last xs
-    expCallBK False _ xs = mapM_ U.sendStdoutEventLF xs
 
     updateGHCiVersion acc = case parse verParser "getGHCiVersion" (unlines acc) of
-      Right v -> updateGHCiVersion' v
+      Right v -> do
+        U.debugEV _LOG_APP $ "GHCi version is " ++ V.showVersion v
+        updateGHCiVersion' v
       Left e  -> do
-        U.sendConsoleEventLF $ "can not parse ghci version. [" ++ show e ++ "] assumes "  ++ V.showVersion _BASE_GHCI_VERSION ++ "."
+        U.sendConsoleEventLF $ "Can not parse ghci version. [" ++ show e ++ "]. Assumes "  ++ V.showVersion _BASE_GHCI_VERSION ++ "."
         updateGHCiVersion' _BASE_GHCI_VERSION
 
     verParser = do
@@ -220,9 +215,8 @@ startGHCi req = do
       return $ V.makeVersion [read v1, read v2, read v3]
 
     updateGHCiVersion' v = do
-      -- U.debugEV _LOG_APP $ "GHCi version is " ++ V.showVersion v
       mver <- view ghciVerAppStores <$> get
-      liftIO $ putMVar mver v
+      U.liftIOE $ putMVar mver v
 
 -- |
 --
@@ -233,14 +227,13 @@ setPrompt = do
       cmd  = ":set prompt \""++pmpt++"\""
       cmd2 = ":set prompt-cont \""++pmpt++"\""
 
-  P.cmdAndOut cmd
-  P.expectH P.stdoutCallBk
+  P.command cmd
+  P.expectPmpt
 
-  P.cmdAndOut cmd2
-  P.expectH P.stdoutCallBk
+  P.command cmd2
+  P.expectPmpt
 
   return ()
-
 
 -- |
 --
@@ -251,9 +244,9 @@ launchCmd req = do
       cmd = dap ++ U.showDAP args
       dbg = dap ++ show args
 
-  P.cmdAndOut cmd
+  P.command cmd
   U.debugEV _LOG_APP dbg
-  P.expectH P.stdoutCallBk
+  P.expectPmpt
 
   return ()
 
@@ -266,8 +259,8 @@ setMainArgs = view mainArgsAppStores <$> get >>= \case
   args -> do
     let cmd  = ":set args "++args
 
-    P.cmdAndOut cmd
-    P.expectH P.stdoutCallBk
+    P.command cmd
+    P.expectPmpt
 
     return ()
 
@@ -278,6 +271,13 @@ loadStarupFile :: AppContext ()
 loadStarupFile = do
   file <- view startupAppStores <$> get
   SU.loadHsFile file
+
+  let cmd  = ":dap-context-modules "
+
+  P.command cmd
+  P.expectPmpt
+
+  return ()
 
 
 -- |

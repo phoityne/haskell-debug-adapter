@@ -419,7 +419,7 @@ readLine hdl =   isOpenHdl hdl
              >>= go
 
   where
-    go hdl = liftIOE (Right <$> S.hGetLine hdl) >>= liftEither
+    go hdl = liftIOE $ S.hGetLine hdl
 
 
 -- |
@@ -433,7 +433,7 @@ readChar hdl = isOpenHdl hdl
            >>= isNotEmpty
 
   where
-    go hdl = liftIOE (Right <$> S.hGetChar hdl) >>= liftEither
+    go hdl = liftIOE $ S.hGetChar hdl
 
     toString c = return [c]
 
@@ -454,13 +454,13 @@ readCharsL hdl c = isOpenHdl hdl
                >>= isNotEmptyL
 
   where
-    go hdl = liftIOE (Right <$> BSL.hGet hdl c) >>= liftEither
+    go hdl = liftIOE $ BSL.hGet hdl c
 
 
 -- |
 --
 isOpenHdl :: S.Handle -> AppContext S.Handle
-isOpenHdl rHdl = liftIO (S.hIsOpen rHdl) >>= \case
+isOpenHdl rHdl = liftIOE (S.hIsOpen rHdl) >>= \case
   True  -> return rHdl
   False -> throwError "invalid HANDLE. not opened."
 
@@ -468,7 +468,7 @@ isOpenHdl rHdl = liftIO (S.hIsOpen rHdl) >>= \case
 -- |
 --
 isReadableHdl :: S.Handle -> AppContext S.Handle
-isReadableHdl rHdl = liftIO (S.hIsReadable rHdl) >>= \case
+isReadableHdl rHdl = liftIOE (S.hIsReadable rHdl) >>= \case
   True  -> return rHdl
   False -> throwError "invalid HANDLE. not readable."
 
@@ -476,7 +476,7 @@ isReadableHdl rHdl = liftIO (S.hIsReadable rHdl) >>= \case
 -- |
 --
 isNotEofHdl :: S.Handle -> AppContext S.Handle
-isNotEofHdl rHdl = liftIO (S.hIsEOF rHdl) >>= \case
+isNotEofHdl rHdl = liftIOE (S.hIsEOF rHdl) >>= \case
   False -> return rHdl
   True  -> throwError "invalid HANDLE. eof."
 

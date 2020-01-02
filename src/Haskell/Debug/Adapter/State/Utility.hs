@@ -3,10 +3,8 @@
 
 module Haskell.Debug.Adapter.State.Utility where
 
--- import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
 import qualified Text.Read as R
-import qualified Data.List as L
 import Control.Monad.Except
 import Control.Concurrent (threadDelay)
 
@@ -26,21 +24,13 @@ setBreakpointsRequest req = flip catchError errHdl $ do
       cmd = dap ++ U.showDAP args
       dbg = dap ++ show args
 
-  P.cmdAndOut cmd
+  P.command cmd
   U.debugEV _LOG_APP dbg
-  P.expectH $ P.funcCallBk lineCallBk
+  P.expectPmpt >>= takeDapResult >>= dapHdl
 
   return Nothing
 
   where
-    lineCallBk :: Bool -> String -> AppContext ()
-    lineCallBk True  s = U.sendStdoutEvent s
-    lineCallBk False s
-      | L.isPrefixOf _DAP_HEADER s = do
-        U.debugEV _LOG_APP s
-        dapHdl $ drop (length _DAP_HEADER) s
-      | otherwise = U.sendStdoutEventLF s
-
     -- |
     --
     dapHdl :: String -> AppContext ()
@@ -105,8 +95,8 @@ setExceptionBreakpointsRequest req = do
     go opt = do
       let cmd = ":set " ++ opt
 
-      P.cmdAndOut cmd
-      P.expectH $ P.stdoutCallBk
+      P.command cmd
+      P.expectPmpt
 
 
 
@@ -119,20 +109,13 @@ setFunctionBreakpointsRequest req = flip catchError errHdl $ do
       cmd = dap ++ U.showDAP args
       dbg = dap ++ show args
 
-  P.cmdAndOut cmd
+  P.command cmd
   U.debugEV _LOG_APP dbg
-  P.expectH $ P.funcCallBk lineCallBk
+  P.expectPmpt >>= takeDapResult >>= dapHdl
 
   return Nothing
 
   where
-    lineCallBk :: Bool -> String -> AppContext ()
-    lineCallBk True  s = U.sendStdoutEvent s
-    lineCallBk False s
-      | L.isPrefixOf _DAP_HEADER s = do
-        U.debugEV _LOG_APP s
-        dapHdl $ drop (length _DAP_HEADER) s
-      | otherwise = U.sendStdoutEventLF s
 
     -- |
     --
@@ -175,8 +158,8 @@ terminateGHCi :: AppContext ()
 terminateGHCi = do
   let cmd = ":quit"
 
-  P.cmdAndOut cmd
-  P.expectEOF $ P.stdoutCallBk
+  P.command cmd
+  P.expectPmpt
   return ()
 
 
@@ -190,22 +173,13 @@ evaluateRequest req = do
       cmd = dap ++ U.showDAP args
       dbg = dap ++ show args
 
-  P.cmdAndOut cmd
+  P.command cmd
   U.debugEV _LOG_APP dbg
-  P.expectH $ P.funcCallBk lineCallBk
+  P.expectPmpt >>= takeDapResult >>= dapHdl
 
   return Nothing
 
   where
-    lineCallBk :: Bool -> String -> AppContext ()
-    lineCallBk True  s = U.sendStdoutEvent s
-    lineCallBk False s
-      | L.isPrefixOf _DAP_HEADER s = do
-        U.debugEV _LOG_APP s
-        dapHdl $ drop (length _DAP_HEADER) s
-      | otherwise = do
-        liftIO $ L.errorM _LOG_APP s
-        U.sendStdoutEventLF s
 
     -- |
     --
@@ -250,8 +224,8 @@ completionsRequest req = flip catchError errHdl $ do
       size = "0-50"
       cmd = ":complete repl " ++ size ++ " \"" ++ key ++ "\""
 
-  P.cmdAndOut cmd
-  outs <- P.expectH P.stdoutCallBk
+  P.command cmd
+  outs <- P.expectPmpt
 
   resSeq <- U.getIncreasedResponseSequence
   let items = createItems outs
@@ -320,8 +294,8 @@ loadHsFile :: FilePath -> AppContext ()
 loadHsFile file = do
   let cmd  = ":load "++ file
 
-  P.cmdAndOut cmd
-  P.expectH P.stdoutCallBk
+  P.command cmd
+  P.expectPmpt
 
   return ()
 
@@ -357,5 +331,13 @@ internalTerminateRequest = do
 
     U.sendTerminatedEvent
     U.sendExitedEvent
+
+
+-- |
+--
+takeDapResult :: [String] -> AppContext String
+takeDapResult res = case filter (U.startswith _DAP_HEADER) res of
+  (x:[]) -> return $ drop (length _DAP_HEADER) x
+  _ -> throwError $ "invalid dap result from ghci. " ++ show res
 
 

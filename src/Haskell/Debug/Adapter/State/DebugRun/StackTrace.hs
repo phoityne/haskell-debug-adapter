@@ -6,7 +6,6 @@ module Haskell.Debug.Adapter.State.DebugRun.StackTrace where
 import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
 import qualified Text.Read as R
-import qualified Data.List as L
 import Control.Monad.Except
 
 import qualified Haskell.DAP as DAP
@@ -14,6 +13,7 @@ import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Utility as U
 import qualified Haskell.Debug.Adapter.GHCi as P
+import qualified Haskell.Debug.Adapter.State.Utility as SU
 
 
 -- |
@@ -34,21 +34,13 @@ app req = flip catchError errHdl $ do
       cmd = dap ++ U.showDAP args
       dbg = dap ++ show args
 
-  P.cmdAndOut cmd
+  P.command cmd
   U.debugEV _LOG_APP dbg
-  P.expectH $ P.funcCallBk lineCallBk
+  P.expectPmpt >>= SU.takeDapResult >>= dapHdl
 
   return Nothing
 
   where
-    lineCallBk :: Bool -> String -> AppContext ()
-    lineCallBk True  s = U.sendStdoutEvent s
-    lineCallBk False s
-      | L.isPrefixOf _DAP_HEADER s = do
-        U.debugEV _LOG_APP s
-        dapHdl $ drop (length _DAP_HEADER) s
-      | otherwise = U.sendStdoutEventLF s
-
     -- |
     --
     dapHdl :: String -> AppContext ()
