@@ -1,3 +1,7 @@
+20200105 haskell-debug-adapter-0.0.32.0
+  * [INFO] use haskell-dap-0.0.14.0.
+  * [MODIFY] refactor some types.
+
 
 20190505 haskell-debug-adapter-0.0.31.0
   * [MODIFY] refactor some types.

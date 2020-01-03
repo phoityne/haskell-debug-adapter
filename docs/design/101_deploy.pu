@@ -8,29 +8,41 @@ skinparam monochrome true
 skinparam linetype ortho
 'skinparam linetype splines
 skinparam arrowThickness 2
-left to right direction
+' left to right direction
 
 title <size:18>Haskell Debugging System Deployment Diagram</size>
 
-node "VSCODE" {
+node "VSCode" {
   component "phoityne-vscode" <<extension>>
+}
+
+
+node "Vim" {
+  component "hdx4vim" <<config>>
+}
+
+node "Emacs" {
+  component "hdx4emacs" <<config>>
+}
+
+node "Visual Studio" {
+  component "hdx4vs" <<extension>>
 }
 
 node "Haskell Debugger" {
   component "haskell-dap" <<library>>
-  component "hda" <<process>>
+  component "haskell-debug-adapter" <<executable>>
   rectangle ghci #line.dashed {
-    component "ghci-dap" <<process>>
+    component "ghci-dap" <<executable>>
   }
 }
 
-[phoityne-vscode] -- [hda] : <<stdio>>
-[hda] --> [ghci-dap] : <<stdio>>
-[hda] -l-> [haskell-dap] : <<use>>
+[phoityne-vscode] -- [haskell-debug-adapter] : <<DAP>>
+[hdx4vim] -- [haskell-debug-adapter] : <<DAP>>
+[hdx4emacs] -- [haskell-debug-adapter] : <<DAP>>
+[hdx4vs] -- [haskell-debug-adapter] : <<DAP>>
+[haskell-debug-adapter] -- [ghci-dap] : <<stdio>>
+[haskell-debug-adapter] --> [haskell-dap] : <<use>>
 [ghci-dap] -l-> [haskell-dap] : <<use>>
-
-note left of "phoityne-vscode"
-  hda4vsc
-end note
 
 @enduml
