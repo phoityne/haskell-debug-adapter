@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ddebe0830d88c44b7a0ccbaece232893d11f43f39d38154eb7edded0323b4a75
+-- hash: 68d1bb0d01048b286f46f92073a82bbfcd7882495077f4853d74f88246cdf8c2
 
 name:           haskell-debug-adapter
 version:        0.0.32.0
@@ -15,7 +15,7 @@ homepage:       https://github.com/phoityne/haskell-debug-adapter/
 bug-reports:    https://github.com/phoityne/haskell-debug-adapter/issues
 author:         phoityne_hs
 maintainer:     phoityne.hs@gmail.com
-copyright:      2016-2019 phoityne_hs
+copyright:      2016-2020 phoityne_hs
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -76,7 +76,8 @@ library
     , directory
     , filepath
     , fsnotify
-    , haskell-dap >=0.0.12.0
+    , ghci-dap >=0.0.13.0
+    , haskell-dap >=0.0.14.0
     , hslogger
     , lens
     , mtl
@@ -114,7 +115,8 @@ executable haskell-debug-adapter
     , directory
     , filepath
     , fsnotify
-    , haskell-dap >=0.0.12.0
+    , ghci-dap >=0.0.13.0
+    , haskell-dap >=0.0.14.0
     , haskell-debug-adapter
     , hslogger
     , lens
@@ -154,7 +156,8 @@ test-suite haskell-debug-adapter-test
     , directory
     , filepath
     , fsnotify
-    , haskell-dap >=0.0.12.0
+    , ghci-dap >=0.0.13.0
+    , haskell-dap >=0.0.14.0
     , haskell-debug-adapter
     , hslogger
     , hspec

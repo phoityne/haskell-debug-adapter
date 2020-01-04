@@ -90,7 +90,8 @@ dependencies:
 - clock
 - fsnotify
 - cmdargs
-- haskell-dap >=0.0.13.0
+- haskell-dap >=0.0.14.0
+- ghci-dap >=0.0.13.0
 
 library:
   source-dirs: src
