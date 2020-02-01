@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 68d1bb0d01048b286f46f92073a82bbfcd7882495077f4853d74f88246cdf8c2
+-- hash: 1200c46ec93d27f1683e62daefdd7b3040bf3be5b81ef43bc8982646c2bc7df8
 
 name:           haskell-debug-adapter
 version:        0.0.32.0
@@ -68,7 +68,6 @@ library
     , base >=4.7 && <5
     , bytestring
     , clock
-    , cmdargs
     , conduit
     , conduit-extra
     , containers
@@ -93,8 +92,6 @@ library
 executable haskell-debug-adapter
   main-is: Main.hs
   other-modules:
-      Haskell.Debug.Adapter.Argument
-      Haskell.Debug.Adapter.Main
       Paths_haskell_debug_adapter
   hs-source-dirs:
       app
@@ -107,7 +104,6 @@ executable haskell-debug-adapter
     , base >=4.7 && <5
     , bytestring
     , clock
-    , cmdargs
     , conduit
     , conduit-extra
     , containers
@@ -148,7 +144,6 @@ test-suite haskell-debug-adapter-test
     , base >=4.7 && <5
     , bytestring
     , clock
-    , cmdargs
     , conduit
     , conduit-extra
     , containers

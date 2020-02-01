@@ -17,7 +17,7 @@ node "VSCode" {
 }
 
 
-node "Vim" {
+node "Vim/NeoVim" {
   component "hdx4vim" <<config>>
 }
 

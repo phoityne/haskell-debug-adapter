@@ -1,17 +1,21 @@
 module Main where
 
 import System.Exit
-import qualified Haskell.Debug.Adapter.Main as M
+import System.IO
+import Control.Exception.Safe
+import Data.Default
 
-import qualified Haskell.Debug.Adapter.Argument as A
-import qualified System.Console.CmdArgs as CMD
+import Haskell.Debug.Adapter.Control
 
 -- |
 --  Main
 --
 main :: IO ()
-main = CMD.cmdArgs A.setting >>= M.run >>= \case
-  0 -> exitSuccess
-  c -> exitWith . ExitFailure $ c
+main = flip catchAny exception
+     $ flip finally  finalize
+     $ run def stdin stdout
 
+  where
+    finalize = return ()
+    exception e = print e >> exitFailure
 

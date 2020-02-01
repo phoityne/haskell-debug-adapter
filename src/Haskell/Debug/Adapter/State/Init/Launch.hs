@@ -193,6 +193,8 @@ startGHCi req = do
   U.sendConsoleEventLF ""
 
   P.startGHCi cmd opts cwd envs
+  U.sendErrorEventLF $ "Now, waiting for an initial prompt(\""++initPmpt++"\")" ++ " from ghci."
+  U.sendConsoleEventLF ""
   res <- P.expectInitPmpt initPmpt
 
   updateGHCiVersion res

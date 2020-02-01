@@ -24,7 +24,10 @@ import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.TH.Utility
 import Haskell.Debug.Adapter.Constant
 
+
 --------------------------------------------------------------------------------
+-- |
+--
 instance FromJSON  L.Priority  where
   parseJSON (String v) = pure $ read $ T.unpack v
   parseJSON o = error $ "json parse error. Priority:" ++ show o

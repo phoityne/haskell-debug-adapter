@@ -4,7 +4,6 @@ module Haskell.Debug.Adapter.ControlSpec where
 
 import Test.Hspec
 import Data.Aeson
-import Data.Default
 import Control.Concurrent (threadDelay)
 import qualified System.IO as S
 import Control.Concurrent.Async
@@ -26,7 +25,7 @@ spec = do
     $ spec'
 
   where
-  
+
     beforeAll' :: IO ()
     beforeAll' = do
       return ()
@@ -40,22 +39,21 @@ spec = do
 
     after' :: IO ()
     after' = return ()
-    
+
 
     spec' :: Spec
     spec' = do
       describe "run" $ do
-        context "when default args" $ 
-          xit "should be 0" $ do
-            let arg  = def
+        context "ok" $
+          xit "should be ()" $ do
             (fromClient, toClient) <- createPipe
             (fromServer, toServer) <- createPipe
 
             (res, _) <- runConcurrently $ (,)
-              <$> Concurrently (run arg fromClient toClient)
+              <$> Concurrently (run fromClient toClient)
               <*> Concurrently (client toServer)
 
-            res `shouldBe` 0
+            res `shouldBe` ()
 
             S.hClose fromClient
             S.hClose toClient
