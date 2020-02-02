@@ -88,7 +88,7 @@ startGHCiIO cmd opts cwd envs = do
     getReadHandleEncoding :: IO TextEncoding
     getReadHandleEncoding = if
       | Windows == buildOS -> mkTextEncoding "CP932//TRANSLIT"
-      | otherwise -> mkTextEncoding "UTF-8//TRANSLIT"
+      | otherwise          -> mkTextEncoding "UTF-8//TRANSLIT"
 
     -- |
     --
@@ -125,20 +125,30 @@ expectInitPmpt pmpt = do
   proc <- U.liftIOE $ readMVar mvar
   let hdl = proc^.rHdlGHCiProc
 
-  xs <- go pmpt hdl ""
-
-  let strs = map U.rstrip $ lines xs
-  pout strs
-  return strs
+  go pmpt hdl "" >>= \case
+    Right xs -> do
+      let strs = map U.rstrip $ lines xs
+      pout strs
+      return strs
+    Left xs -> do
+      let strs = map U.rstrip $ lines xs
+      pout strs
+      throwError "[CRITICAL] can not get the initial ghci prompt."
 
   where
-    go key hdl acc = U.readChar hdl
-                >>= byPmpt key hdl acc
+    go :: String -> S.Handle -> String -> AppContext (Either String String)
+    go key hdl acc = catchError
+      (U.readChar hdl >>= byPmpt key hdl acc)
+      (errHdl acc)
 
+    errHdl :: String -> String -> AppContext (Either String String)
+    errHdl acc e = return $ Left $ unlines [acc, "", e, ""]
+
+    byPmpt :: String -> S.Handle -> String -> String -> AppContext (Either String String)
     byPmpt key hdl acc b = do
       let newAcc = acc ++ b
       if L.isSuffixOf key newAcc
-        then return newAcc
+        then return $ Right newAcc
         else go key hdl newAcc
 
     pout [] = return ()

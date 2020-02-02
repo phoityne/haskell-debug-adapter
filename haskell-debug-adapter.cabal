@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1200c46ec93d27f1683e62daefdd7b3040bf3be5b81ef43bc8982646c2bc7df8
+-- hash: d69229cdfadfc89c56f8cb6901f1a949e27c23988da6beee5487576c39623064
 
 name:           haskell-debug-adapter
 version:        0.0.32.0
@@ -80,6 +80,7 @@ library
     , hslogger
     , lens
     , mtl
+    , optparse-applicative
     , parsec
     , process
     , resourcet
@@ -117,6 +118,7 @@ executable haskell-debug-adapter
     , hslogger
     , lens
     , mtl
+    , optparse-applicative
     , parsec
     , process
     , resourcet
@@ -158,6 +160,7 @@ test-suite haskell-debug-adapter-test
     , hspec
     , lens
     , mtl
+    , optparse-applicative
     , parsec
     , process
     , resourcet

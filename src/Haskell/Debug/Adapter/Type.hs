@@ -6,6 +6,7 @@
 
 module Haskell.Debug.Adapter.Type where
 
+import Data.Data
 import Data.Default
 import Control.Lens
 import Data.Aeson
@@ -23,6 +24,30 @@ import qualified Data.Version as V
 import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.TH.Utility
 import Haskell.Debug.Adapter.Constant
+
+
+--------------------------------------------------------------------------------
+-- | Command Line Argument Data Type.
+--
+data ArgData = ArgData {
+    _hackageVersionArgData :: Maybe String   -- ^deprecated.
+  } deriving (Data, Typeable, Show, Read, Eq)
+
+makeLenses ''ArgData
+$(deriveJSON
+  defaultOptions {
+      fieldLabelModifier = fieldModifier "ArgData"
+    }
+  ''ArgData)
+
+
+-- |
+--   default value instance.
+--
+instance Default ArgData where
+  def = ArgData {
+        _hackageVersionArgData = Nothing
+      }
 
 
 --------------------------------------------------------------------------------

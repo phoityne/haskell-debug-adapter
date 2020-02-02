@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Haskell.Debug.Adapter.Control (
@@ -10,40 +10,14 @@ import System.IO
 import qualified System.Log.Logger as L
 import qualified Control.Exception.Safe as E
 import Control.Concurrent.Async
-import Data.Default
-import Data.Aeson.TH
-import Control.Lens
-import Data.Data
 
-import Haskell.Debug.Adapter.TH.Utility
+import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Application as A
 import qualified Haskell.Debug.Adapter.Request as RQ
 import qualified Haskell.Debug.Adapter.Response as RP
 import qualified Haskell.Debug.Adapter.Thread as TD
 import qualified Haskell.Debug.Adapter.Watch as W
-
-
---------------------------------------------------------------------------------
--- | Command Line Argument Data Type.
---
-data ArgData = ArgData {
-  } deriving (Data, Typeable, Show, Read, Eq)
-
-makeLenses ''ArgData
-$(deriveJSON
-  defaultOptions {
-      fieldLabelModifier = fieldModifier "ArgData"
-    }
-  ''ArgData)
-
-
--- |
---   default value instance.
---
-instance Default ArgData where
-  def = ArgData {
-      }
 
 
 -- |
