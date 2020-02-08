@@ -21,9 +21,32 @@ import qualified Haskell.Debug.Adapter.Watch as W
 
 
 -- |
---   start HDA.
+--   Start HDA.
+--   Default implementation is using STDIN/STDOUT handle.
 --
-run :: ArgData -- ^command line arguments type.
+--   Here is an example for using TCP Socket.
+--
+-- > import Network.Socket
+-- >
+-- > sock <- socket AF_INET Stream defaultProtocol
+-- > let host = tupleToHostAddress (0, 0, 0, 0)
+-- >     port = 9999
+-- >     reqQ = 5
+-- >
+-- > bind sock $ SockAddrInet port host
+-- > listen sock reqQ
+-- >
+-- > (conn, _) <- accept sock
+-- > hdl <- socketToHandle conn ReadWriteMode
+-- >
+-- > run def hdl hdl
+-- >
+--
+--   Port 9999 could be specified in the launch.json with "debugServer" attribute.
+--
+-- > "debugServer : 9999"
+--
+run :: ArgData -- ^command line arguments.
     -> Handle  -- ^IN handle. used to get request from the debug adapter client.
     -> Handle  -- ^OUT handle. used to response to the debug adapter client.
     -> IO ()

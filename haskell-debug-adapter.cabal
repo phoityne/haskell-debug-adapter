@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d69229cdfadfc89c56f8cb6901f1a949e27c23988da6beee5487576c39623064
+-- hash: da77e0a33d754f6f5d7c7f1c43908127b950c2399a352febb7a7d8203d324a5d
 
 name:           haskell-debug-adapter
-version:        0.0.32.0
+version:        0.0.33.0
 synopsis:       Haskell Debug Adapter.
 description:    Please see README.md
 category:       Development
@@ -75,7 +75,7 @@ library
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.13.0
+    , ghci-dap >=0.0.14.0
     , haskell-dap >=0.0.14.0
     , hslogger
     , lens
@@ -112,7 +112,7 @@ executable haskell-debug-adapter
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.13.0
+    , ghci-dap >=0.0.14.0
     , haskell-dap >=0.0.14.0
     , haskell-debug-adapter
     , hslogger
@@ -153,7 +153,7 @@ test-suite haskell-debug-adapter-test
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.13.0
+    , ghci-dap >=0.0.14.0
     , haskell-dap >=0.0.14.0
     , haskell-debug-adapter
     , hslogger
