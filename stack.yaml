@@ -17,7 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-14.22
+resolver: lts-15.4
 # resolver: nightly-2020-01-31
 
 # User packages to be built.
