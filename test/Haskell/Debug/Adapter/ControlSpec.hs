@@ -7,6 +7,7 @@ import Data.Aeson
 import Control.Concurrent (threadDelay)
 import qualified System.IO as S
 import Control.Concurrent.Async
+import Data.Default
 
 import Spec.Utility
 
@@ -50,7 +51,7 @@ spec = do
             (fromServer, toServer) <- createPipe
 
             (res, _) <- runConcurrently $ (,)
-              <$> Concurrently (run fromClient toClient)
+              <$> Concurrently (run def fromClient toClient)
               <*> Concurrently (client toServer)
 
             res `shouldBe` ()
