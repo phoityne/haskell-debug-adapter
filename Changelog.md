@@ -1,3 +1,8 @@
+20200531 haskell-debug-adapter-0.0.34.0
+  * [FIX] issue#11 Test fails to run
+  * [FIX] issue#12 Debugger Freezing/Debug Actions Not Working in Visual Studio
+
+
 20200209 haskell-debug-adapter-0.0.33.0
   * [INFO] support ghci-dap-0.0.14.0.
 

@@ -35,7 +35,7 @@ app req = flip catchError errHdl $ do
 
   P.command cmd
   U.debugEV _LOG_APP dbg
-  P.expectPmpt >>= SU.takeDapResult >>= dapHdl
+  outStr <- P.expectPmpt
 
   resSeq <- U.getIncreasedResponseSequence
   let res = DAP.defaultStepInResponse {
@@ -45,6 +45,8 @@ app req = flip catchError errHdl $ do
           }
 
   U.addResponse $ StepInResponse res
+
+  SU.takeDapResult outStr >>= dapHdl
 
   return Nothing
 
