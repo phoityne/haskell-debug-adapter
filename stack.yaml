@@ -17,8 +17,15 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-15.11
-# resolver: nightly-2020-01-31
+
+# for ghc-8.10.1
+resolver: nightly-2020-06-18
+
+# for ghc-8.8.3
+# resolver: lts-16.1
+
+# for ghc-8.6.5
+# resolver: lts-14.27
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.

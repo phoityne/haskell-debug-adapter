@@ -90,8 +90,8 @@ dependencies:
 - clock
 - fsnotify
 - optparse-applicative
-- haskell-dap >=0.0.14.0
-- ghci-dap >=0.0.14.0
+- haskell-dap >=0.0.15.0
+- ghci-dap >=0.0.15.0
 
 library:
   source-dirs: src
