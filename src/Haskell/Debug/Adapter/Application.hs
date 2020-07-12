@@ -17,6 +17,7 @@ import qualified System.IO as S
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Utility
 import Haskell.Debug.Adapter.Constant
+import Haskell.Debug.Adapter.State.Utility
 import Haskell.Debug.Adapter.State.Init()
 import Haskell.Debug.Adapter.State.GHCiRun()
 import Haskell.Debug.Adapter.State.DebugRun()
@@ -144,8 +145,9 @@ sink = do
       return ()
     Just (WrapRequest (DisconnectRequest req)) -> do
       liftIO $ L.debugM _LOG_APP $ show req
-      liftIO $ L.infoM _LOG_APP $ "disconnect. end of application thread."
+      liftIO $ L.infoM _LOG_APP $ "disconnect."
       lift $ sendDisconnectResponse req
+      sink
     Just (WrapRequest (PauseRequest req)) -> do
       liftIO $ L.debugM _LOG_APP $ show req
       lift $ sendConsoleEventLF $ "pause request is not supported."

@@ -107,7 +107,7 @@ res2lbs = do
       bs <- lift $ goApp res
       yield bs
       res2lbs
-  
+
   where
     goApp :: Response -> AppContext B.ByteString
     goApp = return . encode
@@ -142,6 +142,7 @@ sink = do
 --
 _KEY_DISCONNECT_RESPONCE :: String
 _KEY_DISCONNECT_RESPONCE = "\"command\":\"disconnect\""
+
 
 -- |
 --

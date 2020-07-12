@@ -5,7 +5,6 @@ module Haskell.Debug.Adapter.State.DebugRun.Terminate where
 
 import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
-import Control.Concurrent (threadDelay)
 
 import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Type
@@ -26,8 +25,6 @@ instance StateActivityIF DebugRunStateData DAP.TerminateRequest where
 app :: DAP.TerminateRequest -> AppContext (Maybe StateTransit)
 app req = do
   SU.terminateGHCi
-
-  liftIO $ threadDelay _1_SEC
 
   resSeq <- U.getIncreasedResponseSequence
 

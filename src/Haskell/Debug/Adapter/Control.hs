@@ -16,7 +16,6 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Application as A
 import qualified Haskell.Debug.Adapter.Request as RQ
 import qualified Haskell.Debug.Adapter.Response as RP
-import qualified Haskell.Debug.Adapter.Thread as TD
 import qualified Haskell.Debug.Adapter.Watch as W
 
 
@@ -85,6 +84,9 @@ run _ inHdl outHdl = E.bracket initialize finalize go
                 , W.run  appData    -- file watch
                 ]
 
-      TD.start appData ths >>= wait
+      as <- mapM async ths
+      waitAnyCatchCancel as >>= \case
+        (_, Right _) -> L.infoM _LOG_NAME $ "some threads stopped. exit."
+        (_, Left e)  -> L.criticalM _LOG_NAME $ "some threads stopped. " ++ show e
 
 

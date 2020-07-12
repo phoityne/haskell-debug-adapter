@@ -5,7 +5,6 @@ module Haskell.Debug.Adapter.State.DebugRun.InternalTerminate where
 
 import Control.Monad.IO.Class
 import qualified System.Log.Logger as L
-import Control.Concurrent (threadDelay)
 
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
@@ -25,8 +24,6 @@ instance StateActivityIF DebugRunStateData HdaInternalTerminateRequest where
 app :: HdaInternalTerminateRequest -> AppContext (Maybe StateTransit)
 app _ = do
   SU.terminateGHCi
-
-  liftIO $ threadDelay _1_SEC
 
   U.sendTerminatedEvent
   U.sendExitedEvent

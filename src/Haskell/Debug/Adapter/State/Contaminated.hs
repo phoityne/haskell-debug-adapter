@@ -4,9 +4,7 @@
 module Haskell.Debug.Adapter.State.Contaminated where
 
 import Control.Monad.IO.Class
---import Control.Monad.Except
 import qualified System.Log.Logger as L
-import Control.Concurrent (threadDelay)
 
 import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Type
@@ -282,7 +280,6 @@ instance StateActivityIF ContaminatedStateData HdaInternalLoadRequest where
 restartEvent :: AppContext ()
 restartEvent = do
   SU.terminateGHCi
-  liftIO $ threadDelay _1_SEC
 
   U.sendConsoleEventLF ""
   U.sendConsoleEventLF "restarting debug adapter."

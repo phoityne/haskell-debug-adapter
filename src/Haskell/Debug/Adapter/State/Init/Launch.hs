@@ -8,8 +8,6 @@ import Control.Monad.Except
 import Control.Monad.State
 import Control.Concurrent
 import Control.Lens
-import System.Directory
-import System.FilePath
 import Text.Parsec
 import qualified Text.Read as R
 import qualified System.Log.Logger as L
@@ -43,7 +41,6 @@ app req = flip catchError errHdl $ do
 
   setUpConfig req
   setUpLogger req
-  createTasksJsonFile
 
   U.sendStdoutEvent "Configuration read.\n"
   U.sendConsoleEvent "Starting GHCi.\n"
@@ -128,44 +125,6 @@ setUpLogger req = do
   logPR <- liftIO $ readMVar $ ctx^.logPriorityAppStores
 
   liftIO $ L.setUpLogger (DAP.logFileLaunchRequestArguments args) logPR
-
-
--- |
---
-createTasksJsonFile :: AppContext ()
-createTasksJsonFile = do
-  ctx <- get
-  wsPath <- liftIO $ readMVar $ ctx^.workspaceAppStores
-  let jsonDir  = wsPath </> ".vscode"
-      jsonFile = jsonDir </> "tasks.json"
-
-  catchError
-    (checkDir jsonDir >> checkFile jsonFile >> createFile jsonFile)
-    errHdl
-
-  where
-
-    -- |
-    --
-    errHdl msg = liftIO $ L.debugM _LOG_APP msg
-
-    -- |
-    --
-    checkDir jsonDir = liftIO (doesDirectoryExist jsonDir) >>= \case
-      False -> throwError $ "setting folder not found. skip saveing tasks.json. DIR:" ++ jsonDir
-      True -> return ()
-
-    -- |
-    --
-    checkFile jsonFile = liftIO (doesFileExist jsonFile) >>= \case
-      True -> throwError $ "tasks.json file exists. " ++ jsonFile
-      False -> return ()
-
-    -- |
-    --
-    createFile jsonFile = do
-      liftIO $ U.saveFileBSL jsonFile _TASKS_JSON_FILE_CONTENTS
-      U.sendConsoleEvent $ "create tasks.json file. " ++ jsonFile ++ "\n"
 
 
 -- |

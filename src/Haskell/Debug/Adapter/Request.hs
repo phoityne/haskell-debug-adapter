@@ -68,7 +68,7 @@ getContent l = view inHandleAppStores <$> get
 --
 getContentLength :: AppContext Int
 getContentLength = go B.empty
-  where    
+  where
     go :: B.ByteString -> AppContext Int
     go buf = updateBuf buf >>= findLength
 
@@ -76,7 +76,7 @@ getContentLength = go B.empty
     updateBuf buf = do
       hdl <- view inHandleAppStores <$> get
       B.append buf <$> readCharL hdl
-    
+
     findLength :: B.ByteString -> AppContext Int
     findLength buf = case parse parser "find ContentLength parser" (lbs2str buf) of
       Left _  -> go buf
@@ -125,7 +125,7 @@ decodeRequest bs = liftEither $ eitherDecode bs
 -- |
 --
 createWrapRequest :: B.ByteString -> DAP.Request -> AppContext WrapRequest
-createWrapRequest bs req 
+createWrapRequest bs req
   | "initialize" == DAP.commandRequest req = WrapRequest . InitializeRequest <$> (liftEither (eitherDecode bs))
   | "launch"     == DAP.commandRequest req = WrapRequest . LaunchRequest <$> (liftEither (eitherDecode bs))
   | "disconnect" == DAP.commandRequest req = WrapRequest . DisconnectRequest <$> (liftEither (eitherDecode bs))
@@ -157,9 +157,6 @@ sink = do
     Nothing  -> do
       throwError $ "unexpected Nothing."
       return ()
-    Just req@(WrapRequest DisconnectRequest{}) -> do
-      lift $ goApp req
-      liftIO $ L.infoM _LOG_REQUEST $ "disconnect. end of request thread."
     Just req -> do
       lift $ goApp req
       sink

@@ -20,7 +20,6 @@ import qualified System.Log.Logger as L
 import qualified Data.List as L
 import qualified Control.Exception.Safe as E
 
-
 import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
@@ -236,20 +235,6 @@ logEV pr name msg = do
   when (pr >= logPR) $ do
     sendStdoutEvent $ "[" ++ show pr ++ "][" ++ name ++ "] " ++ msg'
 
-
--- |
---
-sendDisconnectResponse :: DAP.DisconnectRequest -> AppContext ()
-sendDisconnectResponse req = do
-  resSeq <- getIncreasedResponseSequence
-
-  let res = DAP.defaultDisconnectResponse {
-            DAP.seqDisconnectResponse         = resSeq
-          , DAP.request_seqDisconnectResponse = DAP.seqDisconnectRequest req
-          , DAP.successDisconnectResponse     = True
-          }
-
-  addResponse $ DisconnectResponse res
 
 
 -- |

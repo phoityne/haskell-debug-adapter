@@ -6,7 +6,9 @@ module Haskell.Debug.Adapter.State.Utility where
 import qualified System.Log.Logger as L
 import qualified Text.Read as R
 import Control.Monad.Except
-import Control.Concurrent (threadDelay)
+import Control.Lens
+import Control.Monad.State.Lazy
+import Control.Concurrent.MVar
 
 import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Type
@@ -165,6 +167,32 @@ terminateGHCi = do
 
 -- |
 --
+sendDisconnectResponse :: DAP.DisconnectRequest -> AppContext ()
+sendDisconnectResponse req = do
+
+  tryTerminateGHCi
+
+  resSeq <- U.getIncreasedResponseSequence
+
+  let res = DAP.defaultDisconnectResponse {
+            DAP.seqDisconnectResponse         = resSeq
+          , DAP.request_seqDisconnectResponse = DAP.seqDisconnectRequest req
+          , DAP.successDisconnectResponse     = True
+          }
+
+  U.addResponse $ DisconnectResponse res
+
+  where
+    tryTerminateGHCi :: AppContext ()
+    tryTerminateGHCi = do
+      mver <- view ghciProcAppStores <$> get
+      U.liftIOE (isEmptyMVar mver) >>= \case
+        True -> return ()
+        False -> catchError terminateGHCi (\_->return ())
+
+
+-- |
+--
 evaluateRequest :: DAP.EvaluateRequest -> AppContext (Maybe StateTransit)
 evaluateRequest req = do
 
@@ -306,8 +334,6 @@ terminateRequest :: DAP.TerminateRequest -> AppContext ()
 terminateRequest req = do
   terminateGHCi
 
-  liftIO $ threadDelay _1_SEC
-
   resSeq <- U.getIncreasedResponseSequence
 
   let res = DAP.defaultTerminateResponse {
@@ -326,8 +352,6 @@ internalTerminateRequest :: AppContext ()
 internalTerminateRequest = do
 
     terminateGHCi
-
-    liftIO $ threadDelay _1_SEC
 
     U.sendTerminatedEvent
     U.sendExitedEvent

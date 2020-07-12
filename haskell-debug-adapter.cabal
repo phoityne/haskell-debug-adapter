@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2f95e7f88294242650c477d2e37bd20602f1e1215724bff6b3ffb282f75eeec5
+-- hash: aacff7966e9c77ebeaee49e8b134501e11c35f5463091c23b7ed18633187342d
 
 name:           haskell-debug-adapter
 version:        0.0.34.0
@@ -52,7 +52,6 @@ library
       Haskell.Debug.Adapter.State.Shutdown
       Haskell.Debug.Adapter.State.Utility
       Haskell.Debug.Adapter.TH.Utility
-      Haskell.Debug.Adapter.Thread
       Haskell.Debug.Adapter.Type
       Haskell.Debug.Adapter.Utility
       Haskell.Debug.Adapter.Watch
