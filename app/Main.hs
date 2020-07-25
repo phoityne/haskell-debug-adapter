@@ -3,7 +3,6 @@ module Main where
 import System.Exit
 import System.IO
 import Control.Exception.Safe
-import Data.Default
 import Options.Applicative
 import Paths_haskell_debug_adapter (version)
 import Data.Version (showVersion)
@@ -32,28 +31,22 @@ main = getArgs >>= \args -> do
 getArgs :: IO ArgData
 getArgs = execParser parseInfo
 
+
 -- |
 --
 parseInfo :: ParserInfo ArgData
-parseInfo = info options $ mconcat
+parseInfo = info (helper <*> verOpt <*> options) $ mconcat
   [ fullDesc
   , header ""
   , footer ""
   , progDesc "Please see README.md"
   ]
 
--- |
---
-options :: Parser ArgData
-options = (<*>) helper
-  $ def
-  <$> verOption
-  <*> hackageOption
 
 -- |
 --
-verOption :: Parser (a -> a)
-verOption = infoOption msg $ mconcat
+verOpt :: Parser (a -> a)
+verOpt = infoOption msg $ mconcat
   [ short 'v'
   , long  "version"
   , help  "Show version"
@@ -61,11 +54,29 @@ verOption = infoOption msg $ mconcat
   where
     msg = "haskell-debug-adapter-" ++ showVersion version
 
+
+-- |
+--
+options  :: Parser ArgData
+options  = ArgData
+  <$> hackageOption
+  <*> stdioLogFileOption
+
+
 -- |
 --
 hackageOption :: Parser (Maybe String)
 hackageOption = optional $ strOption $ mconcat
   [ long "hackage-version"
   , help "hackage version"
+  ]
+
+
+-- |
+--
+stdioLogFileOption :: Parser (Maybe FilePath)
+stdioLogFileOption = optional $ strOption $ mconcat
+  [ long "stdio-log-file"
+  , help "stdio log file"
   ]
 

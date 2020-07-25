@@ -131,6 +131,7 @@ sink = do
   where
     goApp bs = do
       wHdl <- view outHandleAppStores <$> get
+      stdoutLogging bs
       liftIO $ sendResponse wHdl bs
 
     cont str

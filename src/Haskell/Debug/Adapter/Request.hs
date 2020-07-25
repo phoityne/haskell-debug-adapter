@@ -54,7 +54,10 @@ src = do
 
   where
     goApp :: AppContext B.ByteString
-    goApp = getContentLength >>= getContent
+    goApp = do
+      bs <- getContentLength >>= getContent
+      stdinLogging bs
+      return bs
 
 
 -- |

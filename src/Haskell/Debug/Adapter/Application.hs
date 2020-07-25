@@ -2,8 +2,6 @@
 
 module Haskell.Debug.Adapter.Application where
 
-import Paths_haskell_debug_adapter (version)
-import Data.Version (showVersion)
 import Control.Monad.IO.Class
 import Data.Conduit
 import Control.Lens
@@ -12,7 +10,6 @@ import Control.Concurrent.MVar
 import Control.Monad.State.Lazy
 import Control.Monad.Except
 import qualified System.Log.Logger as L
-import qualified System.IO as S
 
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Utility
@@ -23,49 +20,6 @@ import Haskell.Debug.Adapter.State.GHCiRun()
 import Haskell.Debug.Adapter.State.DebugRun()
 import Haskell.Debug.Adapter.State.Shutdown()
 import Haskell.Debug.Adapter.State.Contaminated()
-
-
--- |
---
-defaultAppStores :: S.Handle -> S.Handle -> IO AppStores
-defaultAppStores inHdl outHdl = do
-  reqStore <- newMVar []
-  resStore <- newMVar []
-  evtStore <- newMVar []
-  wsStore  <- newMVar ""
-  logPRStore <- newMVar L.WARNING
-  procStore <- newEmptyMVar
-  verStore <- newEmptyMVar
-  return AppStores {
-    -- Read Only
-      _appNameAppStores     = "haskell-debug-adapter"
-    , _appVerAppStores      = showVersion version
-    , _inHandleAppStores    = inHdl
-    , _outHandleAppStores   = outHdl
-    , _asyncsAppStores      = []
-
-    -- Read/Write from Application
-    , _appStateWAppStores   = WrapAppState InitState
-    , _resSeqAppStores      = 0
-    , _startupAppStores     = ""
-    , _startupFuncAppStores = ""
-    , _startupArgsAppStores = ""
-    , _stopOnEntryAppStores = False
-    , _ghciPmptAppStores    = _GHCI_PROMPT_HDA
-    , _mainArgsAppStores    = ""
-    , _launchReqSeqAppStores = -1
-    , _debugReRunableAppStores = False
-
-
-    -- Read/Write ASync
-    , _reqStoreAppStores    = reqStore
-    , _resStoreAppStores    = resStore
-    , _eventStoreAppStores  = evtStore
-    , _workspaceAppStores   = wsStore
-    , _logPriorityAppStores = logPRStore
-    , _ghciProcAppStores    = procStore
-    , _ghciVerAppStores     = verStore
-    }
 
 
 -- |

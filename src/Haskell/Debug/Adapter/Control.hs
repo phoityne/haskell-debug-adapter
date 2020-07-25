@@ -10,6 +10,10 @@ import System.IO
 import qualified System.Log.Logger as L
 import qualified Control.Exception.Safe as E
 import Control.Concurrent.Async
+import Control.Concurrent.MVar
+import Data.Version (showVersion)
+import Paths_haskell_debug_adapter (version)
+import Control.Lens
 
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Constant
@@ -49,7 +53,7 @@ run :: ArgData -- ^command line arguments.
     -> Handle  -- ^IN handle. used to get request from the debug adapter client.
     -> Handle  -- ^OUT handle. used to response to the debug adapter client.
     -> IO ()
-run _ inHdl outHdl = E.bracket initialize finalize go
+run argDat inHdl outHdl = E.bracket initialize finalize go
 
   where
     -- |
@@ -63,7 +67,44 @@ run _ inHdl outHdl = E.bracket initialize finalize go
       hSetBuffering outHdl NoBuffering
       hSetEncoding  outHdl utf8
 
-      A.defaultAppStores inHdl outHdl
+      reqStore <- newMVar []
+      resStore <- newMVar []
+      evtStore <- newMVar []
+      wsStore  <- newMVar ""
+      logPRStore <- newMVar L.WARNING
+      procStore  <- newEmptyMVar
+      verStore   <- newEmptyMVar
+
+      return AppStores {
+        -- Read Only
+          _appNameAppStores     = "haskell-debug-adapter"
+        , _appVerAppStores      = showVersion version
+        , _inHandleAppStores    = inHdl
+        , _outHandleAppStores   = outHdl
+        , _asyncsAppStores      = []
+        , _stdioLogFileAppStores = argDat^.stdioLogFileArgData
+
+        -- Read/Write from Application
+        , _appStateWAppStores   = WrapAppState InitState
+        , _resSeqAppStores      = 0
+        , _startupAppStores     = ""
+        , _startupFuncAppStores = ""
+        , _startupArgsAppStores = ""
+        , _stopOnEntryAppStores = False
+        , _ghciPmptAppStores    = _GHCI_PROMPT_HDA
+        , _mainArgsAppStores    = ""
+        , _launchReqSeqAppStores = -1
+        , _debugReRunableAppStores = False
+
+        -- Read/Write ASync
+        , _reqStoreAppStores    = reqStore
+        , _resStoreAppStores    = resStore
+        , _eventStoreAppStores  = evtStore
+        , _workspaceAppStores   = wsStore
+        , _logPriorityAppStores = logPRStore
+        , _ghciProcAppStores    = procStore
+        , _ghciVerAppStores     = verStore
+        }
 
     -- |
     --
@@ -88,5 +129,4 @@ run _ inHdl outHdl = E.bracket initialize finalize go
       waitAnyCatchCancel as >>= \case
         (_, Right _) -> L.infoM _LOG_NAME $ "some threads stopped. exit."
         (_, Left e)  -> L.criticalM _LOG_NAME $ "some threads stopped. " ++ show e
-
 

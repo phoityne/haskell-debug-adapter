@@ -534,3 +534,32 @@ join a b = T.unpack $ T.intercalate (T.pack a) $ map T.pack b
 startswith :: String -> String -> Bool
 startswith a b = T.isPrefixOf (T.pack a) (T.pack b)
 
+
+-- |
+--
+stdioLogging :: BSL.ByteString -> AppContext ()
+stdioLogging bs = do
+  logFile <- view stdioLogFileAppStores <$> get
+  go logFile
+
+  where
+    go :: Maybe FilePath -> AppContext ()
+    go Nothing  = return ()
+    go (Just f) = liftIOE $ BSL.appendFile f bs
+
+
+-- |
+--
+stdinLogging :: BSL.ByteString -> AppContext ()
+stdinLogging bs = do
+  stdioLogging $ str2lbs "[ IN]" `BSL.append` bs `BSL.append` str2lbs "\n"
+
+
+-- |
+--
+stdoutLogging :: BSL.ByteString -> AppContext ()
+stdoutLogging bs = do
+  stdioLogging $ str2lbs "[OUT]" `BSL.append` bs `BSL.append` str2lbs "\n"
+
+
+
