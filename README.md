@@ -42,7 +42,7 @@ Install these libraries at once.
 # Limitation
 Currently this project is an __experimental__ design and implementation.
 
-* Developed and tested on windows10 ghc-8.10
+* Developed and tested on windows10 ghc-8.10.3
 * The source file extension must be ".hs"
 * Can not use STDIN handle while debugging. 
 

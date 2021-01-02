@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0620345d182affa81c03318770107c236b87b7e809a5016296718ff1923d3269
+-- hash: 759e4fd20245e808dfc294c1f45d3a9d75b6d46b0332c670ccbed8462ac86894
 
 name:           haskell-debug-adapter
 version:        0.0.34.0
@@ -15,7 +15,7 @@ homepage:       https://github.com/phoityne/haskell-debug-adapter/
 bug-reports:    https://github.com/phoityne/haskell-debug-adapter/issues
 author:         phoityne_hs
 maintainer:     phoityne.hs@gmail.com
-copyright:      2016-2020 phoityne_hs
+copyright:      2016-2021 phoityne_hs
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
