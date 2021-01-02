@@ -1,4 +1,4 @@
-2020MMDD haskell-debug-adapter-0.0.34.0
+20210105 haskell-debug-adapter-0.0.34.0
   * [FIX] issue#11 Test fails to run
   * [FIX] issue#12 Debugger Freezing/Debug Actions Not Working in Visual Studio
   * [FIX] issue#16 stack.exe and ghci-dap.exe Leak When IDE Not Stopped Properly
