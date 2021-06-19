@@ -1,3 +1,7 @@
+20210630 haskell-debug-adapter-0.0.35.0
+  * [INFO] support ghc-9.0.1.
+
+
 20210131 haskell-debug-adapter-0.0.34.0
   * [FIX] issue#11 Test fails to run
   * [FIX] issue#12 Debugger Freezing/Debug Actions Not Working in Visual Studio

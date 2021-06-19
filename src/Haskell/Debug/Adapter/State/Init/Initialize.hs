@@ -36,8 +36,8 @@ app req = do
            , DAP.supportsHitConditionalBreakpointsInitializeResponseBody = True
            , DAP.supportsEvaluateForHoversInitializeResponseBody         = True
            , DAP.exceptionBreakpointFiltersInitializeResponseBody        = [
-                 DAP.ExceptionBreakpointsFilter "break-on-error" "break-on-error" False
-               , DAP.ExceptionBreakpointsFilter "break-on-exception" "break-on-exception" False
+             --    DAP.ExceptionBreakpointsFilter "break-on-error" "break-on-error" False
+             --  , DAP.ExceptionBreakpointsFilter "break-on-exception" "break-on-exception" False
                ]
            , DAP.supportsStepBackInitializeResponseBody                  = False
            , DAP.supportsSetVariableInitializeResponseBody               = False
