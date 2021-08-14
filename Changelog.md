@@ -1,4 +1,4 @@
-20210630 haskell-debug-adapter-0.0.35.0
+20210815 haskell-debug-adapter-0.0.35.0
   * [INFO] support ghc-9.0.1.
 
 
