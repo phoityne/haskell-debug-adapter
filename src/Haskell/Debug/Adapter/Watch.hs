@@ -35,7 +35,7 @@ app = flip catchError errHdl $ do
   liftIO $ L.infoM _LOG_WATCH $ "start watching " ++ ws
 
   reqStore <- view reqStoreAppStores <$> get
-  let conf = S.defaultConfig { S.confDebounce  = S.Debounce 1} 
+  let conf = S.defaultConfig
   liftIO $ S.withManagerConf conf $ goIO ws reqStore
   
   where

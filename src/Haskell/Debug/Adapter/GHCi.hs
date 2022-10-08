@@ -147,6 +147,7 @@ expectInitPmpt pmpt = do
     byPmpt :: String -> S.Handle -> String -> String -> AppContext (Either String String)
     byPmpt key hdl acc b = do
       let newAcc = acc ++ b
+      U.debugEV _LOG_GHCI_STDOUT newAcc
       if L.isSuffixOf key newAcc
         then return $ Right newAcc
         else go key hdl newAcc
