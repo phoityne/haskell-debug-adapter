@@ -1,5 +1,5 @@
 name: haskell-debug-adapter
-version: '0.0.36.0'
+version: '0.0.37.0'
 synopsis: Haskell Debug Adapter.
 description: Please see README.md
 category: Development
@@ -64,7 +64,7 @@ default-extensions:
 - ViewPatterns
 
 when:
-- condition: impl(ghc < 9.0.0)
+- condition: impl(ghc < 8.10.0)
   buildable: False
 
 dependencies:
@@ -91,7 +91,7 @@ dependencies:
 - fsnotify
 - optparse-applicative
 - haskell-dap >=0.0.15.0
-- ghci-dap >=0.0.16.0
+- ghci-dap >=0.0.19.0
 
 library:
   source-dirs: src
