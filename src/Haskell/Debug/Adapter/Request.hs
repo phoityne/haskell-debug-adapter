@@ -142,6 +142,7 @@ createWrapRequest bs req
   | "stackTrace" == DAP.commandRequest req = WrapRequest . StackTraceRequest <$> (liftEither (eitherDecode bs))
   | "scopes" == DAP.commandRequest req = WrapRequest . ScopesRequest <$> (liftEither (eitherDecode bs))
   | "variables" == DAP.commandRequest req = WrapRequest . VariablesRequest <$> (liftEither (eitherDecode bs))
+  | "source" == DAP.commandRequest req = WrapRequest . SourceRequest <$> (liftEither (eitherDecode bs))
   | "continue" == DAP.commandRequest req = WrapRequest . ContinueRequest <$> (liftEither (eitherDecode bs))
   | "next" == DAP.commandRequest req = WrapRequest . NextRequest <$> (liftEither (eitherDecode bs))
   | "stepIn" == DAP.commandRequest req = WrapRequest . StepInRequest <$> (liftEither (eitherDecode bs))

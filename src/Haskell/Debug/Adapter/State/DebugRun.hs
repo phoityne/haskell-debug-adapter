@@ -56,6 +56,7 @@ instance AppStateIF DebugRunStateData where
   doActivity s (WrapRequest r@StackTraceRequest{})              = action s r
   doActivity s (WrapRequest r@ScopesRequest{})                  = action s r
   doActivity s (WrapRequest r@VariablesRequest{})               = action s r
+  doActivity s (WrapRequest r@SourceRequest{})                  = action s r
   doActivity s (WrapRequest r@ContinueRequest{})                = action s r
   doActivity s (WrapRequest r@NextRequest{})                    = action s r
   doActivity s (WrapRequest r@StepInRequest{})                  = action s r
@@ -221,6 +222,14 @@ instance StateActivityIF DebugRunStateData DAP.SetFunctionBreakpointsRequest whe
   action _ (SetFunctionBreakpointsRequest req) = do
     liftIO $ L.debugM _LOG_APP $ "DebugRunState SetFunctionBreakpointsRequest called. " ++ show req
     SU.setFunctionBreakpointsRequest req
+
+-- |
+--  Any errors should be sent back as False result Response
+--
+instance StateActivityIF DebugRunStateData DAP.SourceRequest where
+  action _ (SourceRequest req) = do
+    liftIO $ L.debugM _LOG_APP $ "DebugRunState SourceRequest called. " ++ show req
+    SU.sourceRequest req
 
 -- |
 --   default nop.
