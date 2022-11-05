@@ -27,7 +27,8 @@ instance StateActivityIF DebugRunStateData DAP.SourceRequest where
 -- |
 --
 app :: DAP.SourceRequest -> AppContext (Maybe StateTransit)
-app req = do
+app req = flip catchError errHdl $ do
+
   let args = DAP.argumentsSourceRequest req
       dap = ":dap-source "
       cmd = dap ++ U.showDAP args
@@ -45,8 +46,8 @@ app req = do
     --
     dapHdl :: String -> AppContext ()
     dapHdl str = case R.readEither str of
-      Left err -> errHdl $ err ++ " : " ++ str
-      Right (Left err) -> errHdl err
+      Left err -> errHdl err  >> return ()
+      Right (Left err) -> errHdl err >> return ()
       Right (Right body) -> do
         resSeq <- U.getIncreasedResponseSequence
         let res = DAP.defaultSourceResponse {
@@ -61,7 +62,7 @@ app req = do
 
     -- |
     --
-    errHdl :: String -> AppContext ()
+    errHdl :: String -> AppContext (Maybe StateTransit)
     errHdl msg = do
       U.sendErrorEventLF msg
       resSeq <- U.getIncreasedResponseSequence
@@ -73,4 +74,5 @@ app req = do
         }
 
       U.addResponse $ SourceResponse res
+      return Nothing
 
