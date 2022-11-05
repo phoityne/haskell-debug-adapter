@@ -39,6 +39,7 @@ library
       Haskell.Debug.Adapter.State.DebugRun.InternalTerminate
       Haskell.Debug.Adapter.State.DebugRun.Next
       Haskell.Debug.Adapter.State.DebugRun.Scopes
+      Haskell.Debug.Adapter.State.DebugRun.Source
       Haskell.Debug.Adapter.State.DebugRun.StackTrace
       Haskell.Debug.Adapter.State.DebugRun.StepIn
       Haskell.Debug.Adapter.State.DebugRun.Terminate
