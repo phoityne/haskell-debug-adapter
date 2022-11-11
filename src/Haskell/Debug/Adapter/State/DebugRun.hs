@@ -19,6 +19,7 @@ import Haskell.Debug.Adapter.State.DebugRun.Threads()
 import Haskell.Debug.Adapter.State.DebugRun.StackTrace()
 import Haskell.Debug.Adapter.State.DebugRun.Scopes()
 import Haskell.Debug.Adapter.State.DebugRun.Variables()
+import Haskell.Debug.Adapter.State.DebugRun.Source()
 import Haskell.Debug.Adapter.State.DebugRun.Continue()
 import Haskell.Debug.Adapter.State.DebugRun.Next()
 import Haskell.Debug.Adapter.State.DebugRun.StepIn()
@@ -56,6 +57,7 @@ instance AppStateIF DebugRunStateData where
   doActivity s (WrapRequest r@StackTraceRequest{})              = action s r
   doActivity s (WrapRequest r@ScopesRequest{})                  = action s r
   doActivity s (WrapRequest r@VariablesRequest{})               = action s r
+  doActivity s (WrapRequest r@SourceRequest{})                  = action s r
   doActivity s (WrapRequest r@ContinueRequest{})                = action s r
   doActivity s (WrapRequest r@NextRequest{})                    = action s r
   doActivity s (WrapRequest r@StepInRequest{})                  = action s r

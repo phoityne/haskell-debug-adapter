@@ -184,6 +184,9 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ScopesRequest", omitNot
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesRequestArguments", omitNothingFields = True} ''DAP.VariablesRequestArguments)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesRequest", omitNothingFields = True} ''DAP.VariablesRequest)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SourceRequestArguments", omitNothingFields = True} ''DAP.SourceRequestArguments)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SourceRequest", omitNothingFields = True} ''DAP.SourceRequest)
+
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinueRequestArguments", omitNothingFields = True} ''DAP.ContinueRequestArguments)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinueRequest", omitNothingFields = True} ''DAP.ContinueRequest)
 
@@ -215,6 +218,7 @@ data Request a where
   StackTraceRequest :: DAP.StackTraceRequest -> Request DAP.StackTraceRequest
   ScopesRequest :: DAP.ScopesRequest -> Request DAP.ScopesRequest
   VariablesRequest :: DAP.VariablesRequest -> Request DAP.VariablesRequest
+  SourceRequest :: DAP.SourceRequest -> Request DAP.SourceRequest
   ContinueRequest :: DAP.ContinueRequest -> Request DAP.ContinueRequest
   NextRequest :: DAP.NextRequest -> Request DAP.NextRequest
   StepInRequest :: DAP.StepInRequest -> Request DAP.StepInRequest
@@ -278,6 +282,9 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ScopesResponse", omitNo
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesResponseBody", omitNothingFields = True} ''DAP.VariablesResponseBody)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "VariablesResponse", omitNothingFields = True} ''DAP.VariablesResponse)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SourceResponseBody", omitNothingFields = True} ''DAP.SourceResponseBody)
+$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "SourceResponse", omitNothingFields = True} ''DAP.SourceResponse)
+
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ContinueResponse", omitNothingFields = True} ''DAP.ContinueResponse)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "NextResponse", omitNothingFields = True} ''DAP.NextResponse)
@@ -321,6 +328,7 @@ data Response =
   | StackTraceResponse DAP.StackTraceResponse
   | ScopesResponse DAP.ScopesResponse
   | VariablesResponse DAP.VariablesResponse
+  | SourceResponse DAP.SourceResponse
   | ContinueResponse DAP.ContinueResponse
   | NextResponse DAP.NextResponse
   | StepInResponse DAP.StepInResponse
