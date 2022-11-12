@@ -1,3 +1,7 @@
+20221120 haskell-debug-adapter-0.0.38.0
+  * [MODIFY] hdx4vsc ISSUE#27 Feature request: support jumping into library
+
+
 20221024 haskell-debug-adapter-0.0.37.0
   * [INFO] support ghc-8.10.7.
 
