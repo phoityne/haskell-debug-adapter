@@ -42,6 +42,7 @@ instance AppStateIF GHCiRunStateData where
   doActivity s (WrapRequest r@StackTraceRequest{})              = action s r
   doActivity s (WrapRequest r@ScopesRequest{})                  = action s r
   doActivity s (WrapRequest r@VariablesRequest{})               = action s r
+  doActivity s (WrapRequest r@SourceRequest{})                  = action s r
   doActivity s (WrapRequest r@ContinueRequest{})                = action s r
   doActivity s (WrapRequest r@NextRequest{})                    = action s r
   doActivity s (WrapRequest r@StepInRequest{})                  = action s r
@@ -173,6 +174,12 @@ instance StateActivityIF GHCiRunStateData DAP.VariablesRequest where
 
     U.addResponse $ VariablesResponse res
     return Nothing
+
+
+-- |
+--   default nop.
+--
+instance StateActivityIF GHCiRunStateData DAP.SourceRequest
 
 
 -- |

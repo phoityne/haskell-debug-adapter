@@ -44,6 +44,7 @@ instance AppStateIF InitStateData where
   doActivity s (WrapRequest r@StackTraceRequest{})              = action s r
   doActivity s (WrapRequest r@ScopesRequest{})                  = action s r
   doActivity s (WrapRequest r@VariablesRequest{})               = action s r
+  doActivity s (WrapRequest r@SourceRequest{})                  = action s r
   doActivity s (WrapRequest r@ContinueRequest{})                = action s r
   doActivity s (WrapRequest r@NextRequest{})                    = action s r
   doActivity s (WrapRequest r@StepInRequest{})                  = action s r
@@ -107,6 +108,11 @@ instance StateActivityIF InitStateData DAP.ScopesRequest
 --   default nop.
 --
 instance StateActivityIF InitStateData DAP.VariablesRequest
+
+-- |
+--   default nop.
+--
+instance StateActivityIF InitStateData DAP.SourceRequest
 
 -- |
 --   default nop.
