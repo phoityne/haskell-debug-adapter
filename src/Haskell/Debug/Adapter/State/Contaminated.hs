@@ -45,6 +45,7 @@ instance AppStateIF ContaminatedStateData where
   doActivity s (WrapRequest r@StackTraceRequest{})              = action s r
   doActivity s (WrapRequest r@ScopesRequest{})                  = action s r
   doActivity s (WrapRequest r@VariablesRequest{})               = action s r
+  doActivity s (WrapRequest r@SourceRequest{})               = action s r
   doActivity s (WrapRequest r@ContinueRequest{})                = action s r
   doActivity s (WrapRequest r@NextRequest{})                    = action s r
   doActivity s (WrapRequest r@StepInRequest{})                  = action s r
@@ -207,6 +208,22 @@ instance StateActivityIF ContaminatedStateData DAP.VariablesRequest where
             }
 
     U.addResponse $ VariablesResponse res
+    return Nothing
+
+-- |
+--  Any errors should be sent back as False result Response
+--
+instance StateActivityIF ContaminatedStateData DAP.SourceRequest where
+  action _ (SourceRequest req) = do
+    resSeq <- U.getIncreasedResponseSequence
+    let res = DAP.defaultSourceResponse {
+        DAP.seqSourceResponse = resSeq
+      , DAP.request_seqSourceResponse = DAP.seqSourceRequest req
+      , DAP.successSourceResponse = False
+      , DAP.messageSourceResponse = "Contaminated State. need restart."
+      }
+
+    U.addResponse $ SourceResponse res
     return Nothing
 
 -- |
