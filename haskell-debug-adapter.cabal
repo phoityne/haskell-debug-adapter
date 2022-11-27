@@ -112,8 +112,8 @@ library
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.19.0
-    , haskell-dap >=0.0.15.0
+    , ghci-dap >=0.0.20.0
+    , haskell-dap >=0.0.16.0
     , hslogger
     , lens
     , mtl
@@ -186,8 +186,8 @@ executable haskell-debug-adapter
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.19.0
-    , haskell-dap >=0.0.15.0
+    , ghci-dap >=0.0.20.0
+    , haskell-dap >=0.0.16.0
     , haskell-debug-adapter
     , hslogger
     , lens
@@ -264,8 +264,8 @@ test-suite haskell-debug-adapter-test
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.19.0
-    , haskell-dap >=0.0.15.0
+    , ghci-dap >=0.0.20.0
+    , haskell-dap >=0.0.16.0
     , haskell-debug-adapter
     , hslogger
     , hspec
