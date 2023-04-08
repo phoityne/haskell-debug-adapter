@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module Haskell.Debug.Adapter.Utility where
 
 import Control.Lens
@@ -19,6 +21,10 @@ import Control.Concurrent.MVar
 import qualified System.Log.Logger as L
 import qualified Data.List as L
 import qualified Control.Exception.Safe as E
+
+#if __GLASGOW_HASKELL__ >= 906
+import Control.Monad
+#endif
 
 import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Type

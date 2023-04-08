@@ -1,11 +1,11 @@
 name: haskell-debug-adapter
-version: '0.0.38.0'
+version: '0.0.39.0'
 synopsis: Haskell Debug Adapter.
 description: Please see README.md
 category: Development
 author: phoityne_hs
 maintainer: phoityne.hs@gmail.com
-copyright: 2016-2022 phoityne_hs
+copyright: 2016-2023 phoityne_hs
 license: BSD3
 homepage: https://github.com/phoityne/haskell-debug-adapter/
 bug-reports: https://github.com/phoityne/haskell-debug-adapter/issues

@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE CPP #-}
 
 module Haskell.Debug.Adapter.GHCi where
 
@@ -20,6 +21,9 @@ import Haskell.Debug.Adapter.Type
 import qualified Haskell.Debug.Adapter.Utility as U
 import Haskell.Debug.Adapter.Constant
 
+#if __GLASGOW_HASKELL__ >= 906
+import Control.Monad
+#endif
 ---------------------------------------------------------------------------------
 -- |
 --  run ghci.

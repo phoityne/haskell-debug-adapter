@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE CPP #-}
 
 module Haskell.Debug.Adapter.Watch where
 
@@ -16,7 +17,11 @@ import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Utility
 import Haskell.Debug.Adapter.Constant
 
+import System.FilePath
 
+#if __GLASGOW_HASKELL__ >= 906
+import Control.Monad
+#endif
 -- |
 --
 run :: AppStores -> IO ()
@@ -53,7 +58,8 @@ app = flip catchError errHdl $ do
 
     -- |
     --
-    hsFilter ev = L.isSuffixOf _HS_FILE_EXT $ S.eventPath ev
+    hsFilter ev = (L.isSuffixOf _HS_FILE_EXT (S.eventPath ev))
+               && (not (L.isInfixOf (pathSeparator:".") (S.eventPath ev)))
 
     -- |
     --
