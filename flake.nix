@@ -54,12 +54,16 @@
 
       devShell = pkgs.haskellPackages.shellFor {
         name = "haskell-debug-adapter-devShell";
-        packages = p: with p; [haskell-debug-adapter];
+        packages = p:
+          with p; [
+            haskell-debug-adapter
+          ];
         withHoogle = true;
         buildInputs =
           (with pkgs; [
             haskell-language-server
             cabal-install
+            haskellPackages.implicit-hie
             zlib
           ])
           ++ (with pre-commit-hooks.packages.${system}; [
@@ -68,6 +72,7 @@
             alejandra
           ]);
         shellHook = ''
+          gen-hie --cabal > hie.yaml
           ${self.checks.${system}.pre-commit-check.shellHook}
         '';
       };

@@ -50,11 +50,27 @@ or
 > nix run .#haskell-debug-adapter
 ```
 
-To run all tests with nix:
+# Development
+
+This project can be built with stack, cabal and nix.
+
+To run all tests and checks with nix:
 
 ```console
 > nix flake check -L
 ```
+
+To enter a development shell with nix:
+
+```console
+> nix develop
+```
+
+> **Note**
+>
+> The `stack.yaml` and `cabal.project` assume that [`haskell-dap`](https://github.com/phoityne/haskell-dap)
+> and [`ghci-dap`](https://github.com/phoityne/ghci-dap) are checked out in the same directory as
+> this project. If they are not, `haskell-language-server` will fail to start.
 
 
 # Limitation
