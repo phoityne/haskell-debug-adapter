@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1a8a9f4202a32a5d5c37c676b9d919068955c6ff8fecee95e75927238459e56d
+-- hash: 31df6f8a3983d139dd38dfb23e6a70668fe0e158220e5b7a993db5050d161c30
 
 name:           haskell-debug-adapter
 version:        0.0.39.0
@@ -112,8 +112,8 @@ library
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.20.0
-    , haskell-dap >=0.0.16.0
+    , ghci-dap >=0.0.19.0
+    , haskell-dap >=0.0.15.0
     , hslogger
     , lens
     , mtl
@@ -123,9 +123,9 @@ library
     , resourcet
     , safe-exceptions
     , text
+  default-language: Haskell2010
   if impl(ghc < 8.10.0)
     buildable: False
-  default-language: Haskell2010
 
 executable haskell-debug-adapter
   main-is: Main.hs
@@ -186,8 +186,8 @@ executable haskell-debug-adapter
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.20.0
-    , haskell-dap >=0.0.16.0
+    , ghci-dap >=0.0.19.0
+    , haskell-dap >=0.0.15.0
     , haskell-debug-adapter
     , hslogger
     , lens
@@ -198,9 +198,9 @@ executable haskell-debug-adapter
     , resourcet
     , safe-exceptions
     , text
+  default-language: Haskell2010
   if impl(ghc < 8.10.0)
     buildable: False
-  default-language: Haskell2010
 
 test-suite haskell-debug-adapter-test
   type: exitcode-stdio-1.0
@@ -264,8 +264,8 @@ test-suite haskell-debug-adapter-test
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.20.0
-    , haskell-dap >=0.0.16.0
+    , ghci-dap >=0.0.19.0
+    , haskell-dap >=0.0.15.0
     , haskell-debug-adapter
     , hslogger
     , hspec
@@ -277,6 +277,6 @@ test-suite haskell-debug-adapter-test
     , resourcet
     , safe-exceptions
     , text
+  default-language: Haskell2010
   if impl(ghc < 8.10.0)
     buildable: False
-  default-language: Haskell2010

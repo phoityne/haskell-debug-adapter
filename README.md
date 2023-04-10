@@ -34,8 +34,26 @@ Changed package name (because a name "phoityne-vscode" is ambiguous.), and with 
 
 Install these libraries at once.
 
-```
+```console
 > stack install haskell-dap ghci-dap haskell-debug-adapter
+```
+
+You can also build and run this project with nix:
+
+```console
+> nix build .#haskell-debug-adapter
+```
+
+or
+
+```console
+> nix run .#haskell-debug-adapter
+```
+
+To run all tests with nix:
+
+```console
+> nix flake check -L
 ```
 
 
