@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
+    haskell-dap.url = "github:phoityne/haskell-dap";
+
+    ghci-dap.url = "github:phoityne/ghci-dap";
+
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
@@ -20,6 +24,8 @@
   outputs = {
     self,
     nixpkgs,
+    haskell-dap,
+    ghci-dap,
     pre-commit-hooks,
     flake-utils,
     ...
@@ -37,6 +43,8 @@
         inherit system;
         overlays = [
           overlay
+          haskell-dap.overlays.default
+          ghci-dap.overlays.default
         ];
       };
 
@@ -81,8 +89,6 @@
         default = devShell;
       };
 
-      overlays = overlay;
-
       packages = rec {
         default = haskell-debug-adapter;
         haskell-debug-adapter = pkgs.haskellPackages.haskell-debug-adapter;
@@ -92,5 +98,8 @@
         inherit pre-commit-check;
         haskell-debug-adapter = self.packages.${system}.default;
       };
-    });
+    })
+    // {
+      overlays.default = overlay;
+    };
 }
