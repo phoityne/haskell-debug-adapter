@@ -34,9 +34,43 @@ Changed package name (because a name "phoityne-vscode" is ambiguous.), and with 
 
 Install these libraries at once.
 
-```
+```console
 > stack install haskell-dap ghci-dap haskell-debug-adapter
 ```
+
+You can also build and run this project with nix:
+
+```console
+> nix build .#haskell-debug-adapter
+```
+
+or
+
+```console
+> nix run .#haskell-debug-adapter
+```
+
+# Development
+
+This project can be built with stack, cabal and nix.
+
+To run all tests and checks with nix:
+
+```console
+> nix flake check -L
+```
+
+To enter a development shell with nix:
+
+```console
+> nix develop
+```
+
+> **Note**
+>
+> The `stack.yaml` and `cabal.project` assume that [`haskell-dap`](https://github.com/phoityne/haskell-dap)
+> and [`ghci-dap`](https://github.com/phoityne/ghci-dap) are checked out in the same directory as
+> this project. If they are not, `haskell-language-server` will fail to start.
 
 
 # Limitation
