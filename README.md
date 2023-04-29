@@ -27,6 +27,9 @@ Changed package name (because a name "phoityne-vscode" is ambiguous.), and with 
     See a sample configuration.
   * [hdx4vs](https://github.com/phoityne/hdx4vs)  
     An extension for Visual Studio.
+  * [haskell-tools.nvim](https://github.com/mrcjkb/haskell-tools.nvim)
+    A Neovim plugin that discovers launch configurations for [nvim-dap](https://github.com/mfussenegger/nvim-dap)
+    from cabal and stack projects, and from Visual Studio Code launch.json files.
 
 # Requirement
   - haskell-dap
