@@ -122,8 +122,43 @@ run argDat inHdl outHdl = E.bracket initialize finalize go
                   RQ.run appData    -- request handler
                 , A.run  appData    -- main app
                 , RP.run appData    -- response handler
-                , W.run  appData    -- file watch
+                -- , W.run  appData    -- file watch
                 ]
+
+      -- 
+      -- suspend file watch.
+      -- because on vbox CentOS Stream release 9, throw error.
+      --   Error: couldn't start native file manager: fdType: unsupported operation (unknown file type)
+      --
+      -- https://github.com/haskell-fswatch/hfsnotify/blob/master/src/System/FSNotify.hs#L167C1-L178C7
+      --   case confWatchMode conf of
+      --     WatchModePoll interval -> WatchManager conf <$> liftIO (createPollManager interval) <*> cleanupVar <*> globalWatchChan
+      -- #ifndef OS_BSD
+      --     WatchModeOS -> liftIO (initSession ()) >>= createManager
+      -- #endif
+      -- 
+      --   where
+      -- #ifndef OS_BSD
+      --     createManager :: Either Text NativeManager -> IO WatchManager
+      --     createManager (Right nativeManager) = WatchManager conf nativeManager <$> cleanupVar <*> globalWatchChan
+      --     createManager (Left err) = throwIO $ userError $ T.unpack $ "Error: couldn't start native file manager: " <> err
+      -- #endif
+      -- 
+      -- https://github.com/haskell-fswatch/hfsnotify/blob/master/src/System/FSNotify/Linux.hs#L94C1-L97C45
+      -- instance FileListener INotifyListener () where
+      --   initSession _ = E.handle (\(e :: IOException) -> return $ Left $ fromString $ show e) $ do
+      --     inotify <- INo.initINotify
+      --     return $ Right $ INotifyListener inotify
+      -- 
+      -- https://hackage.haskell.org/package/hinotify-0.4.1/docs/src/System.INotify.html#initINotify
+      -- initINotify :: IO INotify
+      -- initINotify = do
+      --     throwErrnoIfMinus1 "initINotify" c_inotify_init
+      --     (fd,fd_type) <- FD.mkFD fdint ReadMode (Just (Stream,0,0))
+      -- 
+
+
+
 
       as <- mapM async ths
       waitAnyCatchCancel as >>= \case

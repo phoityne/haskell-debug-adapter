@@ -7,7 +7,7 @@ cabal-version: 1.12
 -- hash: 31df6f8a3983d139dd38dfb23e6a70668fe0e158220e5b7a993db5050d161c30
 
 name:           haskell-debug-adapter
-version:        0.0.39.0
+version:        0.0.40.0
 synopsis:       Haskell Debug Adapter.
 description:    Please see README.md
 category:       Development
@@ -15,7 +15,7 @@ homepage:       https://github.com/phoityne/haskell-debug-adapter/
 bug-reports:    https://github.com/phoityne/haskell-debug-adapter/issues
 author:         phoityne_hs
 maintainer:     phoityne.hs@gmail.com
-copyright:      2016-2023 phoityne_hs
+copyright:      2016-2024 phoityne_hs
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -112,8 +112,8 @@ library
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.19.0
-    , haskell-dap >=0.0.15.0
+    , ghci-dap >=0.0.23.0
+    , haskell-dap >=0.0.16.0
     , hslogger
     , lens
     , mtl
@@ -186,8 +186,8 @@ executable haskell-debug-adapter
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.19.0
-    , haskell-dap >=0.0.15.0
+    , ghci-dap >=0.0.23.0
+    , haskell-dap >=0.0.16.0
     , haskell-debug-adapter
     , hslogger
     , lens
@@ -264,8 +264,8 @@ test-suite haskell-debug-adapter-test
     , directory
     , filepath
     , fsnotify
-    , ghci-dap >=0.0.19.0
-    , haskell-dap >=0.0.15.0
+    , ghci-dap >=0.0.23.0
+    , haskell-dap >=0.0.16.0
     , haskell-debug-adapter
     , hslogger
     , hspec

@@ -5,3 +5,6 @@ result*
 dist-newstyle
 .direnv
 hie.yaml
+cabal.project.*
+.vscode
+build.sh
