@@ -1,3 +1,7 @@
+20250209 haskell-debug-adapter-0.0.41.0
+  * [MODIFY] Improved debug console output.
+
+
 20240630 haskell-debug-adapter-0.0.40.0
   * [INFO] support ghc-9.10.1.
   * [MODIFY] stop watching files.

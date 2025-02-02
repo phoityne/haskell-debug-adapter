@@ -129,10 +129,10 @@ expectInitPmpt pmpt = do
   proc <- U.liftIOE $ readMVar mvar
   let hdl = proc^.rHdlGHCiProc
 
-  go pmpt hdl "" >>= \case
+  go pmpt hdl "" "" >>= \case
     Right xs -> do
       let strs = map U.rstrip $ lines xs
-      pout strs
+      -- pout strs
       return strs
     Left xs -> do
       let strs = map U.rstrip $ lines xs
@@ -140,21 +140,28 @@ expectInitPmpt pmpt = do
       throwError "[CRITICAL] can not get the initial ghci prompt."
 
   where
-    go :: String -> S.Handle -> String -> AppContext (Either String String)
-    go key hdl acc = catchError
-      (U.readChar hdl >>= byPmpt key hdl acc)
+    go :: String -> S.Handle -> String -> String -> AppContext (Either String String)
+    go key hdl acc accL = catchError
+      (U.readChar hdl >>= byPmpt key hdl acc accL)
       (errHdl acc)
 
     errHdl :: String -> String -> AppContext (Either String String)
     errHdl acc e = return $ Left $ unlines [acc, "", e, ""]
 
-    byPmpt :: String -> S.Handle -> String -> String -> AppContext (Either String String)
-    byPmpt key hdl acc b = do
+    byPmpt :: String -> S.Handle -> String -> String -> String -> AppContext (Either String String)
+    byPmpt key hdl acc accL b = do
       let newAcc = acc ++ b
-      U.debugEV _LOG_GHCI_STDOUT newAcc
-      if L.isSuffixOf key newAcc
-        then return $ Right newAcc
-        else go key hdl newAcc
+      let newAccL = accL ++ b
+
+      if _LF_STR == b
+        then do
+          U.sendStdoutEventLF accL
+          go key hdl newAcc ""
+        else if L.isSuffixOf key newAcc
+            then do
+              U.sendStdoutEvent newAccL
+              return $ Right newAcc
+            else go key hdl newAcc newAccL
 
     pout [] = return ()
     pout (x:[]) = U.sendStdoutEvent x

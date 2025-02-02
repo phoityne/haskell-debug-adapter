@@ -20,7 +20,7 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Application as A
 import qualified Haskell.Debug.Adapter.Request as RQ
 import qualified Haskell.Debug.Adapter.Response as RP
-import qualified Haskell.Debug.Adapter.Watch as W
+-- import qualified Haskell.Debug.Adapter.Watch as W
 
 
 -- |
