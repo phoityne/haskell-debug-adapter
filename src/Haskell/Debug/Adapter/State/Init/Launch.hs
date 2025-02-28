@@ -1,8 +1,11 @@
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Haskell.Debug.Adapter.State.Init.Launch where
 
+import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Except
 import Control.Monad.State
@@ -14,6 +17,7 @@ import qualified System.Log.Logger as L
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.List as L
 import qualified Data.Version as V
+import qualified System.Directory as D
 
 import qualified Haskell.DAP as DAP
 import qualified Haskell.Debug.Adapter.Utility as U
@@ -23,6 +27,9 @@ import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.Logger as L
 import qualified Haskell.Debug.Adapter.GHCi as P
 
+import qualified HIE.Bios as HIE
+import qualified HIE.Bios.Types as HIE
+import qualified HIE.Bios.Environment as HIE
 
 -- |
 --   Any errors should be critical. don't catch anything here.
@@ -48,11 +55,11 @@ app req = flip catchError errHdl $ do
 
   -- must start here. can not start in the entry of GHCiRun State.
   -- because there is a transition from DebugRun to GHCiRun.
-  startGHCi req
+  flags <- startGHCi req
   setPrompt
   launchCmd req
   setMainArgs
-  loadStarupFile
+  loadStarupFile flags
 
   -- dont send launch response here.
   -- it must send after configuration done response.
@@ -127,38 +134,75 @@ setUpLogger req = do
   liftIO $ L.setUpLogger (DAP.logFileLaunchRequestArguments args) logPR
 
 
--- |
---
-startGHCi :: DAP.LaunchRequest -> AppContext ()
+-- | Starts GHCi and returns the list of arguments it passed to invoke it.
+startGHCi :: DAP.LaunchRequest -> AppContext [String]
 startGHCi req = do
   let args = DAP.argumentsLaunchRequest req
       initPmpt = maybe _GHCI_PROMPT id (DAP.ghciInitialPromptLaunchRequestArguments args)
       envs = DAP.ghciEnvLaunchRequestArguments args
-      cmdStr = DAP.ghciCmdLaunchRequestArguments args
-      cmdList = filter (not.null) $ U.split " " cmdStr
-      cmd  = head cmdList
 
-  U.debugEV _LOG_APP $ show cmdList
+      -- Ignore ghciCmd LaunchRequestArguments
+      -- Instead, use `hie-bios` to do the Right Thing across projects without complicated user input.
+      -- Eventually, get rid of this option from haskell-dap.
+      _cmdStr = DAP.ghciCmdLaunchRequestArguments args
+      _cmdList = filter (not.null) $ U.split " " _cmdStr
 
-  opts <- addWithGHC (tail cmdList)
+      startup_file = DAP.startupLaunchRequestArguments args
 
   appStores <- get
   cwd <- U.liftIOE $ readMVar $ appStores^.workspaceAppStores
 
+  flags <- do
+    explicitCradle <- U.liftIOE $ HIE.findCradle startup_file
+    cradle <- U.liftIOE $ maybe (HIE.loadImplicitCradle mempty startup_file)
+                                (HIE.loadCradle mempty) explicitCradle
+
+    libdir <- U.liftIOE (HIE.getRuntimeGhcLibDir cradle) >>= unwrapCradleResult "Failed to get runtime GHC libdir"
+
+    -- getCompilerOptions depends on CWD being the proper root dir.
+    let compilerOpts = D.withCurrentDirectory cwd $
+#if MIN_VERSION_hie_bios(0,14,0)
+                          HIE.getCompilerOptions startup_file HIE.LoadFile cradle
+#else
+                          HIE.getCompilerOptions startup_file [] cradle
+#endif
+    HIE.ComponentOptions {HIE.componentOptions = flags} <- U.liftIOE compilerOpts >>= unwrapCradleResult "Failed to get compiler options using hie-bios cradle"
+
+    -- Filter startup file out of args. That is loaded afterwards.
+    return $
+#if __GLASGOW_HASKELL__ >= 913
+      -- fwrite-if-simplified-core requires a recent bug fix regarding GHCi loading
+      ["-fwrite-if-simplified-core"] ++
+#endif
+      ["--interactive", "-B"++libdir] ++ flags
+
+  U.debugEV _LOG_APP $ show flags
+
   U.liftIOE $ L.debugM _LOG_APP $ "ghci initial prompt [" ++ initPmpt ++ "]."
 
   U.sendConsoleEventLF $ "CWD: " ++ cwd
-  U.sendConsoleEventLF $ "CMD: " ++ L.intercalate " " (cmd : opts)
+  U.sendConsoleEventLF $ "CMD: " ++ L.intercalate " " flags
   U.sendConsoleEventLF ""
 
-  P.startGHCi cmd opts cwd envs
+  P.startGHCi "ghci-dap" flags cwd envs
+
   U.sendErrorEventLF $ "Now, waiting for an initial prompt(\""++initPmpt++"\")" ++ " from ghci."
   U.sendConsoleEventLF ""
   res <- P.expectInitPmpt initPmpt
 
   updateGHCiVersion res
 
+  return flags
+
   where
+    unwrapCradleResult m = \case
+      HIE.CradleNone     -> panic (error m) "HIE.CradleNone"
+      HIE.CradleFail err -> panic (error m) (unlines $ HIE.cradleErrorStderr err)
+      HIE.CradleSuccess x -> return x
+
+    panic exit m = do
+      U.sendErrorEvent m
+      exit
 
     updateGHCiVersion acc = case parse verParser "getGHCiVersion" (unlines acc) of
       Right v -> do
@@ -226,12 +270,16 @@ setMainArgs = view mainArgsAppStores <$> get >>= \case
     return ()
 
 
--- |
---
-loadStarupFile :: AppContext ()
-loadStarupFile = do
+-- | Takes as an argument the list of flags used to invoke GHCi to determine
+-- if the main module has already been loaded. If it hasn't, loads the main file.
+loadStarupFile :: [String] -> AppContext ()
+loadStarupFile flags = do
   file <- view startupAppStores <$> get
-  SU.loadHsFile file
+  when (not $ any (\lf -> lf `L.isSuffixOf` file) flags) $
+    -- We only load the file if it hasn't already been given as an argument;
+    -- Otherwise, we'll force loading the main module and all of its dependencies a second time.
+    -- That is incredibly painful in large projects (like GHC).
+    SU.loadHsFile file
 
   let cmd  = ":dap-context-modules "
 
@@ -239,27 +287,6 @@ loadStarupFile = do
   P.expectPmpt
 
   return ()
-
-
--- |
---
-addWithGHC :: [String] -> AppContext [String]
-addWithGHC [] = return []
-addWithGHC cmds
-  | L.elem "--with-ghc=haskell-dap" cmds = do
-    U.infoEV _LOG_APP "can not use haskell-dap. deleting \"--with-ghc=haskell-dap\""
-    addWithGHC $ L.delete "--with-ghc=haskell-dap" cmds
-  | withGhciExists cmds = return cmds
-  | "ghci" == head cmds = do
-    U.infoEV _LOG_APP "\"--with-ghc\" option not found. adding \"--with-ghc=ghci-dap\""
-    return $ head cmds:"--with-ghc=ghci-dap":tail cmds
-  | otherwise = return cmds
-  where
-    withGhciExists [] = False
-    withGhciExists (x:xs)
-      | L.isPrefixOf "--with-ghc=" x = True
-      | otherwise = withGhciExists xs
-
 
 -- |
 --

@@ -92,6 +92,7 @@ dependencies:
 - optparse-applicative
 - haskell-dap >=0.0.16.0
 - ghci-dap >=0.0.23.0
+- hie-bios >=0.13
 
 library:
   source-dirs: src
