@@ -144,15 +144,16 @@ startGHCi req = do
       -- Ignore ghciCmd LaunchRequestArguments
       -- Instead, use `hie-bios` to do the Right Thing across projects without complicated user input.
       -- Eventually, get rid of this option from haskell-dap.
-      _cmdStr = DAP.ghciCmdLaunchRequestArguments args
-      _cmdList = filter (not.null) $ U.split " " _cmdStr
+      cmdStr = DAP.ghciCmdLaunchRequestArguments args
+      (cmd:cmdOpts) = filter (not.null) $ U.split " " cmdStr
 
       startup_file = DAP.startupLaunchRequestArguments args
 
   appStores <- get
   cwd <- U.liftIOE $ readMVar $ appStores^.workspaceAppStores
 
-  flags <- do
+  -- Use hie-bios when Cmd is exactly "ghci-dap"
+  flags <- if cmdStr /= "ghci-dap" then addWithGHC cmdOpts else do
     explicitCradle <- U.liftIOE $ HIE.findCradle startup_file
     cradle <- U.liftIOE $ maybe (HIE.loadImplicitCradle mempty startup_file)
                                 (HIE.loadCradle mempty) explicitCradle
@@ -168,7 +169,6 @@ startGHCi req = do
 #endif
     HIE.ComponentOptions {HIE.componentOptions = flags} <- U.liftIOE compilerOpts >>= unwrapCradleResult "Failed to get compiler options using hie-bios cradle"
 
-    -- Filter startup file out of args. That is loaded afterwards.
     return $
 #if __GLASGOW_HASKELL__ >= 913
       -- fwrite-if-simplified-core requires a recent bug fix regarding GHCi loading
@@ -181,10 +181,10 @@ startGHCi req = do
   U.liftIOE $ L.debugM _LOG_APP $ "ghci initial prompt [" ++ initPmpt ++ "]."
 
   U.sendConsoleEventLF $ "CWD: " ++ cwd
-  U.sendConsoleEventLF $ "CMD: " ++ L.intercalate " " flags
+  U.sendConsoleEventLF $ "CMD: " ++ L.intercalate " " (cmd:flags)
   U.sendConsoleEventLF ""
 
-  P.startGHCi "ghci-dap" flags cwd envs
+  P.startGHCi cmd flags cwd envs
 
   U.sendErrorEventLF $ "Now, waiting for an initial prompt(\""++initPmpt++"\")" ++ " from ghci."
   U.sendConsoleEventLF ""
@@ -287,6 +287,23 @@ loadStarupFile flags = do
   P.expectPmpt
 
   return ()
+
+addWithGHC :: [String] -> AppContext [String]
+addWithGHC [] = return []
+addWithGHC cmds
+  | L.elem "--with-ghc=haskell-dap" cmds = do
+    U.infoEV _LOG_APP "can not use haskell-dap. deleting \"--with-ghc=haskell-dap\""
+    addWithGHC $ L.delete "--with-ghc=haskell-dap" cmds
+  | withGhciExists cmds = return cmds
+  | "ghci" == head cmds = do
+    U.infoEV _LOG_APP "\"--with-ghc\" option not found. adding \"--with-ghc=ghci-dap\""
+    return $ head cmds:"--with-ghc=ghci-dap":tail cmds
+  | otherwise = return cmds
+  where
+    withGhciExists [] = False
+    withGhciExists (x:xs)
+      | L.isPrefixOf "--with-ghc=" x = True
+      | otherwise = withGhciExists xs
 
 -- |
 --
