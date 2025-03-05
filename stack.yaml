@@ -18,8 +18,11 @@
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
 
+# for ghc-9.10
+resolver: nightly-2025-02-28
+
 # for ghc-9.0.1
-resolver: nightly-2021-07-02
+# resolver: nightly-2021-07-02
 
 # for ghc-8.10.3
 # resolver: lts-17.0

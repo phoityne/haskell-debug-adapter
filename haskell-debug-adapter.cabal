@@ -1,10 +1,8 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.2.
+-- This file has been generated from package.yaml by hpack version 0.37.0.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: 31df6f8a3983d139dd38dfb23e6a70668fe0e158220e5b7a993db5050d161c30
 
 name:           haskell-debug-adapter
 version:        0.0.41.0
@@ -55,7 +53,7 @@ library
       Haskell.Debug.Adapter.TH.Utility
       Haskell.Debug.Adapter.Type
       Haskell.Debug.Adapter.Utility
-      -- Haskell.Debug.Adapter.Watch
+      Haskell.Debug.Adapter.Watch
       Paths_haskell_debug_adapter
   hs-source-dirs:
       src
@@ -111,9 +109,10 @@ library
     , data-default
     , directory
     , filepath
-    -- , fsnotify
+    , fsnotify
     , ghci-dap >=0.0.23.0
     , haskell-dap >=0.0.16.0
+    , hie-bios >=0.13
     , hslogger
     , lens
     , mtl
@@ -185,10 +184,11 @@ executable haskell-debug-adapter
     , data-default
     , directory
     , filepath
-    -- , fsnotify
+    , fsnotify
     , ghci-dap >=0.0.23.0
     , haskell-dap >=0.0.16.0
     , haskell-debug-adapter
+    , hie-bios >=0.13
     , hslogger
     , lens
     , mtl
@@ -263,10 +263,11 @@ test-suite haskell-debug-adapter-test
     , data-default
     , directory
     , filepath
-    -- , fsnotify
+    , fsnotify
     , ghci-dap >=0.0.23.0
     , haskell-dap >=0.0.16.0
     , haskell-debug-adapter
+    , hie-bios >=0.13
     , hslogger
     , hspec
     , lens
