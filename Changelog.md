@@ -1,3 +1,7 @@
+20250309 haskell-debug-adapter-0.0.42.0
+  * [PR] Use hie-bios to generalize build command #37
+
+
 20250209 haskell-debug-adapter-0.0.41.0
   * [MODIFY] Improved debug console output.
 

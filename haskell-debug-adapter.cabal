@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           haskell-debug-adapter
-version:        0.0.41.0
+version:        0.0.42.0
 synopsis:       Haskell Debug Adapter.
 description:    Please see README.md
 category:       Development
