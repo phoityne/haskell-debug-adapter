@@ -154,6 +154,11 @@ startGHCi req = do
 
   -- Use hie-bios when Cmd is exactly "ghci-dap"
   flags <- if cmdStr /= "ghci-dap" then addWithGHC cmdOpts else do
+    isExist <- U.liftIOE $ D.doesFileExist startup_file
+    when (False == isExist) $ do
+      U.sendErrorEventLF $ "file not found. [" ++ startup_file ++ "]"
+      -- throwError $ "file not found. [" ++ startup_file ++ "]"
+
     explicitCradle <- U.liftIOE $ HIE.findCradle startup_file
     cradle <- U.liftIOE $ maybe (HIE.loadImplicitCradle mempty startup_file)
                                 (HIE.loadCradle mempty) explicitCradle
