@@ -2,6 +2,7 @@
   * [ADD] MCP support.(experimental)
 
 
+
 20250316 haskell-debug-adapter-0.0.42.0
   * [PR] Use hie-bios to generalize build command #37
 
