@@ -12,6 +12,7 @@ import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.State.GHCiRun.ConfigurationDone()
 import qualified Haskell.Debug.Adapter.State.Utility as SU
 import qualified Haskell.Debug.Adapter.Utility as U
+import qualified Haskell.Debug.Adapter.MCP.Type as MCP
 
 instance AppStateIF GHCiRunStateData where
   -- |
@@ -51,6 +52,28 @@ instance AppStateIF GHCiRunStateData where
   doActivity s (WrapRequest r@InternalTransitRequest{})         = action s r
   doActivity s (WrapRequest r@InternalTerminateRequest{})       = action s r
   doActivity s (WrapRequest r@InternalLoadRequest{})            = action s r
+
+  doActivity s (WrapRequest r@McpInitializeRequest{})           = action s r
+  doActivity s (WrapRequest r@McpInitializedNotification{})     = action s r
+  doActivity s (WrapRequest r@McpToolsListRequest{})            = action s r
+  doActivity s (WrapRequest r@McpCallToolRequest{})             = action s r
+
+-- |
+--   default nop.
+--
+instance StateActivityIF GHCiRunStateData MCP.McpInitializeRequest
+-- |
+--   default nop.
+--
+instance StateActivityIF GHCiRunStateData MCP.McpInitializedNotification
+-- |
+--   default nop.
+--
+instance StateActivityIF GHCiRunStateData MCP.McpToolsListRequest
+-- |
+--   default nop.
+--
+instance StateActivityIF GHCiRunStateData MCP.McpCallToolRequest
 
 -- |
 --   default nop.

@@ -26,7 +26,7 @@ import Haskell.Debug.Adapter.State.DebugRun.StepIn()
 import Haskell.Debug.Adapter.State.DebugRun.Terminate()
 import Haskell.Debug.Adapter.State.DebugRun.InternalTerminate()
 import qualified Haskell.Debug.Adapter.State.Utility as SU
-
+import qualified Haskell.Debug.Adapter.MCP.Type as MCP
 
 instance AppStateIF DebugRunStateData where
   -- |
@@ -66,6 +66,27 @@ instance AppStateIF DebugRunStateData where
   doActivity s (WrapRequest r@InternalTransitRequest{})         = action s r
   doActivity s (WrapRequest r@InternalTerminateRequest{})       = action s r
   doActivity s (WrapRequest r@InternalLoadRequest{})            = action s r
+  doActivity s (WrapRequest r@McpInitializeRequest{})           = action s r
+  doActivity s (WrapRequest r@McpInitializedNotification{})     = action s r
+  doActivity s (WrapRequest r@McpToolsListRequest{})            = action s r
+  doActivity s (WrapRequest r@McpCallToolRequest{})             = action s r
+
+-- |
+--   default nop.
+--
+instance StateActivityIF DebugRunStateData MCP.McpInitializeRequest
+-- |
+--   default nop.
+--
+instance StateActivityIF DebugRunStateData MCP.McpInitializedNotification
+-- |
+--   default nop.
+--
+instance StateActivityIF DebugRunStateData MCP.McpToolsListRequest
+-- |
+--   default nop.
+--
+instance StateActivityIF DebugRunStateData MCP.McpCallToolRequest
 
 -- |
 --   default nop.

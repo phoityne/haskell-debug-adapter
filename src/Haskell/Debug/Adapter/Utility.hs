@@ -412,6 +412,11 @@ readLine hdl =   isOpenHdl hdl
   where
     go hdl = liftIOE $ S.hGetLine hdl
 
+-- |
+--
+readLineL :: S.Handle -> AppContext BSL.ByteString
+readLineL hdl = readLine hdl >>= return . str2lbs
+
 
 -- |
 --
@@ -568,4 +573,10 @@ stdoutLogging bs = do
   stdioLogging $ str2lbs "[OUT]" `BSL.append` bs `BSL.append` str2lbs "\n"
 
 
+-- |
+--
+mcpStderrLF :: BSL.ByteString -> AppContext ()
+mcpStderrLF bs = liftIOE $ do
+  BSL.hPutStr S.stderr $ BSL.append bs $ str2lbs _LF_STR
+  S.hFlush S.stderr
 

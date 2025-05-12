@@ -68,7 +68,9 @@ app req = flip catchError errHdl $ do
   -- after initialized event, vscode send setBreak... and
   -- ConfigurationDone request.
   initSeq <- U.getIncreasedResponseSequence
-  U.addResponse $ InitializedEvent $ DAP.defaultInitializedEvent {DAP.seqInitializedEvent = initSeq}
+  let reqSeq = DAP.seqLaunchRequest req
+
+  U.addResponse $ InitializedEvent $ DAP.defaultInitializedEvent {DAP.seqInitializedEvent = initSeq, DAP.request_seqInitializedEvent = reqSeq}
 
   return $ Just Init_GHCiRun
 

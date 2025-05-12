@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Haskell.Debug.Adapter.Response where
-
 import Control.Monad.IO.Class
 import Data.Conduit
 import Control.Lens
@@ -15,10 +14,11 @@ import Control.Monad.Except
 import qualified System.IO as S
 import qualified Data.List as L
 
+import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.Type
 import Haskell.Debug.Adapter.Utility
 import Haskell.Debug.Adapter.Constant
-
+import qualified Haskell.Debug.Adapter.MCP.Type as MCP
 
 -- |
 --
@@ -104,13 +104,211 @@ res2lbs = do
       return ()
     Just res -> do
       liftIO $ L.debugM _LOG_RESPONSE $ "res2lbs get data. " ++ show res
-      bs <- lift $ goApp res
-      yield bs
+
+      lift (goApp res) >>= \case
+        Nothing -> return ()
+        Just bs -> yield bs
+      
       res2lbs
 
   where
-    goApp :: Response -> AppContext B.ByteString
-    goApp = return . encode
+    goApp :: Response -> AppContext (Maybe B.ByteString)
+    goApp res = view isMcpAppStores <$> get >>= \case
+      False -> return . Just . encode $ res
+      True  -> do
+        let dapJson = encode res
+            dapMsg = str2lbs "[INFO] dap response: " `B.append` dapJson
+        mcpStderrLF dapMsg
+
+        dap2mcpResponce res
+
+    dap2mcpResponce :: Response -> AppContext (Maybe B.ByteString)
+    dap2mcpResponce (McpInitializeResult res) = return . Just . encode $ res
+    dap2mcpResponce (McpListToolsResult res) = return . Just . encode $ res
+    dap2mcpResponce (InitializeResponse res) = mcpInitializeResponse res >>= return . Just
+    dap2mcpResponce (InitializedEvent res) = mcpInitializedEvent res >>= return . Just
+    dap2mcpResponce (SetBreakpointsResponse res) = mcpCallToolResponseWithData (DAP.request_seqSetBreakpointsResponse res) (encode (DAP.bodySetBreakpointsResponse res)) >>= return . Just
+    dap2mcpResponce (ContinueResponse res) = mcpCallToolResponse (DAP.request_seqContinueResponse res) >>= return . Just
+    dap2mcpResponce (StackTraceResponse res) = mcpStackTraceResponse res >>= return . Just
+    dap2mcpResponce (ScopesResponse res) = mcpScopesResponse res >>= return . Just
+    dap2mcpResponce (VariablesResponse res) = mcpVariablesResponse res >>= return . Just
+    dap2mcpResponce (DisconnectResponse res) = mcpCallToolResponse (DAP.request_seqDisconnectResponse res) >>= return . Just
+    dap2mcpResponce (TerminateResponse res) = mcpCallToolResponse (DAP.request_seqTerminateResponse res) >>= return . Just
+
+    dap2mcpResponce _ = return Nothing
+
+
+-- |
+--
+mcpCallToolResponseWithData :: Int -> B.ByteString -> AppContext B.ByteString
+mcpCallToolResponseWithData idReq dataBS = do
+  let dataBody = lbs2str dataBS
+      answer = "{\"result\":\"success\",\"data\":" ++ dataBody ++ "}"
+      
+
+  let body = MCP.defaultMcpCallToolResultBody {
+              MCP.contentMcpCallToolResultBody = [
+                MCP.defaultMcpTextContent {
+                  MCP.textMcpTextContent = answer
+                }
+              ]
+            }
+      res = MCP.defaultMcpCallToolResult {
+            MCP.idMcpCallToolResult = idReq
+          , MCP.resultMcpCallToolResult = body
+          }
+
+  return $ encode res
+
+-- |
+--
+mcpCallToolResponse :: Int -> AppContext B.ByteString
+mcpCallToolResponse idReq = do
+  let answer = "success"
+
+  let body = MCP.defaultMcpCallToolResultBody {
+              MCP.contentMcpCallToolResultBody = [
+                MCP.defaultMcpTextContent {
+                  MCP.textMcpTextContent = answer
+                }
+              ]
+            }
+      res = MCP.defaultMcpCallToolResult {
+            MCP.idMcpCallToolResult = idReq
+          , MCP.resultMcpCallToolResult = body
+          }
+
+  return $ encode res
+
+
+-- |
+--
+mcpInitializeResponse :: DAP.InitializeResponse -> AppContext B.ByteString
+mcpInitializeResponse dapRes = do
+  let answer = "success"
+
+  let body = MCP.defaultMcpCallToolResultBody {
+              MCP.contentMcpCallToolResultBody = [
+                MCP.defaultMcpTextContent {
+                  MCP.textMcpTextContent = answer
+                }
+              ]
+            }
+      res = MCP.defaultMcpCallToolResult {
+            MCP.idMcpCallToolResult = DAP.request_seqInitializeResponse dapRes
+          , MCP.resultMcpCallToolResult = body
+          }
+
+  return $ encode res
+
+
+-- |
+--
+mcpInitializedEvent :: DAP.InitializedEvent -> AppContext B.ByteString
+mcpInitializedEvent dapRes = do
+  let answer = "success"
+
+  let body = MCP.defaultMcpCallToolResultBody {
+              MCP.contentMcpCallToolResultBody = [
+                MCP.defaultMcpTextContent {
+                  MCP.textMcpTextContent = answer
+                }
+              ]
+            }
+      res = MCP.defaultMcpCallToolResult {
+            MCP.idMcpCallToolResult = DAP.request_seqInitializedEvent dapRes
+          , MCP.resultMcpCallToolResult = body
+          }
+
+  return $ encode res
+
+
+-- |
+--
+mcpSetBreakpointsResponse :: DAP.SetBreakpointsResponse -> AppContext B.ByteString
+mcpSetBreakpointsResponse dapRes = do
+  let answer = "success"
+
+  let body = MCP.defaultMcpCallToolResultBody {
+              MCP.contentMcpCallToolResultBody = [
+                MCP.defaultMcpTextContent {
+                  MCP.textMcpTextContent = answer
+                }
+              ]
+            }
+      res = MCP.defaultMcpCallToolResult {
+            MCP.idMcpCallToolResult = DAP.request_seqSetBreakpointsResponse dapRes
+          , MCP.resultMcpCallToolResult = body
+          }
+
+  return $ encode res
+
+-- |
+--
+mcpStackTraceResponse :: DAP.StackTraceResponse -> AppContext B.ByteString
+mcpStackTraceResponse dapRes = do
+  let dataBody = lbs2str $ encode $ DAP.bodyStackTraceResponse dapRes
+      answer = "{\"result\":\"success\",\"data\":" ++ dataBody ++ "}"
+      
+
+  let body = MCP.defaultMcpCallToolResultBody {
+              MCP.contentMcpCallToolResultBody = [
+                MCP.defaultMcpTextContent {
+                  MCP.textMcpTextContent = answer
+                }
+              ]
+            }
+      res = MCP.defaultMcpCallToolResult {
+            MCP.idMcpCallToolResult = DAP.request_seqStackTraceResponse dapRes
+          , MCP.resultMcpCallToolResult = body
+          }
+
+  return $ encode res
+
+-- |
+--
+mcpScopesResponse :: DAP.ScopesResponse -> AppContext B.ByteString
+mcpScopesResponse dapRes = do
+  let dataBody = lbs2str $ encode $ DAP.bodyScopesResponse dapRes
+      answer = "{\"result\":\"success\",\"data\":" ++ dataBody ++ "}"
+      
+
+  let body = MCP.defaultMcpCallToolResultBody {
+              MCP.contentMcpCallToolResultBody = [
+                MCP.defaultMcpTextContent {
+                  MCP.textMcpTextContent = answer
+                }
+              ]
+            }
+      res = MCP.defaultMcpCallToolResult {
+            MCP.idMcpCallToolResult = DAP.request_seqScopesResponse dapRes
+          , MCP.resultMcpCallToolResult = body
+          }
+
+  return $ encode res
+
+
+-- |
+--
+mcpVariablesResponse :: DAP.VariablesResponse -> AppContext B.ByteString
+mcpVariablesResponse dapRes = do
+  let dataBody = lbs2str $ encode $ DAP.bodyVariablesResponse dapRes
+      answer = "{\"result\":\"success\",\"data\":" ++ dataBody ++ "}"
+      
+
+  let body = MCP.defaultMcpCallToolResultBody {
+              MCP.contentMcpCallToolResultBody = [
+                MCP.defaultMcpTextContent {
+                  MCP.textMcpTextContent = answer
+                }
+              ]
+            }
+      res = MCP.defaultMcpCallToolResult {
+            MCP.idMcpCallToolResult = DAP.request_seqVariablesResponse dapRes
+          , MCP.resultMcpCallToolResult = body
+          }
+
+  return $ encode res
 
 
 ---------------------------------------------------------------------------------
@@ -132,7 +330,9 @@ sink = do
     goApp bs = do
       wHdl <- view outHandleAppStores <$> get
       stdoutLogging bs
-      liftIO $ sendResponse wHdl bs
+      view isMcpAppStores <$> get >>= \case
+        False -> liftIO $ sendResponse wHdl bs
+        True  -> liftIO $ mcpSendResponse wHdl bs
 
     cont str
       | L.isInfixOf _KEY_DISCONNECT_RESPONCE str = do
@@ -154,3 +354,10 @@ sendResponse hdl str = do
   B.hPut hdl str
   S.hFlush hdl
 
+
+-- |
+--
+mcpSendResponse :: S.Handle -> B.ByteString -> IO ()
+mcpSendResponse hdl str = do
+  B.hPutStr hdl $ B.append str $ str2lbs _LF_STR
+  S.hFlush hdl

@@ -61,6 +61,7 @@ options  :: Parser ArgData
 options  = ArgData
   <$> hackageOption
   <*> stdioLogFileOption
+  <*> mcpSwitchOption
 
 
 -- |
@@ -80,3 +81,10 @@ stdioLogFileOption = optional $ strOption $ mconcat
   , help "stdio log file"
   ]
 
+-- |
+--
+mcpSwitchOption :: Parser Bool
+mcpSwitchOption = switch $ mconcat
+  [ long "mcp"
+  , help "Enable MCP mode"
+  ]
