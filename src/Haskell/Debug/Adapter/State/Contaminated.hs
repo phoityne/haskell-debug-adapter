@@ -11,7 +11,7 @@ import Haskell.Debug.Adapter.Type
 import qualified Haskell.Debug.Adapter.Utility as U
 import Haskell.Debug.Adapter.Constant
 import qualified Haskell.Debug.Adapter.State.Utility as SU
-import qualified Haskell.Debug.Adapter.MCP.Type as MCP
+
 
 -- |
 --
@@ -54,26 +54,6 @@ instance AppStateIF ContaminatedStateData where
   doActivity s (WrapRequest r@InternalTransitRequest{})         = action s r
   doActivity s (WrapRequest r@InternalTerminateRequest{})       = action s r
   doActivity s (WrapRequest r@InternalLoadRequest{})            = action s r
-  doActivity s (WrapRequest r@McpInitializeRequest{})           = action s r
-  doActivity s (WrapRequest r@McpInitializedNotification{})     = action s r
-  doActivity s (WrapRequest r@McpToolsListRequest{})            = action s r
-  doActivity s (WrapRequest r@McpCallToolRequest{})             = action s r
--- |
---   default nop.
---
-instance StateActivityIF ContaminatedStateData MCP.McpInitializeRequest
--- |
---   default nop.
---
-instance StateActivityIF ContaminatedStateData MCP.McpInitializedNotification
--- |
---   default nop.
---
-instance StateActivityIF ContaminatedStateData MCP.McpToolsListRequest
--- |
---   default nop.
---
-instance StateActivityIF ContaminatedStateData MCP.McpCallToolRequest
 
 -- |
 --   default nop.

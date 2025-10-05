@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           haskell-debug-adapter
-version:        0.0.43.0
+version:        0.0.42.0
 synopsis:       Haskell Debug Adapter.
 description:    Please see README.md
 category:       Development
@@ -47,9 +47,6 @@ library
       Haskell.Debug.Adapter.State.GHCiRun.ConfigurationDone
       Haskell.Debug.Adapter.State.Init
       Haskell.Debug.Adapter.State.Init.Initialize
-      Haskell.Debug.Adapter.State.Init.McpToolsList
-      Haskell.Debug.Adapter.State.Init.McpInitialize
-      Haskell.Debug.Adapter.State.Init.McpCallTool
       Haskell.Debug.Adapter.State.Init.Launch
       Haskell.Debug.Adapter.State.Shutdown
       Haskell.Debug.Adapter.State.Utility
@@ -58,7 +55,6 @@ library
       Haskell.Debug.Adapter.Utility
       Haskell.Debug.Adapter.Watch
       Paths_haskell_debug_adapter
-      Haskell.Debug.Adapter.MCP.Type
   hs-source-dirs:
       src
   default-extensions:

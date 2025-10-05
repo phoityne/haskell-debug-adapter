@@ -83,7 +83,6 @@ run argDat inHdl outHdl = E.bracket initialize finalize go
         , _outHandleAppStores   = outHdl
         , _asyncsAppStores      = []
         , _stdioLogFileAppStores = argDat^.stdioLogFileArgData
-        , _isMcpAppStores          = argDat^.mcpArgData
 
         -- Read/Write from Application
         , _appStateWAppStores   = WrapAppState InitState

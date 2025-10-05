@@ -13,10 +13,6 @@ import Haskell.Debug.Adapter.Constant
 import Haskell.Debug.Adapter.State.Init.Initialize()
 import Haskell.Debug.Adapter.State.Init.Launch()
 
-import Haskell.Debug.Adapter.State.Init.McpInitialize()
-import Haskell.Debug.Adapter.State.Init.McpToolsList()
-import Haskell.Debug.Adapter.State.Init.McpCallTool()
-import qualified Haskell.Debug.Adapter.MCP.Type as MCP
 
 -- |
 --
@@ -35,12 +31,6 @@ instance AppStateIF InitStateData where
 
   -- |
   --
-  doActivity s (WrapRequest r@McpInitializeRequest{})           = action s r
-  doActivity s (WrapRequest r@McpInitializedNotification{})     = action s r
-  doActivity s (WrapRequest r@McpToolsListRequest{})     = action s r
-  doActivity s (WrapRequest r@McpCallToolRequest{})     = action s r
-
-
   doActivity s (WrapRequest r@InitializeRequest{})              = action s r
   doActivity s (WrapRequest r@LaunchRequest{})                  = action s r
   doActivity s (WrapRequest r@DisconnectRequest{})              = action s r
@@ -63,19 +53,6 @@ instance AppStateIF InitStateData where
   doActivity s (WrapRequest r@InternalTransitRequest{})         = action s r
   doActivity s (WrapRequest r@InternalTerminateRequest{})       = action s r
   doActivity s (WrapRequest r@InternalLoadRequest{})            = action s r
-
-
-
--- |
---   Any errors should be critical. don't catch anything here.
---
-instance StateActivityIF InitStateData MCP.McpInitializedNotification where
-  action _ (McpInitializedNotification _) = do
-    --stdioLogging $ str2lbs $ "[INFO] mcp initialized notification request called.\n"
-    return Nothing
-
-
-
 
 -- |
 --   default nop.

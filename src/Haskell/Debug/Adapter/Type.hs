@@ -24,9 +24,7 @@ import qualified Data.Version as V
 import qualified Haskell.DAP as DAP
 import Haskell.Debug.Adapter.TH.Utility
 import Haskell.Debug.Adapter.Constant
-import qualified Data.ByteString.Lazy.Char8 as BL
 
-import qualified Haskell.Debug.Adapter.MCP.Type as MCP
 
 --------------------------------------------------------------------------------
 -- | Command Line Argument Data Type.
@@ -34,7 +32,6 @@ import qualified Haskell.Debug.Adapter.MCP.Type as MCP
 data ArgData = ArgData {
     _hackageVersionArgData :: Maybe String   -- ^deprecated.
   , _stdioLogFileArgData   :: Maybe FilePath -- stdio log file.
-  , _mcpArgData            :: Bool           -- run as mcp server.
   } deriving (Data, Typeable, Show, Read, Eq)
 
 makeLenses ''ArgData
@@ -52,7 +49,6 @@ instance Default ArgData where
   def = ArgData {
         _hackageVersionArgData = Nothing
       , _stdioLogFileArgData   = Nothing
-      , _mcpArgData            = False
       }
 
 
@@ -148,31 +144,7 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "Variable", omitNothingF
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsItem", omitNothingFields = True} ''DAP.CompletionsItem)
 
 
-
-
-
-instance FromJSON MCP.RawJsonString where
-  parseJSON v = pure . MCP.RawJsonString . BL.unpack $ encode v
-instance ToJSON MCP.RawJsonString where
-  toJSON (MCP.RawJsonString str) =
-    case decode (BL.pack str) of
-      Just v  -> v
-      Nothing -> error "Invalid JSON string in RawJsonString"
-
 -- jsonize
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpRequest", omitNothingFields = True} ''MCP.McpRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpInitializeRequest", omitNothingFields = True} ''MCP.McpInitializeRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpInitializedNotification", omitNothingFields = True} ''MCP.McpInitializedNotification)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpToolsListRequest", omitNothingFields = True} ''MCP.McpToolsListRequest)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpCallToolRequestParams", omitNothingFields = True} ''MCP.McpCallToolRequestParams)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpCallToolRequest", omitNothingFields = True} ''MCP.McpCallToolRequest)
-
-
-
-
-
-
-
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "Request", omitNothingFields = True} ''DAP.Request)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "InitializeRequestArguments", omitNothingFields = True} ''DAP.InitializeRequestArguments)
@@ -233,12 +205,6 @@ $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "CompletionsRequest", om
 
 -- request
 data Request a where
-  McpInitializeRequest :: MCP.McpInitializeRequest -> Request MCP.McpInitializeRequest
-  McpInitializedNotification :: MCP.McpInitializedNotification -> Request MCP.McpInitializedNotification
-  McpToolsListRequest :: MCP.McpToolsListRequest -> Request MCP.McpToolsListRequest
-  McpCallToolRequest :: MCP.McpCallToolRequest -> Request MCP.McpCallToolRequest
-  
-  
   InitializeRequest :: DAP.InitializeRequest -> Request DAP.InitializeRequest
   LaunchRequest     :: DAP.LaunchRequest     -> Request DAP.LaunchRequest
   DisconnectRequest :: DAP.DisconnectRequest -> Request DAP.DisconnectRequest
@@ -270,25 +236,7 @@ data WrapRequest = forall a. WrapRequest (Request a)
 -- | DAP Response Data
 --
 
-
 -- jsonize
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpServerCapabilitiesTools", omitNothingFields = True} ''MCP.McpServerCapabilitiesTools)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpServerCapabilities", omitNothingFields = True} ''MCP.McpServerCapabilities)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpImplementation", omitNothingFields = True} ''MCP.McpImplementation)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpInitializeResultBody", omitNothingFields = True} ''MCP.McpInitializeResultBody)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpInitializeResult", omitNothingFields = True} ''MCP.McpInitializeResult)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpKeyType", omitNothingFields = True} ''MCP.McpKeyType)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpInputSchemaProperties", omitNothingFields = True, sumEncoding = UntaggedValue} ''MCP.McpInputSchemaProperties)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpInputSchema", omitNothingFields = True} ''MCP.McpInputSchema)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpTool", omitNothingFields = True} ''MCP.McpTool)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpListToolsResultBody", omitNothingFields = True} ''MCP.McpListToolsResultBody)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpListToolsResult", omitNothingFields = True} ''MCP.McpListToolsResult)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpTextContent", omitNothingFields = True} ''MCP.McpTextContent)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpCallToolResultBody", omitNothingFields = True} ''MCP.McpCallToolResultBody)
-$(deriveJSON defaultOptions {fieldLabelModifier = rdrop "McpCallToolResult", omitNothingFields = True} ''MCP.McpCallToolResult)
-
-
-
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "Response", omitNothingFields = True} ''DAP.Response)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ColumnDescriptor", omitNothingFields = True} ''DAP.ColumnDescriptor)
 $(deriveJSON defaultOptions {fieldLabelModifier = rdrop "ExceptionBreakpointsFilter", omitNothingFields = True} ''DAP.ExceptionBreakpointsFilter)
@@ -386,9 +334,6 @@ data Response =
   | StepInResponse DAP.StepInResponse
   | EvaluateResponse DAP.EvaluateResponse
   | CompletionsResponse DAP.CompletionsResponse
-  | McpInitializeResult MCP.McpInitializeResult
-  | McpListToolsResult MCP.McpListToolsResult
-  | McpCallToolResult MCP.McpCallToolResult
   deriving (Show, Read, Eq)
 
 $(deriveJSON defaultOptions{sumEncoding = UntaggedValue} ''Response)
@@ -474,7 +419,6 @@ data AppStores = AppStores {
   , _outHandleAppStores   :: S.Handle
   , _asyncsAppStores      :: [Async ()]
   , _stdioLogFileAppStores :: Maybe FilePath
-  , _isMcpAppStores          :: Bool
 
   -- Read/Write from Application
   , _appStateWAppStores   :: WrapAppState
